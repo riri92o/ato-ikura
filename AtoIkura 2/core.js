@@ -98,55 +98,13 @@
     return toDateKey(adjustWeekend(unadjusted, card.weekendAdjustment || "none"));
   }
 
-  function calculateScheduledPaymentDate(monthDateKey, card) {
-  const monthDate = parseDateKey(monthDateKey);
-  if (!monthDate || !card) return "";
-
-  const year = monthDate.getFullYear();
-  const monthIndex = monthDate.getMonth();
-  const paymentDay = clampDay(
-    year,
-    monthIndex,
-    Number(card.paymentDay) || 1
-  );
-
-  const unadjusted = new Date(
-    year,
-    monthIndex,
-    paymentDay,
-    12
-  );
-
-  return toDateKey(
-    adjustWeekend(
-      unadjusted,
-      card.weekendAdjustment || "none"
-    )
-  );
-}
-
   function getExpensePaymentDate(expense, cards) {
-  if (!expense || expense.paymentMethod !== CREDIT_PAYMENT) return "";
-
-  // 手動変更があれば最優先
-  if (parseDateKey(expense.paymentDateOverride)) {
-    return expense.paymentDateOverride;
-  }
-
-  // 登録時に保存した自動計算日
-  if (parseDateKey(expense.calculatedPaymentDate)) {
-    return expense.calculatedPaymentDate;
-  }
-
-  // カード設定から再計算
-  const card = (cards || []).find((item) => item.id === expense.cardId);
-
-  if (card) {
+    if (!expense || expense.paymentMethod !== CREDIT_PAYMENT) return "";
+    if (parseDateKey(expense.paymentDateOverride)) return expense.paymentDateOverride;
+    if (parseDateKey(expense.calculatedPaymentDate)) return expense.calculatedPaymentDate;
+    const card = (cards || []).find((item) => item.id === expense.cardId);
     return calculatePaymentDate(expense.date, card);
   }
-
-  return "";
-}
 
   function normalizeAmount(value) {
     const numeric = typeof value === "string" ? Number(value.replace(/[^0-9-]/g, "")) : Number(value);
@@ -267,7 +225,6 @@
     summarizeMonth,
     toDateKey,
     todayKey,
-    calculateScheduledPaymentDate,
   };
 
   global.AtoIkuraCore = api;

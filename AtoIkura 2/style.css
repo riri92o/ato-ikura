@@ -376,36 +376,6 @@ h3 {
   color: var(--card);
 }
 
-.day-amount.card-custom,
-.day-amount.usage-card {
-  border-left: 3px solid currentColor;
-}
-
-.day-amount.usage-card {
-  display: grid;
-  gap: 1px;
-  line-height: 1.15;
-}
-
-.usage-card-amount,
-.usage-card-name {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.usage-card-amount {
-  font-size: 0.67rem;
-}
-
-.usage-card-name {
-  font-size: 0.53rem;
-  font-weight: 700;
-  opacity: 0.9;
-}
-
 .day-amount.outflow {
   background: var(--outflow-soft);
   color: var(--outflow);
@@ -434,20 +404,6 @@ h3 {
 }
 
 .legend-dot.usage { background: var(--usage); }
-.legend-dot.usage-card {
-  background: rgba(139, 95, 191, 0.15);
-  border-left: 2px solid rgb(139, 95, 191);
-  border-radius: 0;
-  width: 6px;
-  height: 10px;
-}
-.legend-dot.card-withdrawal {
-  background: rgba(79, 157, 115, 0.15);
-  border-left: 2px solid rgb(79, 157, 115);
-  border-radius: 0;
-  width: 6px;
-  height: 10px;
-}
 .legend-dot.card { background: var(--card); }
 .legend-dot.outflow { background: var(--outflow); }
 
@@ -554,21 +510,6 @@ h3 {
   grid-column: 1 / -1;
 }
 
-.filter-panel label {
-  width: 100%;
-  min-width: 0;
-}
-
-#history-month {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  inline-size: 100%;
-  min-inline-size: 0;
-  max-inline-size: 100%;
-}
-
 label {
   display: grid;
   gap: 6px;
@@ -596,18 +537,9 @@ textarea {
 }
 
 .result-count {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
   padding: 13px 5px 6px;
   color: var(--text-muted);
   font-size: 0.75rem;
-}
-
-.result-count strong {
-  color: var(--text);
-  font-size: 0.9rem;
 }
 
 .record-list,

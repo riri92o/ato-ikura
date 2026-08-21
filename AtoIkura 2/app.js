@@ -4,7 +4,7 @@
   const Core = window.AtoIkuraCore;
   const APP = {
     name: "あといくら",
-    version: "1.0.4",
+    version: "1.0.1",
     storageKey: "ato-ikura-data-v1",
   };
 
@@ -123,6 +123,13 @@
         createdAt: String(item.createdAt || new Date().toISOString()),
         isSample: Boolean(item.isSample),
       }));
+
+    clean.expenses.forEach((expense) => {
+      if (expense.paymentMethod !== Core.CREDIT_PAYMENT || expense.paymentDateOverride) return;
+      const card = clean.cards.find((item) => item.id === expense.cardId);
+      const calculated = Core.calculatePaymentDate(expense.date, card);
+      if (calculated) expense.calculatedPaymentDate = calculated;
+    });
 
     const balance = input.settings.currentBalance;
     const reserve = input.settings.minimumReserve;
@@ -288,138 +295,27 @@
     const grid = $("calendar-grid");
     const monthDate = Core.parseDateKey(currentMonth);
     const start = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1 - monthDate.getDay(), 12);
-    
-    // 事前集計データの作成 (N+1問題の解消)
-    const directTotals = new Map();
-    const cardUsageTotals = new Map();
-    const cardWithdrawalTotals = new Map();
-
-    state.expenses.forEach((expense) => {
-      const amount = Core.normalizeAmount(expense.amount);
-      if (amount <= 0) return;
-
-      if (expense.paymentMethod !== Core.CREDIT_PAYMENT) {
-        directTotals.set(expense.date, (directTotals.get(expense.date) || 0) + amount);
-      } else {
-        const cardId = expense.cardId || "unselected";
-        if (!cardUsageTotals.has(expense.date)) {
-          cardUsageTotals.set(expense.date, new Map());
-        }
-        const cardMap = cardUsageTotals.get(expense.date);
-        cardMap.set(cardId, (cardMap.get(cardId) || 0) + amount);
-      }
-
-      if (expense.paymentMethod === Core.CREDIT_PAYMENT) {
-        const paymentDate = Core.getExpensePaymentDate(expense, state.cards);
-        if (paymentDate) {
-          const cardId = expense.cardId || "unselected";
-          if (!cardWithdrawalTotals.has(paymentDate)) {
-            cardWithdrawalTotals.set(paymentDate, new Map());
-          }
-          const cardMap = cardWithdrawalTotals.get(paymentDate);
-          cardMap.set(cardId, (cardMap.get(cardId) || 0) + amount);
-        }
-      }
-    });
-
-    state.manualPayments.forEach((payment) => {
-      const amount = Core.normalizeAmount(payment.amount);
-      if (amount <= 0 || !payment.date) return;
-      const cardId = payment.cardId || "unselected";
-      if (!cardWithdrawalTotals.has(payment.date)) {
-        cardWithdrawalTotals.set(payment.date, new Map());
-      }
-      const cardMap = cardWithdrawalTotals.get(payment.date);
-      cardMap.set(cardId, (cardMap.get(cardId) || 0) + amount);
-    });
-
     const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments);
     const today = Core.todayKey();
     const nodes = [];
 
     for (let index = 0; index < 42; index += 1) {
-      const cellDate = new Date(
-        start.getFullYear(),
-        start.getMonth(),
-        start.getDate() + index,
-        12
-      );
-
+      const cellDate = new Date(start.getFullYear(), start.getMonth(), start.getDate() + index, 12);
       const dateKey = Core.toDateKey(cellDate);
-
-      const totals = dailyTotals.get(dateKey) || {
-        usage: 0,
-        cardWithdrawal: 0,
-        outflow: 0
-      };
-
+      const totals = dailyTotals.get(dateKey) || { usage: 0, cardWithdrawal: 0, outflow: 0 };
       const button = createElement("button", "calendar-day");
       button.type = "button";
       button.dataset.date = dateKey;
-
       button.classList.toggle("is-outside", cellDate.getMonth() !== monthDate.getMonth());
       button.classList.toggle("is-today", dateKey === today);
       button.setAttribute("aria-label", buildCalendarAriaLabel(dateKey, totals));
-
-      button.append(
-        createElement("span", "day-number", String(cellDate.getDate()))
-      );
-
-      // 1. 利用額（現金など直接支払）の描画
-      const directAmount = directTotals.get(dateKey) || 0;
-      if (directAmount > 0) {
-        button.append(createElement("span", "day-amount usage", formatYen(directAmount)));
-      }
-
-      // 2. 利用額（クレジットカード）の描画
-      const cardUsage = cardUsageTotals.get(dateKey);
-      if (cardUsage) {
-        cardUsage.forEach((amount, cardId) => {
-          const card = state.cards.find((item) => item.id === cardId);
-          const cardName = card ? card.name : "カード未設定";
-          const cardColor = card ? card.color : "#8b5fbf";
-          const marker = createElement("span", "day-amount usage-card");
-          marker.style.color = cardColor;
-          marker.style.backgroundColor = colorWithAlpha(cardColor, 0.15);
-          marker.append(
-            createElement("strong", "usage-card-amount", formatYen(amount)),
-            createElement("small", "usage-card-name", cardName)
-          );
-          marker.title = `${cardName}で利用 ${formatYen(amount)}`;
-          marker.setAttribute("aria-label", `${cardName}で利用 ${formatYen(amount)}`);
-          button.append(marker);
-        });
-      }
-
-      // 3. 引き落とし額の描画 (0円の場合はスキップする)
-      const cardWithdrawal = cardWithdrawalTotals.get(dateKey);
-      if (cardWithdrawal) {
-        cardWithdrawal.forEach((amount, cardId) => {
-          if (amount <= 0) return; // 0円以下は表示しない
-          const card = state.cards.find((item) => item.id === cardId);
-          const cardColor = card ? card.color : "#8b5fbf";
-          const cardName = card ? card.name : "カード未設定";
-          const marker = createElement("span", "day-amount card card-custom", formatYen(amount));
-          marker.style.color = cardColor;
-          marker.style.backgroundColor = colorWithAlpha(cardColor, 0.15);
-          marker.title = `${cardName}の引き落とし`;
-          button.append(marker);
-        });
-      }
-
+      button.append(createElement("span", "day-number", String(cellDate.getDate())));
+      if (totals.usage > 0) button.append(createElement("span", "day-amount usage", formatYen(totals.usage)));
+      if (totals.cardWithdrawal > 0) button.append(createElement("span", "day-amount card", formatYen(totals.cardWithdrawal)));
       button.addEventListener("click", () => openExpenseDialog(dateKey));
       nodes.push(button);
     }
     grid.replaceChildren(...nodes);
-  }
-
-  function colorWithAlpha(hexColor, alpha) {
-    const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hexColor || "");
-    if (!match) return "rgba(139, 95, 191, 0.15)";
-    const red = Number.parseInt(match[1], 16);
-    const green = Number.parseInt(match[2], 16);
-    const blue = Number.parseInt(match[3], 16);
-    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
   }
 
   function buildCalendarAriaLabel(dateKey, totals) {
@@ -486,12 +382,7 @@
       .filter((expense) => !payment || expense.paymentMethod === payment)
       .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
 
-    const filteredTotal = items.reduce((total, expense) => total + Core.normalizeAmount(expense.amount), 0);
-    const resultCount = $("history-result-count");
-    resultCount.replaceChildren(
-      createElement("span", "", `${items.length}件`),
-      createElement("strong", "", `合計 ${formatYen(filteredTotal)}`)
-    );
+    $("history-result-count").textContent = `${items.length}件`;
     const list = $("history-list");
     if (!items.length) {
       list.replaceChildren(emptyState("該当する支出はありません", "条件を変えるか、右下の＋から登録できます。"));
@@ -669,8 +560,6 @@
 
     const id = $("expense-id").value;
     const existing = state.expenses.find((item) => item.id === id);
-    const card = state.cards.find((item) => item.id === cardId);
-    const calculatedPaymentDate = paymentMethod === Core.CREDIT_PAYMENT ? Core.calculatePaymentDate(date, card) : "";
     const record = {
       id: existing ? existing.id : uid("exp"),
       amount,
@@ -679,7 +568,9 @@
       paymentMethod,
       cardId,
       paymentDateOverride: paymentMethod === Core.CREDIT_PAYMENT ? override : "",
-      calculatedPaymentDate,
+      calculatedPaymentDate: paymentMethod === Core.CREDIT_PAYMENT
+        ? Core.calculatePaymentDate(date, state.cards.find((card) => card.id === cardId))
+        : "",
       memo: $("expense-memo").value.trim().slice(0, 200),
       createdAt: existing ? existing.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -748,6 +639,10 @@
     };
     if (existing) Object.assign(existing, record);
     else state.cards.push(record);
+    state.expenses.forEach((expense) => {
+      if (expense.cardId !== record.id || expense.paymentMethod !== Core.CREDIT_PAYMENT || expense.paymentDateOverride) return;
+      expense.calculatedPaymentDate = Core.calculatePaymentDate(expense.date, record);
+    });
     saveState();
     closeDialog($("card-dialog"));
     renderAll();
@@ -932,14 +827,14 @@
         isSample: true,
       },
     ];
-    const sampleExpenses = [
-      sampleExpense(980, Core.addDays(today, -2), "食費", "現金", null, "ランチ"),
-      sampleExpense(2450, Core.addDays(today, -1), "日用品", "デビットカード", null, "ドラッグストア"),
-      sampleExpense(6800, today, "娯楽", Core.CREDIT_PAYMENT, sampleCards[0], "チケット"),
-      sampleExpense(12800, Core.addDays(today, 2), "衣服", Core.CREDIT_PAYMENT, sampleCards[1], "買い物"),
-      sampleExpense(520, Core.addDays(today, 3), "交通", "QR・電子マネー", null, "電車"),
-    ];
     state.cards.push(...sampleCards);
+    const sampleExpenses = [
+      sampleExpense(980, Core.addDays(today, -2), "食費", "現金", "", "ランチ"),
+      sampleExpense(2450, Core.addDays(today, -1), "日用品", "デビットカード", "", "ドラッグストア"),
+      sampleExpense(6800, today, "娯楽", Core.CREDIT_PAYMENT, mainCardId, "チケット"),
+      sampleExpense(12800, Core.addDays(today, 2), "衣服", Core.CREDIT_PAYMENT, subCardId, "買い物"),
+      sampleExpense(520, Core.addDays(today, 3), "交通", "QR・電子マネー", "", "電車"),
+    ];
     state.expenses.push(...sampleExpenses);
     state.manualPayments.push({
       id: uid("manual"),
@@ -956,18 +851,19 @@
     showToast("サンプルデータを追加しました。");
   }
 
-  function sampleExpense(amount, date, category, paymentMethod, card, memo) {
+  function sampleExpense(amount, date, category, paymentMethod, cardId, memo) {
     const timestamp = new Date().toISOString();
-    const calculatedPaymentDate = (paymentMethod === Core.CREDIT_PAYMENT && card) ? Core.calculatePaymentDate(date, card) : "";
     return {
       id: uid("exp"),
       amount,
       date,
       category,
       paymentMethod,
-      cardId: card ? card.id : "",
+      cardId,
       paymentDateOverride: "",
-      calculatedPaymentDate,
+      calculatedPaymentDate: paymentMethod === Core.CREDIT_PAYMENT
+        ? Core.calculatePaymentDate(date, state.cards.find((card) => card.id === cardId))
+        : "",
       memo,
       createdAt: timestamp,
       updatedAt: timestamp,

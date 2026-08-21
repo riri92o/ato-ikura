@@ -45,6 +45,16 @@ assert.equal(daily.get("2026-08-20").usage, 1000);
 assert.equal(daily.get("2026-08-20").outflow, 0);
 assert.equal(daily.get("2026-09-27").cardWithdrawal, 1000);
 
+// 自動計算済みの支払日は、カード設定を読み直せない場合でも保持される。
+daily = Core.buildDailyTotals([
+  expense({
+    paymentMethod: Core.CREDIT_PAYMENT,
+    cardId: "missing-card",
+    calculatedPaymentDate: "2026-09-27",
+  }),
+], [], []);
+assert.equal(daily.get("2026-09-27").cardWithdrawal, 1000);
+
 // 4. 複数カードは別々の支払日に集計される。
 daily = Core.buildDailyTotals([
   expense({ id: "a", paymentMethod: Core.CREDIT_PAYMENT, cardId: monthEndCard.id }),
@@ -73,9 +83,6 @@ assert.equal(Core.calculatePaymentDate("2026-08-01", weekendCard), "2026-09-28")
 
 // 個別の手動支払日を優先する。
 assert.equal(Core.getExpensePaymentDate(expense({ paymentMethod: Core.CREDIT_PAYMENT, cardId: monthEndCard.id, paymentDateOverride: "2026-09-25" }), [monthEndCard]), "2026-09-25");
-
-// 登録時に保存した自動計算日を優先する。
-assert.equal(Core.getExpensePaymentDate(expense({ paymentMethod: Core.CREDIT_PAYMENT, cardId: monthEndCard.id, calculatedPaymentDate: "2026-09-26" }), [monthEndCard]), "2026-09-26");
 
 // 8. 編集・削除に相当する配列変更後、合計が再計算される。
 let items = [expense({ amount: 1000 }), expense({ id: "two", amount: 500 })];
