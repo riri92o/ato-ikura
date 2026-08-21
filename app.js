@@ -279,6 +279,7 @@
     $("calendar-title").textContent = `${monthDate.getFullYear()}年${monthDate.getMonth() + 1}月`;
     $("month-picker").value = currentMonth.slice(0, 7);
     renderCalendar();
+    renderCalendarLegend();
     renderMonthlySummary();
     renderBalance();
     renderCategorySummary();
@@ -420,6 +421,30 @@
     const green = Number.parseInt(match[2], 16);
     const blue = Number.parseInt(match[3], 16);
     return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+  }
+
+  function renderCalendarLegend() {
+    const legend = $("calendar-legend");
+    if (!legend) return;
+
+    const nodes = [];
+
+    // 1. 現金・デビット等の「利用」凡例
+    const cashSpan = createElement("span");
+    const cashDot = createElement("i", "legend-dot usage");
+    cashSpan.append(cashDot, document.createTextNode("利用（現金・デビットなど）"));
+    nodes.push(cashSpan);
+
+    // 2. 登録カードの動的凡例（丸 ＋ カード名）
+    state.cards.forEach((card) => {
+      const cardSpan = createElement("span");
+      const cardDot = createElement("i", "legend-dot");
+      cardDot.style.backgroundColor = card.color;
+      cardSpan.append(cardDot, document.createTextNode(card.name));
+      nodes.push(cardSpan);
+    });
+
+    legend.replaceChildren(...nodes);
   }
 
   function buildCalendarAriaLabel(dateKey, totals) {

@@ -542,7 +542,7 @@ h3 {
 
 .filter-panel {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
   padding: 14px;
   border: 1px solid var(--border);
@@ -564,9 +564,9 @@ h3 {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  inline-size: 100%;
-  min-inline-size: 0;
-  max-inline-size: 100%;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 label {
