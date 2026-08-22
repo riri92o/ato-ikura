@@ -24,8 +24,11 @@
 
   let state = loadState();
   let currentMonth = firstOfMonth(Core.todayKey());
+  let reportMonth = firstOfMonth(Core.todayKey());
   let currentView = "calendar";
   let toastTimer = null;
+  let categoryChartInstance = null;
+  let trendChartInstance = null;
 
   const $ = (id) => document.getElementById(id);
 
@@ -184,6 +187,21 @@
       }
     });
 
+    $("report-prev-month").addEventListener("click", () => moveReportMonth(-1));
+    $("report-next-month").addEventListener("click", () => moveReportMonth(1));
+    $("report-month-picker-button").addEventListener("click", () => {
+      const picker = $("report-month-picker");
+      picker.value = reportMonth.slice(0, 7);
+      if (typeof picker.showPicker === "function") picker.showPicker();
+      else picker.click();
+    });
+    $("report-month-picker").addEventListener("change", (event) => {
+      if (/^\d{4}-\d{2}$/.test(event.target.value)) {
+        reportMonth = `${event.target.value}-01`;
+        renderReport();
+      }
+    });
+
     document.querySelectorAll(".nav-item").forEach((button) => {
       button.addEventListener("click", () => switchView(button.dataset.view));
     });
@@ -251,7 +269,7 @@
   }
 
   function switchView(view) {
-    if (!["calendar", "history", "cards", "settings"].includes(view)) return;
+    if (!["calendar", "history", "report", "cards", "settings"].includes(view)) return;
     currentView = view;
     document.querySelectorAll(".view").forEach((section) => section.classList.toggle("is-active", section.id === `view-${view}`));
     document.querySelectorAll(".nav-item").forEach((button) => {
@@ -262,6 +280,7 @@
     });
     $("today-button").classList.toggle("is-hidden", view !== "calendar");
     if (view === "history") renderHistory();
+    if (view === "report") renderReport();
     if (view === "cards") renderCards();
     if (view === "settings") renderSettings();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -270,6 +289,7 @@
   function renderAll() {
     renderCalendarView();
     renderHistory();
+    if (currentView === "report") renderReport();
     renderCards();
     renderSettings();
   }
@@ -1117,6 +1137,204 @@
     if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+
+  function moveReportMonth(amount) {
+    const date = Core.parseDateKey(reportMonth);
+    date.setMonth(date.getMonth() + amount, 1);
+    reportMonth = Core.toDateKey(date);
+    renderReport();
+  }
+
+  const CATEGORY_COLORS = {
+    食費: "#ff8b94",
+    日用品: "#ffaaa6",
+    交通: "#ffd3b6",
+    娯楽: "#dcedc1",
+    旅行: "#a8e6cf",
+    衣服: "#b8d8d8",
+    医療: "#7a9cc6",
+    固定費: "#b48aeb",
+    その他: "#d5d5d5",
+  };
+
+  function renderReport() {
+    const monthDate = Core.parseDateKey(reportMonth);
+    $("report-month-title").textContent = `${monthDate.getFullYear()}年${monthDate.getMonth() + 1}月`;
+    $("report-month-picker").value = reportMonth.slice(0, 7);
+
+    // テーマに応じてフォントや枠線の色を動的に取得
+    const styles = getComputedStyle(document.documentElement);
+    const textColor = styles.getPropertyValue("--text").trim() || "#17231c";
+    const textMutedColor = styles.getPropertyValue("--text-muted").trim() || "#68756d";
+    const borderColor = styles.getPropertyValue("--border").trim() || "#dce6df";
+    const usageColor = styles.getPropertyValue("--usage").trim() || "#3478b8";
+    const outflowColor = styles.getPropertyValue("--outflow").trim() || "#d27b32";
+
+    renderCategoryDoughnutChart(textColor, textMutedColor);
+    renderMonthlyTrendChart(textColor, textMutedColor, borderColor, usageColor, outflowColor);
+  }
+
+  function renderCategoryDoughnutChart(textColor, textMutedColor) {
+    const monthKey = reportMonth.slice(0, 7);
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments);
+    const entries = Object.entries(summary.categories).sort((a, b) => b[1] - a[1]);
+    const legendContainer = $("category-chart-legend");
+
+    if (!entries.length) {
+      if (categoryChartInstance) {
+        categoryChartInstance.destroy();
+        categoryChartInstance = null;
+      }
+      legendContainer.replaceChildren(emptyState("この月の支出はまだありません", "円グラフを表示するには支出を登録してください。"));
+      return;
+    }
+
+    const labels = entries.map(([category]) => category);
+    const data = entries.map(([, amount]) => amount);
+    const colors = labels.map((cat) => CATEGORY_COLORS[cat] || "#d5d5d5");
+    const total = data.reduce((sum, val) => sum + val, 0);
+
+    const legendNodes = entries.map(([category, amount]) => {
+      const percentage = total > 0 ? Math.round((amount / total) * 100) : 0;
+      const item = createElement("div", "chart-legend-item");
+      const colorNode = createElement("i", "chart-legend-color");
+      colorNode.style.backgroundColor = CATEGORY_COLORS[category] || "#d5d5d5";
+      item.append(colorNode, document.createTextNode(`${category} (${percentage}%)`));
+      const valNode = createElement("strong", "", formatYen(amount));
+      item.append(valNode);
+      return item;
+    });
+    legendContainer.replaceChildren(...legendNodes);
+
+    const ctx = $("category-chart").getContext("2d");
+    if (categoryChartInstance) {
+      categoryChartInstance.destroy();
+    }
+
+    categoryChartInstance = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: colors,
+          borderWidth: 2,
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue("--surface").trim() || "#fff",
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                const value = context.raw;
+                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                return ` ${context.label}: ${formatYen(value)} (${percentage}%)`;
+              }
+            }
+          }
+        },
+        cutout: "60%"
+      }
+    });
+  }
+
+  function renderMonthlyTrendChart(textColor, textMutedColor, borderColor, usageColor, outflowColor) {
+    const monthDate = Core.parseDateKey(reportMonth);
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(monthDate.getFullYear(), monthDate.getMonth() - i, 1, 12);
+      months.push(Core.toDateKey(date).slice(0, 7));
+    }
+
+    const usageData = [];
+    const outflowData = [];
+
+    months.forEach((monthKey) => {
+      const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments);
+      usageData.push(summary.usage);
+      outflowData.push(summary.outflow);
+    });
+
+    const labels = months.map((m) => {
+      const parts = m.split("-");
+      return `${Number(parts[1])}月`;
+    });
+
+    const ctx = $("monthly-trend-chart").getContext("2d");
+    if (trendChartInstance) {
+      trendChartInstance.destroy();
+    }
+
+    trendChartInstance = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "利用額",
+            data: usageData,
+            backgroundColor: usageColor,
+            borderRadius: 6,
+          },
+          {
+            label: "口座引落・出金",
+            data: outflowData,
+            backgroundColor: outflowColor,
+            borderRadius: 6,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              color: textColor,
+              font: {
+                size: 11
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                return ` ${context.dataset.label}: ${formatYen(context.raw)}`;
+               }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: textMutedColor
+            }
+          },
+          y: {
+            grid: {
+              color: borderColor
+            },
+            ticks: {
+              color: textMutedColor,
+              callback: function (value) {
+                return value >= 10000 ? `${value / 10000}万円` : `${value}円`;
+              }
+            }
+          }
+        }
+      }
     });
   }
 })();

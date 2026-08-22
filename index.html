@@ -90,6 +90,33 @@
           <div id="history-list" class="record-list"></div>
         </section>
 
+        <section id="view-report" class="view" aria-labelledby="report-title">
+          <div class="page-heading"><p class="section-kicker">支出の分析</p><h2 id="report-title">レポート</h2></div>
+          <div class="month-toolbar">
+            <button id="report-prev-month" class="icon-button" type="button" aria-label="先月">◀</button>
+            <button id="report-month-picker-button" class="month-heading" type="button">
+              <span id="report-month-title">—</span> ▾
+            </button>
+            <input id="report-month-picker" class="is-hidden" type="month" />
+            <button id="report-next-month" class="icon-button" type="button" aria-label="翌月">▶</button>
+          </div>
+          <div class="report-container">
+            <section class="chart-card">
+              <h3>カテゴリ別支出割合</h3>
+              <div class="chart-wrapper">
+                <canvas id="category-chart"></canvas>
+              </div>
+              <div id="category-chart-legend" class="chart-custom-legend"></div>
+            </section>
+            <section class="chart-card">
+              <h3>月別支出推移（直近6ヶ月）</h3>
+              <div class="chart-wrapper">
+                <canvas id="monthly-trend-chart"></canvas>
+              </div>
+            </section>
+          </div>
+        </section>
+
         <section id="view-cards" class="view" aria-labelledby="cards-title">
           <div class="page-heading-row">
             <div class="page-heading"><p class="section-kicker">引き落とし日を自動計算</p><h2 id="cards-title">クレジットカード</h2></div>
@@ -157,6 +184,7 @@
       <nav class="bottom-nav" aria-label="メインメニュー">
         <button class="nav-item is-active" type="button" data-view="calendar" aria-current="page"><span aria-hidden="true">▦</span><small>カレンダー</small></button>
         <button class="nav-item" type="button" data-view="history"><span aria-hidden="true">≡</span><small>履歴</small></button>
+        <button class="nav-item" type="button" data-view="report"><span aria-hidden="true">📊</span><small>レポート</small></button>
         <button class="nav-item" type="button" data-view="cards"><span aria-hidden="true">▭</span><small>カード</small></button>
         <button class="nav-item" type="button" data-view="settings"><span aria-hidden="true">⚙</span><small>設定</small></button>
       </nav>
@@ -272,6 +300,7 @@
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="core.js"></script>
     <script src="app.js"></script>
   </body>
