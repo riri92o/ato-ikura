@@ -224,7 +224,6 @@ h3 {
   background: linear-gradient(135deg, var(--surface) 10%, var(--accent-soft) 125%);
 }
 
-.summary-primary p,
 .summary-grid span,
 .balance-grid span {
   display: block;
@@ -233,10 +232,19 @@ h3 {
   font-size: 0.75rem;
 }
 
+.summary-primary p {
+  display: block;
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .summary-primary strong {
   display: block;
   color: var(--text);
   font-size: clamp(1.75rem, 8vw, 2.35rem);
+  font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.05em;
 }
