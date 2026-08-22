@@ -1253,3 +1253,33 @@ dialog {
   margin-left: auto;
   color: var(--text);
 }
+
+/* --- アコーディオン（過去の引き落とし履歴） --- */
+.past-payments-details {
+  margin-top: 10px;
+  border-top: 1px dashed var(--border);
+  padding-top: 8px;
+}
+
+.past-payments-details summary {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  padding: 4px 0;
+  display: list-item;
+}
+
+.past-payments-details summary:hover {
+  color: var(--text);
+}
+
+.manual-payment-list.past-list {
+  margin-top: 6px;
+}
+
+.past-row {
+  opacity: 0.65;
+}

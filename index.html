@@ -268,7 +268,7 @@
     <dialog id="manual-payment-dialog" class="app-dialog app-dialog-small">
       <form id="manual-payment-form" method="dialog" novalidate>
         <div class="dialog-header">
-          <div><p class="section-kicker">初回の確定額にも使えます</p><h2>確定済みの引落を追加</h2></div>
+          <div><p class="section-kicker">手動で引き落とし予定を入力</p><h2 id="manual-payment-dialog-title">引き落とし額を追加</h2></div>
           <button class="dialog-close icon-button" type="button" data-close-dialog="manual-payment-dialog" aria-label="閉じる">×</button>
         </div>
         <input id="manual-payment-id" type="hidden" />
@@ -276,7 +276,7 @@
         <div class="form-grid">
           <label class="field-large">金額<span class="required">必須</span><div class="money-input"><span>¥</span><input id="manual-payment-amount" type="text" inputmode="numeric" placeholder="0" required /></div></label>
           <label>引落日<span class="required">必須</span><input id="manual-payment-date" type="date" required /></label>
-          <label class="full-span">メモ<textarea id="manual-payment-memo" rows="2" maxlength="200" placeholder="例：移行前の利用分"></textarea></label>
+          <label class="full-span">メモ<textarea id="manual-payment-memo" rows="2" maxlength="200" placeholder="例：移行前の引き落とし分"></textarea></label>
         </div>
         <div class="dialog-actions">
           <button id="delete-manual-payment-button" class="button button-danger is-hidden" type="button">削除</button>

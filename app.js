@@ -586,21 +586,50 @@
       .filter((item) => item.cardId === card.id)
       .sort((a, b) => a.date.localeCompare(b.date));
     if (manualForCard.length) {
-      const manualList = createElement("div", "manual-payment-list");
-      manualForCard.forEach((payment) => {
-        const row = createElement("div", "manual-payment-row");
-        row.append(createElement("span", "", `${formatShortDate(payment.date)} 確定額 ${formatYen(payment.amount)}`));
-        const edit = createElement("button", "", "編集");
-        edit.type = "button";
-        edit.addEventListener("click", () => openManualPaymentDialog(card.id, payment.id));
-        row.append(edit);
-        manualList.append(row);
-      });
-      article.append(manualList);
+      const today = Core.todayKey();
+      const upcomingPayments = manualForCard.filter((p) => p.date >= today);
+      const pastPayments = manualForCard.filter((p) => p.date < today);
+
+      const container = createElement("div", "manual-payment-container");
+
+      if (upcomingPayments.length) {
+        const upcomingList = createElement("div", "manual-payment-list");
+        upcomingPayments.forEach((payment) => {
+          const row = createElement("div", "manual-payment-row");
+          row.append(createElement("span", "", `${formatShortDate(payment.date)} 引き落とし予定 ${formatYen(payment.amount)}`));
+          const edit = createElement("button", "", "編集");
+          edit.type = "button";
+          edit.addEventListener("click", () => openManualPaymentDialog(card.id, payment.id));
+          row.append(edit);
+          upcomingList.append(row);
+        });
+        container.append(upcomingList);
+      }
+
+      if (pastPayments.length) {
+        const details = createElement("details", "past-payments-details");
+        const summary = createElement("summary", "", `過去の引き落とし (${pastPayments.length}件)`);
+        details.append(summary);
+
+        const pastList = createElement("div", "manual-payment-list past-list");
+        pastPayments.forEach((payment) => {
+          const row = createElement("div", "manual-payment-row past-row");
+          row.append(createElement("span", "", `${formatShortDate(payment.date)} 支払済 ${formatYen(payment.amount)}`));
+          const edit = createElement("button", "", "編集");
+          edit.type = "button";
+          edit.addEventListener("click", () => openManualPaymentDialog(card.id, payment.id));
+          row.append(edit);
+          pastList.append(row);
+        });
+        details.append(pastList);
+        container.append(details);
+      }
+
+      article.append(container);
     }
 
     const actions = createElement("div", "card-actions");
-    const paymentButton = createElement("button", "small-button", "確定額を追加");
+    const paymentButton = createElement("button", "small-button", "引き落とし予定を追加");
     paymentButton.type = "button";
     paymentButton.addEventListener("click", () => openManualPaymentDialog(card.id));
     const editButton = createElement("button", "small-button", "設定を編集");
@@ -826,6 +855,7 @@
     $("manual-payment-amount").value = payment ? formatNumber(payment.amount) : "";
     $("manual-payment-date").value = payment ? payment.date : Core.todayKey();
     $("manual-payment-memo").value = payment ? payment.memo : "";
+    $("manual-payment-dialog-title").textContent = payment ? "引き落とし額を編集" : "引き落とし額を追加";
     $("delete-manual-payment-button").classList.toggle("is-hidden", !payment);
     showDialog($("manual-payment-dialog"));
   }
