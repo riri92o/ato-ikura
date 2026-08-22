@@ -1,18 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="あといくら">
   <!-- 背景 -->
-  <rect width="512" height="512" rx="118" fill="#dff4e7"/>
-  <!-- 飛び出るコイン（ゴールド） -->
-  <circle cx="210" cy="180" r="50" fill="#fcd34d" stroke="#f59e0b" stroke-width="10"/>
-  <text x="210" y="200" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="65" font-weight="900" fill="#d97706" text-anchor="middle">¥</text>
-  <!-- 飛び出るお札（グリーン） -->
-  <rect x="240" y="120" width="130" height="90" rx="12" fill="#86efac" stroke="#10b981" stroke-width="10" transform="rotate(15 305 165)"/>
-  <circle cx="305" cy="165" r="20" fill="#10b981" transform="rotate(15 305 165)"/>
-  <!-- 財布本体 -->
-  <rect x="100" y="200" width="312" height="220" rx="30" fill="#4f9d73" stroke="#2f7552" stroke-width="12"/>
-  <!-- 財布の口（上部折り返し部分） -->
-  <path d="M100 230c0-15 15-30 30-30h252c15 0 30 15 30 30v20H100z" fill="#3b7a57" stroke="#2f7552" stroke-width="12"/>
-  <!-- フラップ（留め具） -->
-  <rect x="310" y="270" width="110" height="60" rx="15" fill="#fcd34d" stroke="#d97706" stroke-width="10"/>
-  <!-- フラップのボタン（ゴールド） -->
-  <circle cx="345" cy="300" r="12" fill="#d97706"/>
+  <rect width="512" height="512" rx="118" fill="#e2f5ea"/>
+  
+  <!-- 財布の後ろ半分 -->
+  <rect x="110" y="115" width="280" height="270" rx="35" fill="#1b4d32" stroke="#133c27" stroke-width="14"/>
+  
+  <!-- 財布から覗く紙幣 -->
+  <rect x="145" y="140" width="210" height="35" rx="8" fill="#f7f7f7"/>
+  <rect x="145" y="162" width="210" height="10" rx="4" fill="#f7f7f7"/>
+
+  <!-- 財布の手前半分 -->
+  <rect x="106" y="170" width="290" height="220" rx="35" fill="#2d7a54" stroke="#133c27" stroke-width="14"/>
+  
+  <!-- 留め具（フラップ） -->
+  <path d="M380 250h30c17 0 30 13 30 30v10c0 17-13 30-30 30h-30z" fill="#2d7a54" stroke="#133c27" stroke-width="14"/>
+  
+  <!-- ボタン -->
+  <circle cx="410" cy="285" r="14" fill="#ffffff" stroke="#133c27" stroke-width="8"/>
 </svg>
