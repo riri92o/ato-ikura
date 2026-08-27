@@ -4,9 +4,20 @@
   const Core = window.AtoIkuraCore;
   const APP = {
     name: "あといくら",
-    version: "1.0.3",
+    version: "1.0.6",
     storageKey: "ato-ikura-data-v1",
   };
+
+  const THEME_PRESETS = [
+    { name: "フォレスト（標準）", color1: "#185a37", color2: "#388f5f" },
+    { name: "サクラ・ローズ", color1: "#a83260", color2: "#e06287" },
+    { name: "ラベンダー・ベリー", color1: "#5c3a92", color2: "#9b62c4" },
+    { name: "ミント・アクア", color1: "#1b6b66", color2: "#3cb5ab" },
+    { name: "ピーチ・コーラル", color1: "#b84e2a", color2: "#e88554" },
+    { name: "ディープ・オーシャン", color1: "#173e6e", color2: "#2b6cb0" },
+    { name: "サンセット・ワイン", color1: "#802548", color2: "#c45039" },
+    { name: "ミッドナイト・シック", color1: "#242c38", color2: "#445164" },
+  ];
 
   const CATEGORIES = ["食費", "日用品", "交通", "娯楽", "旅行", "衣服", "医療", "固定費", "その他"];
   const PAYMENT_METHODS = ["現金", "クレジットカード", "デビットカード", "QR・電子マネー", "口座引き落とし", "その他"];
@@ -53,6 +64,8 @@
         currentBalance: null,
         minimumReserve: null,
         theme: "auto",
+        themeColor1: "#185a37",
+        themeColor2: "#388f5f",
       },
       updatedAt: new Date().toISOString(),
     };
@@ -136,6 +149,8 @@
     clean.settings.currentBalance = balance === null || balance === "" || !Number.isFinite(Number(balance)) ? null : Core.normalizeAmount(balance);
     clean.settings.minimumReserve = reserve === null || reserve === "" || !Number.isFinite(Number(reserve)) ? null : Core.normalizeAmount(reserve);
     clean.settings.theme = ["auto", "light", "dark"].includes(input.settings.theme) ? input.settings.theme : "auto";
+    clean.settings.themeColor1 = /^#[0-9a-f]{6}$/i.test(input.settings.themeColor1 || "") ? input.settings.themeColor1 : "#185a37";
+    clean.settings.themeColor2 = /^#[0-9a-f]{6}$/i.test(input.settings.themeColor2 || "") ? input.settings.themeColor2 : "#388f5f";
     clean.updatedAt = String(input.updatedAt || new Date().toISOString());
     return clean;
   }
@@ -232,6 +247,22 @@
 
     $("save-balance-settings").addEventListener("click", saveBalanceSettings);
     $("theme-select").addEventListener("change", saveTheme);
+    $("theme-color-1").addEventListener("input", (e) => {
+      state.settings.themeColor1 = e.target.value;
+      applyThemeColors();
+    });
+    $("theme-color-1").addEventListener("change", () => {
+      saveState();
+      showToast("カラー1（開始色）を保存しました。");
+    });
+    $("theme-color-2").addEventListener("input", (e) => {
+      state.settings.themeColor2 = e.target.value;
+      applyThemeColors();
+    });
+    $("theme-color-2").addEventListener("change", () => {
+      saveState();
+      showToast("カラー2（終了色）を保存しました。");
+    });
     $("export-button").addEventListener("click", exportData);
     $("import-button").addEventListener("click", () => $("import-file").click());
     $("import-file").addEventListener("change", importData);
@@ -507,6 +538,8 @@
     $("setting-balance").value = state.settings.currentBalance === null ? "" : formatNumber(state.settings.currentBalance);
     $("setting-reserve").value = state.settings.minimumReserve === null ? "" : formatNumber(state.settings.minimumReserve);
     $("theme-select").value = state.settings.theme;
+    renderPresetPalette();
+    applyThemeColors();
   }
 
   function openExpenseDialog(dateKey, expenseId = "") {
@@ -783,6 +816,74 @@
     const theme = state.settings.theme || "auto";
     if (theme === "auto") document.documentElement.removeAttribute("data-theme");
     else document.documentElement.setAttribute("data-theme", theme);
+    applyThemeColors();
+  }
+
+  function applyThemeColors() {
+    const color1 = state.settings.themeColor1 || "#185a37";
+    const color2 = state.settings.themeColor2 || "#388f5f";
+
+    document.documentElement.style.setProperty("--theme-color-1", color1);
+    document.documentElement.style.setProperty("--theme-color-2", color2);
+
+    const val1 = $("theme-color-1-val");
+    const val2 = $("theme-color-2-val");
+    if (val1) val1.textContent = color1.toUpperCase();
+    if (val2) val2.textContent = color2.toUpperCase();
+
+    const input1 = $("theme-color-1");
+    const input2 = $("theme-color-2");
+    if (input1 && input1.value.toLowerCase() !== color1.toLowerCase()) input1.value = color1;
+    if (input2 && input2.value.toLowerCase() !== color2.toLowerCase()) input2.value = color2;
+
+    const preview = $("theme-preview-bar");
+    if (preview) {
+      preview.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
+    }
+
+    updatePresetButtons();
+  }
+
+  function updatePresetButtons() {
+    const c1 = (state.settings.themeColor1 || "").toLowerCase();
+    const c2 = (state.settings.themeColor2 || "").toLowerCase();
+    document.querySelectorAll(".preset-button").forEach((button) => {
+      const p1 = (button.dataset.color1 || "").toLowerCase();
+      const p2 = (button.dataset.color2 || "").toLowerCase();
+      button.classList.toggle("is-active", p1 === c1 && p2 === c2);
+    });
+  }
+
+  function renderPresetPalette() {
+    const grid = $("preset-palette-grid");
+    if (!grid || grid.children.length > 0) return;
+
+    THEME_PRESETS.forEach((preset) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "preset-button";
+      button.dataset.color1 = preset.color1;
+      button.dataset.color2 = preset.color2;
+
+      const swatch = document.createElement("span");
+      swatch.className = "preset-swatch";
+      swatch.style.background = `linear-gradient(135deg, ${preset.color1} 0%, ${preset.color2} 100%)`;
+
+      const label = document.createElement("span");
+      label.textContent = preset.name;
+
+      button.append(swatch, label);
+      button.addEventListener("click", () => {
+        state.settings.themeColor1 = preset.color1;
+        state.settings.themeColor2 = preset.color2;
+        saveState();
+        applyThemeColors();
+        showToast(`テーマ色を「${preset.name}」に変更しました。`);
+      });
+      grid.append(button);
+    });
+
+    updatePresetButtons();
   }
 
   function exportData() {
@@ -938,9 +1039,14 @@
     const second = await confirmAction("最終確認", "本当にすべて削除しますか？バックアップが必要なら、いったんキャンセルしてください。", "完全に削除");
     if (!second) return;
     const preservedTheme = state.settings.theme;
+    const preservedColor1 = state.settings.themeColor1;
+    const preservedColor2 = state.settings.themeColor2;
     state = defaultState();
     state.settings.theme = preservedTheme;
+    state.settings.themeColor1 = preservedColor1;
+    state.settings.themeColor2 = preservedColor2;
     saveState();
+    applyTheme();
     renderAll();
     showToast("すべてのデータを削除しました。");
   }

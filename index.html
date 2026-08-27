@@ -115,14 +115,46 @@
           </section>
 
           <section class="settings-card">
-            <h3>表示</h3>
-            <label>テーマ
+            <h3>表示・テーマ</h3>
+            <label>モード
               <select id="theme-select">
                 <option value="auto">端末の設定に合わせる</option>
                 <option value="light">ライト</option>
                 <option value="dark">ダーク</option>
               </select>
             </label>
+
+            <div class="theme-color-section">
+              <span class="color-setting-title">テーマカラー（2色のグラデーション）</span>
+              <p class="settings-description">「この月に使った合計」の大枠やアプリのアクセント色に反映されます。</p>
+
+              <div class="theme-color-pickers">
+                <label class="color-picker-item" for="theme-color-1">
+                  <span class="color-label">カラー1（開始色）</span>
+                  <div class="color-input-wrapper">
+                    <input id="theme-color-1" type="color" value="#185a37" />
+                    <span id="theme-color-1-val" class="color-hex">#185A37</span>
+                  </div>
+                </label>
+                <div class="color-picker-arrow" aria-hidden="true">→</div>
+                <label class="color-picker-item" for="theme-color-2">
+                  <span class="color-label">カラー2（終了色）</span>
+                  <div class="color-input-wrapper">
+                    <input id="theme-color-2" type="color" value="#388f5f" />
+                    <span id="theme-color-2-val" class="color-hex">#388F5F</span>
+                  </div>
+                </label>
+              </div>
+
+              <div id="theme-preview-bar" class="theme-preview-bar">
+                <span>グラデーション プレビュー</span>
+              </div>
+
+              <div class="preset-section">
+                <span class="preset-title">おすすめ・かわいい配色パレット</span>
+                <div class="preset-grid" id="preset-palette-grid"></div>
+              </div>
+            </div>
           </section>
 
           <section class="settings-card">

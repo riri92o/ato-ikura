@@ -1,5 +1,7 @@
 :root {
   color-scheme: light;
+  --theme-color-1: #185a37;
+  --theme-color-2: #388f5f;
   --bg: #f6faf7;
   --surface: #ffffff;
   --surface-soft: #edf7f0;
@@ -7,9 +9,9 @@
   --text: #17231c;
   --text-muted: #68756d;
   --border: #dce6df;
-  --accent: #4f9d73;
-  --accent-dark: #2f7552;
-  --accent-soft: #dff4e7;
+  --accent: var(--theme-color-1);
+  --accent-dark: color-mix(in srgb, var(--theme-color-1) 80%, black);
+  --accent-soft: color-mix(in srgb, var(--theme-color-1) 12%, #ffffff);
   --usage: #3478b8;
   --usage-soft: #e7f2fb;
   --card: #8b5fbf;
@@ -18,8 +20,8 @@
   --outflow-soft: #fff0df;
   --danger: #c44747;
   --danger-soft: #fdeaea;
-  --shadow: 0 10px 28px rgba(31, 65, 45, 0.08);
-  --summary-bg: linear-gradient(135deg, #185a37 0%, #267349 52%, #388f5f 100%);
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+  --summary-bg: linear-gradient(135deg, var(--theme-color-1) 0%, var(--theme-color-2) 100%);
   --summary-text: #ffffff;
   --summary-subtext: rgba(255, 255, 255, 0.84);
   --summary-note: rgba(255, 255, 255, 0.74);
@@ -27,7 +29,7 @@
   --summary-item-border: rgba(255, 255, 255, 0.22);
   --summary-total-bg: rgba(255, 210, 130, 0.24);
   --summary-total-border: rgba(255, 220, 150, 0.38);
-  --summary-shadow: 0 14px 32px rgba(24, 90, 55, 0.24);
+  --summary-shadow: 0 14px 32px rgba(0, 0, 0, 0.18);
   --radius-lg: 22px;
   --radius-md: 15px;
   --bottom-nav-height: 72px;
@@ -820,6 +822,172 @@ textarea {
   background: var(--outflow-soft);
 }
 
+.theme-color-section {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.color-setting-title {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 750;
+  color: var(--text);
+}
+
+.theme-color-pickers {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 10px;
+}
+
+.color-picker-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.color-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 650;
+}
+
+.color-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  transition: border-color 0.15s ease;
+}
+
+.color-input-wrapper:hover {
+  border-color: var(--accent);
+}
+
+.color-input-wrapper input[type="color"] {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.color-input-wrapper input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-input-wrapper input[type="color"]::-webkit-color-swatch {
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.color-input-wrapper input[type="color"]::-moz-color-swatch {
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.color-hex {
+  font-size: 0.78rem;
+  font-weight: 750;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--text);
+  letter-spacing: 0.03em;
+}
+
+.color-picker-arrow {
+  font-size: 1.15rem;
+  color: var(--text-muted);
+  font-weight: 800;
+  margin-top: 14px;
+}
+
+.theme-preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  margin: 10px 0 16px;
+  border-radius: 12px;
+  background: var(--summary-bg);
+  box-shadow: var(--summary-shadow);
+  border: 1px solid var(--summary-item-border);
+  transition: all 0.2s ease;
+}
+
+.theme-preview-bar span {
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.preset-section {
+  margin-top: 14px;
+}
+
+.preset-title {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.preset-button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.73rem;
+  font-weight: 700;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.preset-button:hover {
+  border-color: var(--text-muted);
+  transform: translateY(-1px);
+}
+
+.preset-button.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.preset-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
 .app-version {
   margin: 15px 0 0;
   color: var(--text-muted);
@@ -1185,7 +1353,7 @@ dialog {
     --danger: #ef8888;
     --danger-soft: #432323;
     --shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
-    --summary-bg: linear-gradient(135deg, #13462a 0%, #1e5a37 52%, #2c764c 100%);
+    --summary-bg: linear-gradient(135deg, var(--theme-color-1) 0%, var(--theme-color-2) 100%);
     --summary-text: #ffffff;
     --summary-subtext: rgba(255, 255, 255, 0.84);
     --summary-note: rgba(255, 255, 255, 0.72);
@@ -1206,9 +1374,9 @@ dialog {
   --text: #edf5ef;
   --text-muted: #a8b3aa;
   --border: #344039;
-  --accent: #68b98b;
-  --accent-dark: #8ed0aa;
-  --accent-soft: #1b3827;
+  --accent: var(--theme-color-1);
+  --accent-dark: color-mix(in srgb, var(--theme-color-1) 80%, white);
+  --accent-soft: color-mix(in srgb, var(--theme-color-1) 25%, #182019);
   --usage: #77b3e7;
   --usage-soft: #173249;
   --card: #c099ea;
@@ -1218,7 +1386,7 @@ dialog {
   --danger: #ef8888;
   --danger-soft: #432323;
   --shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
-  --summary-bg: linear-gradient(135deg, #13462a 0%, #1e5a38 52%, #2c764c 100%);
+  --summary-bg: linear-gradient(135deg, var(--theme-color-1) 0%, var(--theme-color-2) 100%);
   --summary-text: #ffffff;
   --summary-subtext: rgba(255, 255, 255, 0.84);
   --summary-note: rgba(255, 255, 255, 0.72);
