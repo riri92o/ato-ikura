@@ -141,49 +141,29 @@
 
             <div class="settings-nav-list">
               <button type="button" class="settings-menu-card" data-settings-nav="balance">
-                <span class="settings-menu-icon">💰</span>
-                <div class="settings-menu-info">
-                  <strong>残高・使用可能額</strong>
-                  <span>現在の口座残高や最低キープ額の設定</span>
-                </div>
+                <span class="settings-menu-title">残高・使用可能額</span>
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
               </button>
 
               <button type="button" class="settings-menu-card" data-settings-nav="theme">
-                <span class="settings-menu-icon">🎨</span>
-                <div class="settings-menu-info">
-                  <strong>表示・テーマ</strong>
-                  <span>テーマカラー（2色）、背景・枠線・ゲージ色</span>
-                </div>
+                <span class="settings-menu-title">表示・テーマ</span>
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
               </button>
 
               <button type="button" class="settings-menu-card" data-settings-nav="backup">
-                <span class="settings-menu-icon">💾</span>
-                <div class="settings-menu-info">
-                  <strong>バックアップ</strong>
-                  <span>JSONファイルの書き出し・読み込み</span>
-                </div>
+                <span class="settings-menu-title">バックアップ</span>
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
               </button>
 
               <button type="button" class="settings-menu-card" data-settings-nav="guide">
-                <span class="settings-menu-icon">📖</span>
-                <div class="settings-menu-info">
-                  <strong>使い方・アプリ情報</strong>
-                  <span>集計の仕組み、保存仕様、お試しデータ</span>
-                </div>
+                <span class="settings-menu-title">使い方・アプリ情報</span>
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
               </button>
             </div>
 
             <div class="settings-danger-wrapper">
               <button type="button" id="settings-menu-delete-btn" class="settings-menu-card is-danger">
-                <span class="settings-menu-icon">🗑️</span>
-                <div class="settings-menu-info">
-                  <strong>データを削除</strong>
-                  <span>すべての支出・カード・設定をリセット</span>
-                </div>
+                <span class="settings-menu-title">データを削除</span>
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
               </button>
             </div>
@@ -298,7 +278,7 @@
             <div class="page-heading"><p class="section-kicker">使い方・保存仕様・情報</p><h2>使い方・アプリ情報</h2></div>
 
             <section class="settings-card">
-              <h3>📱 アプリの基本的な使い方</h3>
+              <h3>アプリの基本的な使い方</h3>
               <p class="settings-description">「あといくら」は、買い物をした日（利用）と口座からお金が減る日（支払い）を分けて管理できる支出管理アプリです。</p>
               <ul class="guide-list">
                 <li><strong>支出を登録</strong>：右下の「＋」ボタンから、使った日・金額・支払い方法を選んで登録します。</li>
@@ -308,7 +288,7 @@
             </section>
 
             <section class="settings-card">
-              <h3>⚖️ 「利用ベース」と「支払いベース」の違い</h3>
+              <h3>「利用ベース」と「支払いベース」の違い</h3>
               <div class="guide-comparison">
                 <div class="guide-box">
                   <strong>利用ベース</strong>
@@ -322,7 +302,7 @@
             </section>
 
             <section class="settings-card">
-              <h3>🔒 データの保存とバックアップについて</h3>
+              <h3>データの保存とバックアップについて</h3>
               <div class="storage-warning" style="margin: 0 0 12px;">
                 データはお使いのブラウザ（localStorage）だけに安全に保存されます。端末間での自動同期は行われません。
               </div>
@@ -330,7 +310,7 @@
             </section>
 
             <section class="settings-card">
-              <h3>🧪 お試し用サンプルデータ</h3>
+              <h3>お試し用サンプルデータ</h3>
               <p class="settings-description">アプリの動作を試すためのダミー支出・カードデータを追加できます。</p>
               <div class="button-stack">
                 <button id="add-sample-button" class="button button-secondary full-width" type="button">サンプルデータを追加</button>

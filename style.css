@@ -1631,7 +1631,7 @@ dialog {
 /* 設定メニューカード（一覧） */
 .settings-nav-list {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   margin-top: 8px;
 }
 
@@ -1640,7 +1640,7 @@ dialog {
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
   padding: 16px 18px;
   border-radius: var(--radius-md);
   background: var(--surface);
@@ -1655,32 +1655,10 @@ dialog {
   transform: scale(0.985);
 }
 
-.settings-menu-icon {
-  font-size: 1.5rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.settings-menu-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.settings-menu-info strong {
-  font-size: 0.98rem;
+.settings-menu-title {
+  font-size: 1rem;
   font-weight: 750;
   color: var(--text);
-}
-
-.settings-menu-info span {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .settings-menu-arrow {
@@ -1701,7 +1679,7 @@ dialog {
   background: color-mix(in srgb, var(--danger) 4%, var(--surface));
 }
 
-.settings-menu-card.is-danger .settings-menu-info strong {
+.settings-menu-card.is-danger .settings-menu-title {
   color: var(--danger);
 }
 

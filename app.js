@@ -808,7 +808,7 @@
     const rows = items.map((payment) => {
       const pCard = state.cards.find((c) => c.id === payment.cardId);
       const itemEl = createElement("div", "record-item");
-      const icon = createElement("span", "record-icon", "💳");
+      const icon = createElement("span", "record-icon", "引落");
       const main = createElement("span", "record-main");
       main.append(createElement("strong", "", formatDate(payment.date)));
       const detailParts = [];
