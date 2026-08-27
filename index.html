@@ -175,6 +175,41 @@
                 <div class="preset-grid" id="preset-palette-grid"></div>
               </div>
             </div>
+
+            <div class="theme-color-section">
+              <span class="color-setting-title">背景・枠線・ゲージのカスタマイズ</span>
+              <p class="settings-description">全体の背景色、カード枠線色、予算ゲージの色を好みに合わせて変更できます。</p>
+
+              <div class="theme-extra-pickers">
+                <label class="color-picker-item" for="setting-bg-color">
+                  <span class="color-label">背景色</span>
+                  <div class="color-input-wrapper">
+                    <input id="setting-bg-color" type="color" value="#ffffff" />
+                    <span id="setting-bg-color-val" class="color-hex">#FFFFFF</span>
+                  </div>
+                </label>
+
+                <label class="color-picker-item" for="setting-border-color">
+                  <span class="color-label">枠線色</span>
+                  <div class="color-input-wrapper">
+                    <input id="setting-border-color" type="color" value="#e2e8f0" />
+                    <span id="setting-border-color-val" class="color-hex">#E2E8F0</span>
+                  </div>
+                </label>
+
+                <label class="color-picker-item" for="setting-gauge-color">
+                  <span class="color-label">ゲージ色</span>
+                  <div class="color-input-wrapper">
+                    <input id="setting-gauge-color" type="color" value="#34d399" />
+                    <span id="setting-gauge-color-val" class="color-hex">#34D399</span>
+                  </div>
+                </label>
+              </div>
+
+              <div style="margin-top: 10px;">
+                <button id="reset-colors-button" class="button button-ghost full-width" type="button">背景・枠線・ゲージを初期値に戻す</button>
+              </div>
+            </div>
           </section>
 
           <section class="settings-card">

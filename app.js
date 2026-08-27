@@ -67,6 +67,9 @@
         theme: "auto",
         themeColor1: "#185a37",
         themeColor2: "#388f5f",
+        bgColor: "#ffffff",
+        borderColor: "#e2e8f0",
+        gaugeColor: "#34d399",
         budgetMode: "usage",
       },
       updatedAt: new Date().toISOString(),
@@ -166,6 +169,9 @@
     clean.settings.theme = ["auto", "light", "dark"].includes(input.settings?.theme) ? input.settings.theme : "auto";
     clean.settings.themeColor1 = /^#[0-9a-f]{6}$/i.test(input.settings?.themeColor1 || "") ? input.settings.themeColor1 : "#185a37";
     clean.settings.themeColor2 = /^#[0-9a-f]{6}$/i.test(input.settings?.themeColor2 || "") ? input.settings.themeColor2 : "#388f5f";
+    clean.settings.bgColor = /^#[0-9a-f]{6}$/i.test(input.settings?.bgColor || "") ? input.settings.bgColor : "#ffffff";
+    clean.settings.borderColor = /^#[0-9a-f]{6}$/i.test(input.settings?.borderColor || "") ? input.settings.borderColor : "#e2e8f0";
+    clean.settings.gaugeColor = /^#[0-9a-f]{6}$/i.test(input.settings?.gaugeColor || "") ? input.settings.gaugeColor : "#34d399";
     clean.settings.budgetMode = ["usage", "outflow"].includes(input.settings?.budgetMode) ? input.settings.budgetMode : "usage";
     clean.updatedAt = String(input.updatedAt || new Date().toISOString());
     return clean;
@@ -287,6 +293,43 @@
       saveState();
       showToast("カラー2（終了色）を保存しました。");
     });
+
+    $("setting-bg-color").addEventListener("input", (e) => {
+      state.settings.bgColor = e.target.value;
+      applyThemeColors();
+    });
+    $("setting-bg-color").addEventListener("change", () => {
+      saveState();
+      showToast("背景色を保存しました。");
+    });
+
+    $("setting-border-color").addEventListener("input", (e) => {
+      state.settings.borderColor = e.target.value;
+      applyThemeColors();
+    });
+    $("setting-border-color").addEventListener("change", () => {
+      saveState();
+      showToast("枠線色を保存しました。");
+    });
+
+    $("setting-gauge-color").addEventListener("input", (e) => {
+      state.settings.gaugeColor = e.target.value;
+      applyThemeColors();
+    });
+    $("setting-gauge-color").addEventListener("change", () => {
+      saveState();
+      showToast("ゲージ色を保存しました。");
+    });
+
+    $("reset-colors-button").addEventListener("click", () => {
+      state.settings.bgColor = "#ffffff";
+      state.settings.borderColor = "#e2e8f0";
+      state.settings.gaugeColor = "#34d399";
+      saveState();
+      applyThemeColors();
+      showToast("背景・枠線・ゲージの色を初期値に戻しました。");
+    });
+
     $("export-button").addEventListener("click", exportData);
     $("import-button").addEventListener("click", () => $("import-file").click());
     $("import-file").addEventListener("change", importData);
@@ -470,7 +513,7 @@
     const percentValEl = $("budget-percent-val");
 
     if (primaryLabel) {
-      primaryLabel.textContent = isUsage ? "今月あと使える金額" : "今月あと出ていく余裕";
+      primaryLabel.textContent = "今月あと使える金額";
     }
 
     if (budget === null) {
@@ -1015,9 +1058,15 @@
   function applyThemeColors() {
     const color1 = state.settings.themeColor1 || "#185a37";
     const color2 = state.settings.themeColor2 || "#388f5f";
+    const bgColor = state.settings.bgColor || "#ffffff";
+    const borderColor = state.settings.borderColor || "#e2e8f0";
+    const gaugeColor = state.settings.gaugeColor || "#34d399";
 
     document.documentElement.style.setProperty("--theme-color-1", color1);
     document.documentElement.style.setProperty("--theme-color-2", color2);
+    document.documentElement.style.setProperty("--bg-color", bgColor);
+    document.documentElement.style.setProperty("--border-color", borderColor);
+    document.documentElement.style.setProperty("--gauge-color", gaugeColor);
 
     const val1 = $("theme-color-1-val");
     const val2 = $("theme-color-2-val");
@@ -1028,6 +1077,21 @@
     const input2 = $("theme-color-2");
     if (input1 && input1.value.toLowerCase() !== color1.toLowerCase()) input1.value = color1;
     if (input2 && input2.value.toLowerCase() !== color2.toLowerCase()) input2.value = color2;
+
+    const bgInput = $("setting-bg-color");
+    const bgVal = $("setting-bg-color-val");
+    if (bgInput && bgInput.value.toLowerCase() !== bgColor.toLowerCase()) bgInput.value = bgColor;
+    if (bgVal) bgVal.textContent = bgColor.toUpperCase();
+
+    const borderInput = $("setting-border-color");
+    const borderVal = $("setting-border-color-val");
+    if (borderInput && borderInput.value.toLowerCase() !== borderColor.toLowerCase()) borderInput.value = borderColor;
+    if (borderVal) borderVal.textContent = borderColor.toUpperCase();
+
+    const gaugeInput = $("setting-gauge-color");
+    const gaugeVal = $("setting-gauge-color-val");
+    if (gaugeInput && gaugeInput.value.toLowerCase() !== gaugeColor.toLowerCase()) gaugeInput.value = gaugeColor;
+    if (gaugeVal) gaugeVal.textContent = gaugeColor.toUpperCase();
 
     const preview = $("theme-preview-bar");
     if (preview) {
@@ -1234,10 +1298,16 @@
     const preservedTheme = state.settings.theme;
     const preservedColor1 = state.settings.themeColor1;
     const preservedColor2 = state.settings.themeColor2;
+    const preservedBg = state.settings.bgColor;
+    const preservedBorder = state.settings.borderColor;
+    const preservedGauge = state.settings.gaugeColor;
     state = defaultState();
     state.settings.theme = preservedTheme;
     state.settings.themeColor1 = preservedColor1;
     state.settings.themeColor2 = preservedColor2;
+    state.settings.bgColor = preservedBg;
+    state.settings.borderColor = preservedBorder;
+    state.settings.gaugeColor = preservedGauge;
     saveState();
     applyTheme();
     renderAll();

@@ -2,16 +2,19 @@
   color-scheme: light;
   --theme-color-1: #185a37;
   --theme-color-2: #388f5f;
-  --bg: #f6faf7;
+  --bg-color: #ffffff;
+  --border-color: #e2e8f0;
+  --gauge-color: #34d399;
+  --bg: var(--bg-color);
   --surface: #ffffff;
-  --surface-soft: #edf7f0;
-  --surface-muted: #f2f5f3;
-  --text: #17231c;
-  --text-muted: #68756d;
-  --border: #dce6df;
+  --surface-soft: #f8fafc;
+  --surface-muted: #f1f5f9;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: var(--border-color);
   --accent: var(--theme-color-1);
   --accent-dark: color-mix(in srgb, var(--theme-color-1) 80%, black);
-  --accent-soft: color-mix(in srgb, var(--theme-color-1) 12%, #ffffff);
+  --accent-soft: color-mix(in srgb, var(--theme-color-1) 10%, #ffffff);
   --usage: #3478b8;
   --usage-soft: #e7f2fb;
   --card: #8b5fbf;
@@ -20,7 +23,7 @@
   --outflow-soft: #fff0df;
   --danger: #c44747;
   --danger-soft: #fdeaea;
-  --shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
   --summary-bg: linear-gradient(135deg, var(--theme-color-1) 0%, var(--theme-color-2) 100%);
   --summary-text: #ffffff;
   --summary-subtext: rgba(255, 255, 255, 0.84);
@@ -366,7 +369,7 @@ h3 {
 .budget-gauge-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #6ee7b7, #ffffff);
+  background: linear-gradient(90deg, var(--gauge-color), #ffffff);
   transition: width 0.35s ease, background 0.35s ease;
 }
 
@@ -1016,8 +1019,16 @@ textarea {
   margin: 12px 0 10px;
 }
 
+.theme-extra-pickers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 10px;
+}
+
 .color-picker-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 5px;
