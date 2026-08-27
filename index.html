@@ -1,86 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#dff4e7" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="description" content="利用額と実際の出金額を分けて管理できる、スマートフォン向け支出管理アプリ" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="あといくら" />
-    <title>あといくら</title>
-    <link rel="manifest" href="manifest.json" />
-    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-    <link rel="stylesheet" href="style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#185a37" />
+    <title>あといくら - 支出管理アプリ</title>
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <div class="app-shell">
+    <div id="app">
       <header class="app-header">
-        <div>
-          <p class="eyebrow">使った日と、減る日をひと目で</p>
-          <h1 id="app-title">あといくら</h1>
+        <h1 class="app-title">あといくら</h1>
+        <div class="month-selector">
+          <button id="prev-month-btn" class="icon-button" type="button" aria-label="前月">‹</button>
+          <span id="current-month-label" class="current-month"></span>
+          <button id="next-month-btn" class="icon-button" type="button" aria-label="翌月">›</button>
         </div>
-        <button id="today-button" class="button button-secondary header-action" type="button">今日</button>
       </header>
 
-      <main id="main-content">
+      <main class="app-main">
+        <!-- カレンダー画面 -->
         <section id="view-calendar" class="view is-active" aria-labelledby="calendar-title">
-          <div class="month-toolbar">
-            <button id="prev-month" class="icon-button" type="button" aria-label="前の月">‹</button>
-            <button id="month-picker-button" class="month-heading" type="button" aria-label="表示する月を選ぶ">
-              <span id="calendar-title"></span>
-              <span aria-hidden="true">⌄</span>
-            </button>
-            <input id="month-picker" class="visually-hidden" type="month" aria-label="表示する月" />
-            <button id="next-month" class="icon-button" type="button" aria-label="次の月">›</button>
-          </div>
+          <h2 id="calendar-title" class="sr-only">カレンダー画面</h2>
 
-          <section class="summary-panel" aria-label="月間サマリー">
+          <!-- 月間サマリー大枠 -->
+          <section class="monthly-summary-card" aria-labelledby="budget-primary-label">
             <div class="budget-mode-switch" role="tablist" aria-label="集計方式の切り替え">
-              <button id="mode-usage-btn" class="budget-mode-tab is-active" type="button" role="tab" aria-selected="true" data-mode="usage">利用ベース</button>
-              <button id="mode-outflow-btn" class="budget-mode-tab" type="button" role="tab" aria-selected="false" data-mode="outflow">支払いベース</button>
+              <button id="mode-usage-btn" class="budget-mode-tab is-active" type="button" role="tab" aria-selected="true">利用ベース</button>
+              <button id="mode-outflow-btn" class="budget-mode-tab" type="button" role="tab" aria-selected="false">支払いベース</button>
             </div>
 
-            <div class="summary-primary budget-hero">
+            <div class="summary-primary">
               <div class="budget-title-row">
-                <p id="budget-primary-label">今月あと使える金額</p>
+                <span id="budget-primary-label" class="summary-label">今月あと使える金額</span>
                 <button id="open-budget-button" class="budget-setting-trigger" type="button">予算を設定</button>
               </div>
               <strong id="budget-remaining-amount">未設定</strong>
             </div>
 
-            <div class="budget-gauge-card" id="budget-gauge-card">
+            <!-- ゲージバー -->
+            <div id="budget-gauge-card" class="budget-gauge-card">
               <div class="budget-gauge-track">
                 <div id="budget-gauge-fill" class="budget-gauge-fill" style="width: 0%;"></div>
               </div>
               <div class="budget-gauge-info">
-                <span id="budget-current-calc">集計額: 0円</span>
-                <span id="budget-total-val">予算: 未設定</span>
-                <span id="budget-percent-val">0%</span>
+                <span>使用割合: <strong id="budget-percent-val">--%</strong></span>
+                <span>集計: <strong id="budget-current-calc">0円</strong> / 予算: <strong id="budget-total-val">未設定</strong></span>
               </div>
             </div>
-
-            <div class="summary-grid">
-              <div><span>当日決済の出金</span><strong id="summary-direct">0円</strong></div>
-              <div><span>カード引落</span><strong id="summary-card">0円</strong></div>
-              <div class="summary-total"><span>実際の出金合計</span><strong id="summary-outflow">0円</strong></div>
-              <div><span>次のカード引落</span><strong id="summary-next-card">予定なし</strong></div>
-            </div>
-            <p class="summary-note" id="summary-note-text">利用額は買い物をした日、出金額は口座や財布から実際に減る日で集計します。</p>
           </section>
 
-          <section class="calendar-card" aria-label="月間カレンダー">
-            <div class="weekday-row" aria-hidden="true">
+          <!-- カレンダー本体 -->
+          <section class="calendar-panel" aria-label="月間カレンダー">
+            <div class="calendar-weekdays">
               <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
             </div>
             <div id="calendar-grid" class="calendar-grid"></div>
-            <div class="calendar-legend" aria-label="凡例">
+            <div class="calendar-legend">
+              <span><i class="legend-dot payment"></i>引落確定</span>
               <span><i class="legend-dot usage"></i>使った金額</span>
             </div>
           </section>
 
+          <!-- 残高の見通し -->
           <section class="balance-panel" aria-labelledby="balance-title">
             <div class="section-heading-row">
               <div><p class="section-kicker">これから30日</p><h2 id="balance-title">残高の見通し</h2></div>
@@ -95,12 +78,14 @@
             <p class="fine-print">登録内容だけを使った目安です。今後の収入やカード以外の予定支出は含みません。</p>
           </section>
 
+          <!-- カテゴリ別 -->
           <section class="category-panel" aria-labelledby="category-title">
             <div class="section-heading-row"><h2 id="category-title">カテゴリ別</h2></div>
             <div id="category-summary" class="category-summary"></div>
           </section>
         </section>
 
+        <!-- 履歴画面 -->
         <section id="view-history" class="view" aria-labelledby="history-title">
           <div class="page-heading"><p class="section-kicker">記録を振り返る</p><h2 id="history-title">履歴</h2></div>
           <div class="filter-panel">
@@ -112,132 +97,243 @@
           <div id="history-list" class="record-list"></div>
         </section>
 
+        <!-- カード画面 -->
         <section id="view-cards" class="view" aria-labelledby="cards-title">
-          <div class="page-heading-row">
-            <div class="page-heading"><p class="section-kicker">引き落とし日を自動計算</p><h2 id="cards-title">クレジットカード</h2></div>
-            <button id="add-card-button" class="button button-primary" type="button">カード追加</button>
+          <!-- メイン一覧サブビュー -->
+          <div id="cards-main-subview" class="card-subview is-active">
+            <div class="page-heading-row">
+              <div class="page-heading"><p class="section-kicker">引き落とし日を自動計算</p><h2 id="cards-title">クレジットカード</h2></div>
+              <button id="add-card-button" class="button button-primary" type="button">カード追加</button>
+            </div>
+            <div id="cards-list" class="cards-list"></div>
+            <article class="info-card">
+              <h3>支払日の計算について</h3>
+              <p>カード利用日と締め日の設定から支払日を自動計算します。祝日による変更は、支出の編集画面で支払日を手動変更してください。</p>
+            </article>
           </div>
-          <div id="cards-list" class="cards-list"></div>
-          <article class="info-card">
-            <h3>支払日の計算について</h3>
-            <p>カード利用日と締め日の設定から支払日を自動計算します。祝日による変更は、支出の編集画面で支払日を手動変更してください。</p>
-          </article>
+
+          <!-- 確定額の履歴サブビュー -->
+          <div id="cards-history-subview" class="card-subview">
+            <button id="back-to-cards-btn" class="back-link-btn" type="button">‹ カード一覧に戻る</button>
+            <div class="page-heading">
+              <p class="section-kicker">引き落とし確定額の記録</p>
+              <h2 id="card-history-heading">確定額の履歴</h2>
+            </div>
+            <div id="card-history-list" class="record-list"></div>
+          </div>
         </section>
 
+        <!-- 設定画面 -->
         <section id="view-settings" class="view" aria-labelledby="settings-title">
-          <div class="page-heading"><p class="section-kicker">残高・表示・バックアップ</p><h2 id="settings-title">設定</h2></div>
+          <!-- 設定メニュー一覧 -->
+          <div id="settings-menu-subview" class="settings-subview is-active">
+            <div class="page-heading"><p class="section-kicker">アプリの設定・案内</p><h2 id="settings-title">設定</h2></div>
 
-          <section class="settings-card">
-            <h3>残高と使用可能額</h3>
-            <label>現在の口座残高<input id="setting-balance" type="text" inputmode="numeric" placeholder="例：250,000" /></label>
-            <label>最低限残しておきたい金額<input id="setting-reserve" type="text" inputmode="numeric" placeholder="例：100,000" /></label>
-            <button id="save-balance-settings" class="button button-primary full-width" type="button">保存する</button>
-          </section>
+            <div class="settings-nav-list">
+              <button type="button" class="settings-menu-card" data-settings-nav="balance">
+                <span class="settings-menu-icon">💰</span>
+                <div class="settings-menu-info">
+                  <strong>残高・使用可能額</strong>
+                  <span>現在の口座残高や最低キープ額の設定</span>
+                </div>
+                <span class="settings-menu-arrow" aria-hidden="true">›</span>
+              </button>
 
-          <section class="settings-card">
-            <h3>表示・テーマ</h3>
-            <label>モード
-              <select id="theme-select">
-                <option value="auto">端末の設定に合わせる</option>
-                <option value="light">ライト</option>
-                <option value="dark">ダーク</option>
-              </select>
-            </label>
+              <button type="button" class="settings-menu-card" data-settings-nav="theme">
+                <span class="settings-menu-icon">🎨</span>
+                <div class="settings-menu-info">
+                  <strong>表示・テーマ</strong>
+                  <span>テーマカラー（2色）、背景・枠線・ゲージ色</span>
+                </div>
+                <span class="settings-menu-arrow" aria-hidden="true">›</span>
+              </button>
 
-            <div class="theme-color-section">
-              <span class="color-setting-title">テーマカラー（2色のグラデーション）</span>
-              <p class="settings-description">「この月に使った合計」の大枠やアプリのアクセント色に反映されます。</p>
+              <button type="button" class="settings-menu-card" data-settings-nav="backup">
+                <span class="settings-menu-icon">💾</span>
+                <div class="settings-menu-info">
+                  <strong>バックアップ</strong>
+                  <span>JSONファイルの書き出し・読み込み</span>
+                </div>
+                <span class="settings-menu-arrow" aria-hidden="true">›</span>
+              </button>
 
-              <div class="theme-color-pickers">
-                <label class="color-picker-item" for="theme-color-1">
-                  <span class="color-label">カラー1（開始色）</span>
-                  <div class="color-input-wrapper">
-                    <input id="theme-color-1" type="color" value="#185a37" />
-                    <span id="theme-color-1-val" class="color-hex">#185A37</span>
-                  </div>
-                </label>
-                <div class="color-picker-arrow" aria-hidden="true">→</div>
-                <label class="color-picker-item" for="theme-color-2">
-                  <span class="color-label">カラー2（終了色）</span>
-                  <div class="color-input-wrapper">
-                    <input id="theme-color-2" type="color" value="#388f5f" />
-                    <span id="theme-color-2-val" class="color-hex">#388F5F</span>
-                  </div>
-                </label>
-              </div>
-
-              <div id="theme-preview-bar" class="theme-preview-bar">
-                <span>グラデーション プレビュー</span>
-              </div>
-
-              <div class="preset-section">
-                <span class="preset-title">おすすめ・かわいい配色パレット</span>
-                <div class="preset-grid" id="preset-palette-grid"></div>
-              </div>
+              <button type="button" class="settings-menu-card" data-settings-nav="guide">
+                <span class="settings-menu-icon">📖</span>
+                <div class="settings-menu-info">
+                  <strong>使い方・アプリ情報</strong>
+                  <span>集計の仕組み、保存仕様、お試しデータ</span>
+                </div>
+                <span class="settings-menu-arrow" aria-hidden="true">›</span>
+              </button>
             </div>
 
-            <div class="theme-color-section">
-              <span class="color-setting-title">背景・枠線・ゲージのカスタマイズ</span>
-              <p class="settings-description">全体の背景色、カード枠線色、予算ゲージの色を好みに合わせて変更できます。</p>
+            <div class="settings-danger-wrapper">
+              <button type="button" id="settings-menu-delete-btn" class="settings-menu-card is-danger">
+                <span class="settings-menu-icon">🗑️</span>
+                <div class="settings-menu-info">
+                  <strong>データを削除</strong>
+                  <span>すべての支出・カード・設定をリセット</span>
+                </div>
+                <span class="settings-menu-arrow" aria-hidden="true">›</span>
+              </button>
+            </div>
+          </div>
 
-              <div class="theme-extra-pickers">
-                <label class="color-picker-item" for="setting-bg-color">
-                  <span class="color-label">背景色</span>
-                  <div class="color-input-wrapper">
-                    <input id="setting-bg-color" type="color" value="#ffffff" />
-                    <span id="setting-bg-color-val" class="color-hex">#FFFFFF</span>
-                  </div>
-                </label>
+          <!-- サブビュー1: 残高・使用可能額 -->
+          <div id="settings-subview-balance" class="settings-subview">
+            <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
+            <div class="page-heading"><p class="section-kicker">口座残高とキープ額</p><h2>残高・使用可能額</h2></div>
+            <section class="settings-card">
+              <label>現在の口座残高<input id="setting-balance" type="text" inputmode="numeric" placeholder="例：250,000" /></label>
+              <label>最低限残しておきたい金額<input id="setting-reserve" type="text" inputmode="numeric" placeholder="例：100,000" /></label>
+              <button id="save-balance-settings" class="button button-primary full-width" type="button">保存する</button>
+            </section>
+          </div>
 
-                <label class="color-picker-item" for="setting-border-color">
-                  <span class="color-label">枠線色</span>
-                  <div class="color-input-wrapper">
-                    <input id="setting-border-color" type="color" value="#e2e8f0" />
-                    <span id="setting-border-color-val" class="color-hex">#E2E8F0</span>
-                  </div>
-                </label>
+          <!-- サブビュー2: 表示・テーマ -->
+          <div id="settings-subview-theme" class="settings-subview">
+            <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
+            <div class="page-heading"><p class="section-kicker">配色とデザイン</p><h2>表示・テーマ</h2></div>
+            <section class="settings-card">
+              <label>モード
+                <select id="theme-select">
+                  <option value="auto">端末の設定に合わせる</option>
+                  <option value="light">ライト</option>
+                  <option value="dark">ダーク</option>
+                </select>
+              </label>
 
-                <label class="color-picker-item" for="setting-gauge-color">
-                  <span class="color-label">ゲージ色</span>
-                  <div class="color-input-wrapper">
-                    <input id="setting-gauge-color" type="color" value="#34d399" />
-                    <span id="setting-gauge-color-val" class="color-hex">#34D399</span>
-                  </div>
-                </label>
+              <div class="theme-color-section">
+                <span class="color-setting-title">テーマカラー（2色のグラデーション）</span>
+                <p class="settings-description">「この月に使った合計」の大枠やアプリのアクセント色に反映されます。</p>
+
+                <div class="theme-color-pickers">
+                  <label class="color-picker-item" for="theme-color-1">
+                    <span class="color-label">カラー1（開始色）</span>
+                    <div class="color-input-wrapper">
+                      <input id="theme-color-1" type="color" value="#185a37" />
+                      <span id="theme-color-1-val" class="color-hex">#185A37</span>
+                    </div>
+                  </label>
+                  <div class="color-picker-arrow" aria-hidden="true">→</div>
+                  <label class="color-picker-item" for="theme-color-2">
+                    <span class="color-label">カラー2（終了色）</span>
+                    <div class="color-input-wrapper">
+                      <input id="theme-color-2" type="color" value="#388f5f" />
+                      <span id="theme-color-2-val" class="color-hex">#388F5F</span>
+                    </div>
+                  </label>
+                </div>
+
+                <div id="theme-preview-bar" class="theme-preview-bar">
+                  <span>グラデーション プレビュー</span>
+                </div>
+
+                <div class="preset-section">
+                  <span class="preset-title">おすすめ・かわいい配色パレット</span>
+                  <div class="preset-grid" id="preset-palette-grid"></div>
+                </div>
               </div>
 
-              <div style="margin-top: 10px;">
-                <button id="reset-colors-button" class="button button-ghost full-width" type="button">背景・枠線・ゲージを初期値に戻す</button>
+              <div class="theme-color-section">
+                <span class="color-setting-title">背景・枠線・ゲージのカスタマイズ</span>
+                <p class="settings-description">全体の背景色、カード枠線色、予算ゲージの色を好みに合わせて変更できます。</p>
+
+                <div class="theme-extra-pickers">
+                  <label class="color-picker-item" for="setting-bg-color">
+                    <span class="color-label">背景色</span>
+                    <div class="color-input-wrapper">
+                      <input id="setting-bg-color" type="color" value="#ffffff" />
+                      <span id="setting-bg-color-val" class="color-hex">#FFFFFF</span>
+                    </div>
+                  </label>
+
+                  <label class="color-picker-item" for="setting-border-color">
+                    <span class="color-label">枠線色</span>
+                    <div class="color-input-wrapper">
+                      <input id="setting-border-color" type="color" value="#e2e8f0" />
+                      <span id="setting-border-color-val" class="color-hex">#E2E8F0</span>
+                    </div>
+                  </label>
+
+                  <label class="color-picker-item" for="setting-gauge-color">
+                    <span class="color-label">ゲージ色</span>
+                    <div class="color-input-wrapper">
+                      <input id="setting-gauge-color" type="color" value="#34d399" />
+                      <span id="setting-gauge-color-val" class="color-hex">#34D399</span>
+                    </div>
+                  </label>
+                </div>
+
+                <div style="margin-top: 10px;">
+                  <button id="reset-colors-button" class="button button-ghost full-width" type="button">背景・枠線・ゲージを初期値に戻す</button>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
 
-          <section class="settings-card">
-            <h3>バックアップ</h3>
-            <p class="settings-description">端末変更やブラウザデータ削除に備えて、定期的な書き出しがおすすめです。</p>
-            <div class="button-stack">
-              <button id="export-button" class="button button-secondary full-width" type="button">JSONで書き出す</button>
-              <button id="import-button" class="button button-secondary full-width" type="button">JSONから読み込む</button>
-              <input id="import-file" type="file" accept="application/json,.json" hidden />
-            </div>
-          </section>
+          <!-- サブビュー3: バックアップ -->
+          <div id="settings-subview-backup" class="settings-subview">
+            <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
+            <div class="page-heading"><p class="section-kicker">データの保存と移行</p><h2>バックアップ</h2></div>
+            <section class="settings-card">
+              <p class="settings-description">端末変更やブラウザデータ削除に備えて、定期的な書き出しをおすすめします。</p>
+              <div class="button-stack">
+                <button id="export-button" class="button button-secondary full-width" type="button">JSONで書き出す</button>
+                <button id="import-button" class="button button-secondary full-width" type="button">JSONから読み込む</button>
+                <input id="import-file" type="file" accept="application/json,.json" hidden />
+              </div>
+            </section>
+          </div>
 
-          <section class="settings-card">
-            <h3>お試しデータ</h3>
-            <div class="button-stack">
-              <button id="add-sample-button" class="button button-secondary full-width" type="button">サンプルデータを追加</button>
-              <button id="remove-sample-button" class="button button-ghost full-width" type="button">サンプルデータだけ削除</button>
-            </div>
-          </section>
+          <!-- サブビュー4: 使い方・アプリ情報 -->
+          <div id="settings-subview-guide" class="settings-subview">
+            <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
+            <div class="page-heading"><p class="section-kicker">使い方・保存仕様・情報</p><h2>使い方・アプリ情報</h2></div>
 
-          <section class="settings-card danger-zone">
-            <h3>すべてのデータを削除</h3>
-            <p class="settings-description">この操作は元に戻せません。削除前に書き出しをおすすめします。</p>
-            <button id="delete-all-button" class="button button-danger full-width" type="button">全データを削除</button>
-          </section>
+            <section class="settings-card">
+              <h3>📱 アプリの基本的な使い方</h3>
+              <p class="settings-description">「あといくら」は、買い物をした日（利用）と口座からお金が減る日（支払い）を分けて管理できる支出管理アプリです。</p>
+              <ul class="guide-list">
+                <li><strong>支出を登録</strong>：右下の「＋」ボタンから、使った日・金額・支払い方法を選んで登録します。</li>
+                <li><strong>カードを設定</strong>：クレジットカードを登録すると、締め日と支払い日から口座引き落とし日を自動計算します。</li>
+                <li><strong>カレンダーで把握</strong>：買い物をした日には使った額、カード支払日には引き落とし額が表示されます。</li>
+              </ul>
+            </section>
 
-          <p class="storage-warning">データはこのブラウザのlocalStorageだけに保存されます。ブラウザデータの削除や端末変更で失われることがあり、端末間では自動同期されません。</p>
-          <p id="app-version" class="app-version"></p>
+            <section class="settings-card">
+              <h3>⚖️ 「利用ベース」と「支払いベース」の違い</h3>
+              <div class="guide-comparison">
+                <div class="guide-box">
+                  <strong>利用ベース</strong>
+                  <p>今月買い物したすべての金額を集計。「今月あといくら使えるか」の消費ペースを把握できます。（クレカ引き落とし額は含みません）</p>
+                </div>
+                <div class="guide-box">
+                  <strong>支払いベース</strong>
+                  <p>今月口座や財布から実際に出ていく金額（現金＋クレカ確定引落）を集計。「今月口座からいくら引かれるか」の資金繰りを把握できます。（今月カード購入分は含みません）</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="settings-card">
+              <h3>🔒 データの保存とバックアップについて</h3>
+              <div class="storage-warning" style="margin: 0 0 12px;">
+                データはお使いのブラウザ（localStorage）だけに安全に保存されます。端末間での自動同期は行われません。
+              </div>
+              <p class="settings-description">ブラウザデータの削除や端末変更に備えて、「バックアップ」画面から定期的にJSONファイルを書き出して保存することをおすすめします。</p>
+            </section>
+
+            <section class="settings-card">
+              <h3>🧪 お試し用サンプルデータ</h3>
+              <p class="settings-description">アプリの動作を試すためのダミー支出・カードデータを追加できます。</p>
+              <div class="button-stack">
+                <button id="add-sample-button" class="button button-secondary full-width" type="button">サンプルデータを追加</button>
+                <button id="remove-sample-button" class="button button-ghost full-width" type="button">サンプルデータだけ削除</button>
+              </div>
+            </section>
+
+            <p id="app-version" class="app-version"></p>
+          </div>
         </section>
       </main>
 
@@ -251,143 +347,155 @@
       </nav>
     </div>
 
+    <!-- 支出登録・編集ダイアログ -->
     <dialog id="expense-dialog" class="app-dialog">
       <form id="expense-form" method="dialog" novalidate>
-        <div class="dialog-header">
-          <div><p class="section-kicker">利用の記録</p><h2 id="expense-dialog-title">支出を追加</h2></div>
-          <button class="dialog-close icon-button" type="button" data-close-dialog="expense-dialog" aria-label="閉じる">×</button>
-        </div>
         <input id="expense-id" type="hidden" />
-        <div class="form-grid">
-          <label class="field-large">金額<span class="required">必須</span>
-            <div class="money-input"><span>¥</span><input id="expense-amount" type="text" inputmode="numeric" autocomplete="off" placeholder="0" required /></div>
-            <small id="expense-amount-error" class="field-error"></small>
+        <div class="dialog-header">
+          <h2 id="expense-dialog-title">支出を登録</h2>
+          <button id="close-expense-dialog" class="icon-button" type="button" aria-label="閉じる">✕</button>
+        </div>
+        <div class="dialog-body">
+          <label>金額（円）<span class="required">*</span>
+            <input id="expense-amount" type="text" inputmode="numeric" placeholder="例：1,200" required />
           </label>
-          <label>利用日<span class="required">必須</span><input id="expense-date" type="date" required /></label>
-          <label>カテゴリ<select id="expense-category"></select></label>
-          <label>支払い方法<select id="expense-payment"></select></label>
-          <label id="expense-card-field" class="is-hidden">使用したカード<select id="expense-card"></select></label>
-          <div id="payment-date-section" class="payment-date-box is-hidden">
-            <p>自動計算の支払日：<strong id="calculated-payment-date">—</strong></p>
-            <label>この支出だけ支払日を変更<input id="expense-payment-date" type="date" /></label>
-          </div>
-          <label class="full-span">メモ<textarea id="expense-memo" rows="3" maxlength="200" placeholder="例：ランチ、日用品など"></textarea></label>
+          <label>日付<span class="required">*</span>
+            <input id="expense-date" type="date" required />
+          </label>
+          <label>カテゴリ<span class="required">*</span>
+            <select id="expense-category" required></select>
+          </label>
+          <label>支払い方法<span class="required">*</span>
+            <select id="expense-payment" required></select>
+          </label>
+          <label id="expense-card-field" class="is-hidden">利用カード<span class="required">*</span>
+            <select id="expense-card"></select>
+          </label>
+          <label>メモ
+            <input id="expense-memo" type="text" maxlength="60" placeholder="例：スーパーで買い物" />
+          </label>
         </div>
-        <div id="day-records-section" class="day-records-section">
-          <h3>この日の支出</h3>
-          <div id="day-records-list" class="compact-record-list"></div>
-        </div>
-        <div class="dialog-actions">
+        <div class="dialog-footer">
           <button id="delete-expense-button" class="button button-danger is-hidden" type="button">削除</button>
-          <span class="action-spacer"></span>
-          <button class="button button-secondary" type="button" data-close-dialog="expense-dialog">キャンセル</button>
-          <button class="button button-primary" type="submit">保存する</button>
+          <button id="save-expense-button" class="button button-primary full-width" type="submit">保存する</button>
         </div>
       </form>
     </dialog>
 
+    <!-- クレジットカード追加・編集ダイアログ -->
     <dialog id="card-dialog" class="app-dialog">
       <form id="card-form" method="dialog" novalidate>
-        <div class="dialog-header">
-          <div><p class="section-kicker">支払日を設定</p><h2 id="card-dialog-title">カードを追加</h2></div>
-          <button class="dialog-close icon-button" type="button" data-close-dialog="card-dialog" aria-label="閉じる">×</button>
-        </div>
         <input id="card-id" type="hidden" />
-        <div class="form-grid">
-          <label class="full-span">カード名<span class="required">必須</span><input id="card-name" type="text" maxlength="40" placeholder="例：メインカード" required /></label>
-          <label>締め日
-            <select id="card-closing-day"></select>
-          </label>
-          <label>支払日
-            <select id="card-payment-day"></select>
-          </label>
-          <label>支払い月
-            <select id="card-payment-month">
-              <option value="0">締め月の当月</option>
-              <option value="1" selected>締め月の翌月</option>
-            </select>
-          </label>
-          <label>土日の調整
-            <select id="card-weekend">
-              <option value="none">調整しない</option>
-              <option value="previous">前の平日へ</option>
-              <option value="next">次の平日へ</option>
-            </select>
-          </label>
-          <label>表示色<input id="card-color" type="color" value="#4f9d73" /></label>
-          <label class="full-span">メモ<textarea id="card-memo" rows="2" maxlength="200"></textarea></label>
+        <div class="dialog-header">
+          <h2 id="card-dialog-title">カードを追加</h2>
+          <button id="close-card-dialog" class="icon-button" type="button" aria-label="閉じる">✕</button>
         </div>
-        <div class="dialog-actions">
+        <div class="dialog-body">
+          <label>カード名<span class="required">*</span>
+            <input id="card-name" type="text" maxlength="30" placeholder="例：メインカード" required />
+          </label>
+          <label>締め日<span class="required">*</span>
+            <select id="card-closing-day" required></select>
+          </label>
+          <label>支払い月<span class="required">*</span>
+            <select id="card-payment-month" required>
+              <option value="0">当月</option>
+              <option value="1" selected>翌月</option>
+            </select>
+          </label>
+          <label>支払日<span class="required">*</span>
+            <select id="card-payment-day" required></select>
+          </label>
+          <label>土日祝日の調整<span class="required">*</span>
+            <select id="card-weekend" required>
+              <option value="none">調整なし</option>
+              <option value="previous">前営業日（金曜など）</option>
+              <option value="next" selected>翌営業日（月曜など）</option>
+            </select>
+          </label>
+          <label>テーマカラー<span class="required">*</span>
+            <input id="card-color" type="color" value="#3478b8" required />
+          </label>
+          <label>メモ
+            <input id="card-memo" type="text" maxlength="60" placeholder="例：月末締め・翌月27日払い" />
+          </label>
+        </div>
+        <div class="dialog-footer">
           <button id="delete-card-button" class="button button-danger is-hidden" type="button">削除</button>
-          <span class="action-spacer"></span>
-          <button class="button button-secondary" type="button" data-close-dialog="card-dialog">キャンセル</button>
-          <button class="button button-primary" type="submit">保存する</button>
+          <button id="save-card-button" class="button button-primary full-width" type="submit">保存する</button>
         </div>
       </form>
     </dialog>
 
-    <dialog id="manual-payment-dialog" class="app-dialog app-dialog-small">
+    <!-- 確定額登録・編集ダイアログ -->
+    <dialog id="manual-payment-dialog" class="app-dialog">
       <form id="manual-payment-form" method="dialog" novalidate>
-        <div class="dialog-header">
-          <div><p class="section-kicker">初回の確定額にも使えます</p><h2>確定済みの引落を追加</h2></div>
-          <button class="dialog-close icon-button" type="button" data-close-dialog="manual-payment-dialog" aria-label="閉じる">×</button>
-        </div>
         <input id="manual-payment-id" type="hidden" />
         <input id="manual-payment-card-id" type="hidden" />
-        <div class="form-grid">
-          <label class="field-large">金額<span class="required">必須</span><div class="money-input"><span>¥</span><input id="manual-payment-amount" type="text" inputmode="numeric" placeholder="0" required /></div></label>
-          <label>引落日<span class="required">必須</span><input id="manual-payment-date" type="date" required /></label>
-          <label class="full-span">メモ<textarea id="manual-payment-memo" rows="2" maxlength="200" placeholder="例：移行前の利用分"></textarea></label>
+        <div class="dialog-header">
+          <h2 id="manual-payment-dialog-title">確定額を登録</h2>
+          <button id="close-manual-dialog" class="icon-button" type="button" aria-label="閉じる">✕</button>
         </div>
-        <div class="dialog-actions">
+        <div class="dialog-body">
+          <label>確定した引落額（円）<span class="required">*</span>
+            <input id="manual-payment-amount" type="text" inputmode="numeric" placeholder="例：48,500" required />
+          </label>
+          <label>引き落とし日<span class="required">*</span>
+            <input id="manual-payment-date" type="date" required />
+          </label>
+          <label>メモ
+            <input id="manual-payment-memo" type="text" maxlength="60" placeholder="例：明細確定分" />
+          </label>
+        </div>
+        <div class="dialog-footer">
           <button id="delete-manual-payment-button" class="button button-danger is-hidden" type="button">削除</button>
-          <span class="action-spacer"></span>
-          <button class="button button-secondary" type="button" data-close-dialog="manual-payment-dialog">キャンセル</button>
-          <button class="button button-primary" type="submit">保存する</button>
+          <button id="save-manual-payment-button" class="button button-primary full-width" type="submit">保存する</button>
         </div>
       </form>
     </dialog>
 
-    <dialog id="budget-dialog" class="app-dialog app-dialog-small">
+    <!-- 月間予算設定ダイアログ -->
+    <dialog id="budget-dialog" class="app-dialog">
       <form id="budget-form" method="dialog" novalidate>
         <div class="dialog-header">
-          <div><p class="section-kicker">月ごとの予算管理</p><h2 id="budget-dialog-title">月間予算を設定</h2></div>
-          <button class="dialog-close icon-button" type="button" data-close-dialog="budget-dialog" aria-label="閉じる">×</button>
+          <h2 id="budget-dialog-title">月間予算を設定</h2>
+          <button id="close-budget-dialog" class="icon-button" type="button" aria-label="閉じる">✕</button>
         </div>
-        <div class="form-grid">
-          <label class="field-large">利用ベースの予算（買い物枠）
-            <div class="money-input"><span>¥</span><input id="budget-usage-input" type="text" inputmode="numeric" placeholder="例：100,000" /></div>
-            <small class="field-hint">現金・デビット・クレカで今月購入する合計の上限</small>
+        <div class="dialog-body">
+          <p class="settings-description">設定した予算は翌月以降も自動で引き継がれます。月ごとに変更することも可能です。</p>
+          <label>利用ベース予算（円）
+            <input id="budget-usage-input" type="text" inputmode="numeric" placeholder="例：150,000（未設定は空欄）" />
+            <small class="field-hint">今月のお買い物合計（クレカ利用含む）の予算</small>
           </label>
-          <label class="field-large">支払いベースの予算（出金枠）
-            <div class="money-input"><span>¥</span><input id="budget-outflow-input" type="text" inputmode="numeric" placeholder="例：120,000" /></div>
-            <small class="field-hint">現金決済＋今月口座から引き落とされる合計の上限</small>
+          <label>支払いベース予算（円）
+            <input id="budget-outflow-input" type="text" inputmode="numeric" placeholder="例：200,000（未設定は空欄）" />
+            <small class="field-hint">今月の実出金（現金＋当月クレカ引き落とし）の予算</small>
           </label>
-          <p class="full-span fine-print">※ 設定した予算は、翌月以降も変更するまで自動的に引き継がれます。</p>
         </div>
-        <div class="dialog-actions">
+        <div class="dialog-footer">
           <button id="clear-budget-button" class="button button-ghost" type="button">この月をクリア</button>
-          <span class="action-spacer"></span>
-          <button class="button button-secondary" type="button" data-close-dialog="budget-dialog">キャンセル</button>
-          <button class="button button-primary" type="submit">保存する</button>
+          <button id="save-budget-button" class="button button-primary full-width" type="submit">保存する</button>
         </div>
       </form>
     </dialog>
 
-    <dialog id="confirm-dialog" class="confirm-dialog">
-      <form method="dialog">
+    <!-- 確認モーダル -->
+    <dialog id="confirm-dialog" class="app-dialog">
+      <div class="dialog-header">
         <h2 id="confirm-title">確認</h2>
+      </div>
+      <div class="dialog-body">
         <p id="confirm-message"></p>
-        <div class="dialog-actions">
-          <button id="confirm-cancel" class="button button-secondary" value="cancel">キャンセル</button>
-          <button id="confirm-ok" class="button button-danger" value="ok">実行する</button>
-        </div>
-      </form>
+      </div>
+      <div class="dialog-footer">
+        <button id="confirm-cancel" class="button button-secondary" type="button">キャンセル</button>
+        <button id="confirm-ok" class="button button-danger" type="button">実行する</button>
+      </div>
     </dialog>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <script src="core.js"></script>
-    <script src="app.js"></script>
+    <script src="./core.js"></script>
+    <script src="./app.js"></script>
   </body>
 </html>

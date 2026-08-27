@@ -233,11 +233,23 @@
     });
     $("quick-add-button").addEventListener("click", () => openExpenseDialog(Core.todayKey()));
     $("add-card-button").addEventListener("click", () => openCardDialog());
-    $("open-balance-settings").addEventListener("click", () => switchView("settings"));
+    $("open-balance-settings").addEventListener("click", () => {
+      switchView("settings");
+      switchSettingsSubView("balance");
+    });
 
     document.querySelectorAll("[data-close-dialog]").forEach((button) => {
       button.addEventListener("click", () => closeDialog($(button.dataset.closeDialog)));
     });
+    const closeExpenseBtn = $("close-expense-dialog");
+    if (closeExpenseBtn) closeExpenseBtn.addEventListener("click", () => closeDialog($("expense-dialog")));
+    const closeCardBtn = $("close-card-dialog");
+    if (closeCardBtn) closeCardBtn.addEventListener("click", () => closeDialog($("card-dialog")));
+    const closeManualBtn = $("close-manual-dialog");
+    if (closeManualBtn) closeManualBtn.addEventListener("click", () => closeDialog($("manual-payment-dialog")));
+    const closeBudgetBtn = $("close-budget-dialog");
+    if (closeBudgetBtn) closeBudgetBtn.addEventListener("click", () => closeDialog($("budget-dialog")));
+
     document.querySelectorAll(".app-dialog").forEach((dialog) => {
       dialog.addEventListener("click", (event) => {
         if (event.target === dialog) closeDialog(dialog);
@@ -261,7 +273,8 @@
     $("card-form").addEventListener("submit", saveCardFromForm);
     $("delete-card-button").addEventListener("click", deleteCurrentCard);
     $("manual-payment-form").addEventListener("submit", saveManualPaymentFromForm);
-    $("delete-manual-payment-button").addEventListener("click", deleteCurrentManualPayment);
+    const deleteManualBtn = $("delete-manual-button") || $("delete-manual-payment-button");
+    if (deleteManualBtn) deleteManualBtn.addEventListener("click", deleteCurrentManualPayment);
 
     $("history-month").addEventListener("change", renderHistory);
     $("history-category").addEventListener("change", renderHistory);
@@ -330,12 +343,53 @@
       showToast("背景・枠線・ゲージの色を初期値に戻しました。");
     });
 
+    $("back-to-cards-btn").addEventListener("click", () => switchCardSubView("main"));
+
+    document.querySelectorAll("[data-settings-nav]").forEach((btn) => {
+      btn.addEventListener("click", () => switchSettingsSubView(btn.dataset.settingsNav));
+    });
+
+    document.querySelectorAll("[data-back-settings]").forEach((btn) => {
+      btn.addEventListener("click", () => switchSettingsSubView("menu"));
+    });
+
+    const settingsDeleteBtn = $("settings-menu-delete-btn");
+    if (settingsDeleteBtn) settingsDeleteBtn.addEventListener("click", deleteAllData);
+
     $("export-button").addEventListener("click", exportData);
     $("import-button").addEventListener("click", () => $("import-file").click());
     $("import-file").addEventListener("change", importData);
     $("add-sample-button").addEventListener("click", addSampleData);
     $("remove-sample-button").addEventListener("click", removeSampleData);
-    $("delete-all-button").addEventListener("click", deleteAllData);
+    if ($("delete-all-button")) $("delete-all-button").addEventListener("click", deleteAllData);
+  }
+
+  function switchSettingsSubView(viewKey) {
+    const subviews = {
+      menu: $("settings-menu-subview"),
+      balance: $("settings-subview-balance"),
+      theme: $("settings-subview-theme"),
+      backup: $("settings-subview-backup"),
+      guide: $("settings-subview-guide"),
+    };
+
+    Object.entries(subviews).forEach(([key, el]) => {
+      if (el) el.classList.toggle("is-active", key === viewKey);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function switchCardSubView(subview, cardId = null) {
+    const isMain = subview === "main";
+    const mainView = $("cards-main-subview");
+    const historyView = $("cards-history-subview");
+    if (mainView) mainView.classList.toggle("is-active", isMain);
+    if (historyView) historyView.classList.toggle("is-active", !isMain);
+
+    if (!isMain) {
+      renderCardHistoryList(cardId);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function moveMonth(amount) {
@@ -367,8 +421,14 @@
     });
     $("today-button").classList.toggle("is-hidden", view !== "calendar");
     if (view === "history") renderHistory();
-    if (view === "cards") renderCards();
-    if (view === "settings") renderSettings();
+    if (view === "cards") {
+      switchCardSubView("main");
+      renderCards();
+    }
+    if (view === "settings") {
+      switchSettingsSubView("menu");
+      renderSettings();
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -725,6 +785,50 @@
     list.replaceChildren(...state.cards.map(createCardItem));
   }
 
+  function renderCardHistoryList(cardId = null) {
+    const card = cardId ? state.cards.find((c) => c.id === cardId) : null;
+    const heading = $("card-history-heading");
+    if (heading) {
+      heading.textContent = card ? `${card.name}の確定額履歴` : "確定額の履歴";
+    }
+
+    const list = $("card-history-list");
+    let items = state.manualPayments.slice();
+    if (cardId) {
+      items = items.filter((item) => item.cardId === cardId);
+    }
+    // 月ごとの新しい順（降順）
+    items.sort((a, b) => b.date.localeCompare(a.date));
+
+    if (!items.length) {
+      list.replaceChildren(emptyState("確定額の記録はありません", "カード画面の「確定額を追加」から登録できます。"));
+      return;
+    }
+
+    const rows = items.map((payment) => {
+      const pCard = state.cards.find((c) => c.id === payment.cardId);
+      const itemEl = createElement("div", "record-item");
+      const icon = createElement("span", "record-icon", "💳");
+      const main = createElement("span", "record-main");
+      main.append(createElement("strong", "", formatDate(payment.date)));
+      const detailParts = [];
+      if (pCard) detailParts.push(pCard.name);
+      if (payment.memo) detailParts.push(payment.memo);
+      detailParts.push("引き落とし確定");
+      main.append(createElement("span", "", detailParts.join("・")));
+
+      const amountEl = createElement("strong", "record-amount", formatYen(payment.amount));
+      const editBtn = createElement("button", "small-button", "編集");
+      editBtn.type = "button";
+      editBtn.addEventListener("click", () => openManualPaymentDialog(payment.cardId, payment.id));
+
+      itemEl.append(icon, main, amountEl, editBtn);
+      return itemEl;
+    });
+
+    list.replaceChildren(...rows);
+  }
+
   function createCardItem(card) {
     const article = createElement("article", "card-item");
     article.style.setProperty("--card-color", card.color);
@@ -737,23 +841,36 @@
     article.append(top, schedule);
     if (card.memo) article.append(createElement("p", "card-meta", card.memo));
 
-    const manualForCard = state.manualPayments
-      .filter((item) => item.cardId === card.id)
-      .sort((a, b) => a.date.localeCompare(b.date));
-    if (manualForCard.length) {
-      const manualList = createElement("div", "manual-payment-list");
-      manualForCard.forEach((payment) => {
-        const row = createElement("div", "manual-payment-row");
-        row.append(createElement("span", "", `${formatShortDate(payment.date)} 確定額 ${formatYen(payment.amount)}`));
-        const edit = createElement("button", "", "編集");
-        edit.type = "button";
-        edit.addEventListener("click", () => openManualPaymentDialog(card.id, payment.id));
-        row.append(edit);
-        manualList.append(row);
-      });
-      article.append(manualList);
-    }
+    // 今月の引き落とし確定額
+    const monthKey = currentMonth.slice(0, 7);
+    const currentMonthPayments = state.manualPayments
+      .filter((item) => item.cardId === card.id && item.date.startsWith(monthKey))
+      .sort((a, b) => b.date.localeCompare(a.date));
 
+    const paymentBox = createElement("div", "card-month-payment-box");
+    const boxTitle = createElement("span", "card-month-payment-title", "今月の引き落とし");
+    const mainRow = createElement("div", "card-month-payment-main");
+
+    if (currentMonthPayments.length > 0) {
+      const latest = currentMonthPayments[0];
+      const totalAmount = currentMonthPayments.reduce((sum, item) => sum + item.amount, 0);
+      const dateText = formatShortDate(latest.date);
+      const amountWrap = createElement("div");
+      amountWrap.append(
+        createElement("strong", "card-month-payment-amount", formatYen(totalAmount)),
+        createElement("span", "card-month-payment-status", "確定")
+      );
+      mainRow.append(createElement("span", "card-month-payment-date", dateText), amountWrap);
+    } else {
+      mainRow.append(
+        createElement("span", "card-month-payment-date", "未登録"),
+        createElement("span", "card-meta", "確定額の登録がありません")
+      );
+    }
+    paymentBox.append(boxTitle, mainRow);
+    article.append(paymentBox);
+
+    // アクションボタン
     const actions = createElement("div", "card-actions");
     const paymentButton = createElement("button", "small-button", "確定額を追加");
     paymentButton.type = "button";
@@ -763,6 +880,17 @@
     editButton.addEventListener("click", () => openCardDialog(card.id));
     actions.append(paymentButton, editButton);
     article.append(actions);
+
+    // 確定額の履歴を見るリンクボタン
+    const historyLink = createElement("button", "card-history-link-btn");
+    historyLink.type = "button";
+    historyLink.append(
+      createElement("span", "", "確定額の履歴を見る"),
+      createElement("span", "", "＞")
+    );
+    historyLink.addEventListener("click", () => switchCardSubView("history", card.id));
+    article.append(historyLink);
+
     return article;
   }
 
@@ -1198,6 +1326,13 @@
       showToast("サンプルデータはすでに追加されています。");
       return;
     }
+    const confirmed = await confirmAction(
+      "サンプルデータを追加しますか？",
+      "現在登録されているデータは消えず、お試し用のダミー支出・カードデータが追加されます。",
+      "追加する"
+    );
+    if (!confirmed) return;
+
     const mainCardId = uid("card");
     const subCardId = uid("card");
     const today = Core.todayKey();

@@ -1587,3 +1587,231 @@ dialog {
   .bottom-nav { background: var(--surface); }
   .calendar-day.is-today { background: var(--accent-soft); }
 }
+
+/* サブビュー切り替え */
+.card-subview,
+.settings-subview {
+  display: none;
+}
+
+.card-subview.is-active,
+.settings-subview.is-active {
+  display: block;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.back-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 0.92rem;
+  font-weight: 750;
+  padding: 6px 0 10px;
+  cursor: pointer;
+}
+
+.back-link-btn:hover {
+  text-decoration: underline;
+}
+
+/* 設定メニューカード（一覧） */
+.settings-nav-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.settings-menu-card {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.settings-menu-card:active {
+  transform: scale(0.985);
+}
+
+.settings-menu-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.settings-menu-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-menu-info strong {
+  font-size: 0.98rem;
+  font-weight: 750;
+  color: var(--text);
+}
+
+.settings-menu-info span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-menu-arrow {
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.settings-danger-wrapper {
+  margin-top: 32px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border);
+}
+
+.settings-menu-card.is-danger {
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+  background: color-mix(in srgb, var(--danger) 4%, var(--surface));
+}
+
+.settings-menu-card.is-danger .settings-menu-info strong {
+  color: var(--danger);
+}
+
+.settings-menu-card.is-danger .settings-menu-arrow {
+  color: var(--danger);
+}
+
+/* ガイド・解説 */
+.guide-list {
+  margin: 10px 0 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.guide-comparison {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.guide-box {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+}
+
+.guide-box strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.guide-box p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+/* カード画面: 今月の引き落としブロック & 履歴リンク */
+.card-month-payment-box {
+  margin: 12px 0 8px;
+  padding: 12px 14px;
+  border-radius: 13px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+}
+
+.card-month-payment-title {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.card-month-payment-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-month-payment-date {
+  font-size: 0.9rem;
+  font-weight: 750;
+  color: var(--text);
+}
+
+.card-month-payment-amount {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--outflow);
+}
+
+.card-month-payment-status {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.72rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--outflow-soft);
+  color: var(--outflow);
+  font-weight: 750;
+}
+
+.card-history-link-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 10px;
+  border-radius: 11px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.card-history-link-btn:hover {
+  background: var(--surface-soft);
+}
+
