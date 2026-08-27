@@ -1,16 +1,16 @@
 /* 更新時は CACHE_VERSION を上げると、古いキャッシュが自動削除されます。 */
-const CACHE_VERSION = "ato-ikura-v1.0.5";
+const CACHE_VERSION = "ato-ikura-v1.0.6";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
   "./core.js",
   "./app.js",
-  "./manifest.json?v=3",
-  "./icons/icon.svg?v=3",
-  "./icons/icon-192.png?v=3",
-  "./icons/icon-512.png?v=3",
-  "./icons/apple-touch-icon.png?v=3"
+  "./manifest.json",
+  "./icons/icon.svg",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/apple-touch-icon.png"
 ];
 
 self.addEventListener("install", (event) => {
