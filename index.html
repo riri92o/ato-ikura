@@ -38,17 +38,37 @@
           </div>
 
           <section class="summary-panel" aria-label="月間サマリー">
-            <div class="summary-primary">
-              <p>この月に使った合計</p>
-              <strong id="summary-usage">0円</strong>
+            <div class="budget-mode-switch" role="tablist" aria-label="集計方式の切り替え">
+              <button id="mode-usage-btn" class="budget-mode-tab is-active" type="button" role="tab" aria-selected="true" data-mode="usage">利用ベース</button>
+              <button id="mode-outflow-btn" class="budget-mode-tab" type="button" role="tab" aria-selected="false" data-mode="outflow">支払いベース</button>
             </div>
+
+            <div class="summary-primary budget-hero">
+              <div class="budget-title-row">
+                <p id="budget-primary-label">今月あと使える金額</p>
+                <button id="open-budget-button" class="budget-setting-trigger" type="button">予算を設定</button>
+              </div>
+              <strong id="budget-remaining-amount">未設定</strong>
+            </div>
+
+            <div class="budget-gauge-card" id="budget-gauge-card">
+              <div class="budget-gauge-track">
+                <div id="budget-gauge-fill" class="budget-gauge-fill" style="width: 0%;"></div>
+              </div>
+              <div class="budget-gauge-info">
+                <span id="budget-current-calc">集計額: 0円</span>
+                <span id="budget-total-val">予算: 未設定</span>
+                <span id="budget-percent-val">0%</span>
+              </div>
+            </div>
+
             <div class="summary-grid">
               <div><span>当日決済の出金</span><strong id="summary-direct">0円</strong></div>
               <div><span>カード引落</span><strong id="summary-card">0円</strong></div>
               <div class="summary-total"><span>実際の出金合計</span><strong id="summary-outflow">0円</strong></div>
               <div><span>次のカード引落</span><strong id="summary-next-card">予定なし</strong></div>
             </div>
-            <p class="summary-note">利用額は買い物をした日、出金額は口座や財布から実際に減る日で集計します。</p>
+            <p class="summary-note" id="summary-note-text">利用額は買い物をした日、出金額は口座や財布から実際に減る日で集計します。</p>
           </section>
 
           <section class="calendar-card" aria-label="月間カレンダー">
@@ -288,6 +308,32 @@
           <button id="delete-manual-payment-button" class="button button-danger is-hidden" type="button">削除</button>
           <span class="action-spacer"></span>
           <button class="button button-secondary" type="button" data-close-dialog="manual-payment-dialog">キャンセル</button>
+          <button class="button button-primary" type="submit">保存する</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="budget-dialog" class="app-dialog app-dialog-small">
+      <form id="budget-form" method="dialog" novalidate>
+        <div class="dialog-header">
+          <div><p class="section-kicker">月ごとの予算管理</p><h2 id="budget-dialog-title">月間予算を設定</h2></div>
+          <button class="dialog-close icon-button" type="button" data-close-dialog="budget-dialog" aria-label="閉じる">×</button>
+        </div>
+        <div class="form-grid">
+          <label class="field-large">利用ベースの予算（買い物枠）
+            <div class="money-input"><span>¥</span><input id="budget-usage-input" type="text" inputmode="numeric" placeholder="例：100,000" /></div>
+            <small class="field-hint">現金・デビット・クレカで今月購入する合計の上限</small>
+          </label>
+          <label class="field-large">支払いベースの予算（出金枠）
+            <div class="money-input"><span>¥</span><input id="budget-outflow-input" type="text" inputmode="numeric" placeholder="例：120,000" /></div>
+            <small class="field-hint">現金決済＋今月口座から引き落とされる合計の上限</small>
+          </label>
+          <p class="full-span fine-print">※ 設定した予算は、翌月以降も変更するまで自動的に引き継がれます。</p>
+        </div>
+        <div class="dialog-actions">
+          <button id="clear-budget-button" class="button button-ghost" type="button">この月をクリア</button>
+          <span class="action-spacer"></span>
+          <button class="button button-secondary" type="button" data-close-dialog="budget-dialog">キャンセル</button>
           <button class="button button-primary" type="submit">保存する</button>
         </div>
       </form>

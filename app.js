@@ -60,12 +60,14 @@
       expenses: [],
       cards: [],
       manualPayments: [],
+      budgets: {},
       settings: {
         currentBalance: null,
         minimumReserve: null,
         theme: "auto",
         themeColor1: "#185a37",
         themeColor2: "#388f5f",
+        budgetMode: "usage",
       },
       updatedAt: new Date().toISOString(),
     };
@@ -144,13 +146,27 @@
       if (calculated) expense.calculatedPaymentDate = calculated;
     });
 
-    const balance = input.settings.currentBalance;
-    const reserve = input.settings.minimumReserve;
-    clean.settings.currentBalance = balance === null || balance === "" || !Number.isFinite(Number(balance)) ? null : Core.normalizeAmount(balance);
-    clean.settings.minimumReserve = reserve === null || reserve === "" || !Number.isFinite(Number(reserve)) ? null : Core.normalizeAmount(reserve);
-    clean.settings.theme = ["auto", "light", "dark"].includes(input.settings.theme) ? input.settings.theme : "auto";
-    clean.settings.themeColor1 = /^#[0-9a-f]{6}$/i.test(input.settings.themeColor1 || "") ? input.settings.themeColor1 : "#185a37";
-    clean.settings.themeColor2 = /^#[0-9a-f]{6}$/i.test(input.settings.themeColor2 || "") ? input.settings.themeColor2 : "#388f5f";
+    clean.budgets = {};
+    if (input.budgets && typeof input.budgets === "object") {
+      Object.entries(input.budgets).forEach(([monthKey, b]) => {
+        if (/^\d{4}-\d{2}$/.test(monthKey) && b && typeof b === "object") {
+          const usage = b.usage !== null && b.usage !== undefined && b.usage !== "" && Number.isFinite(Number(b.usage)) && Number(b.usage) > 0 ? Core.normalizeAmount(b.usage) : null;
+          const outflow = b.outflow !== null && b.outflow !== undefined && b.outflow !== "" && Number.isFinite(Number(b.outflow)) && Number(b.outflow) > 0 ? Core.normalizeAmount(b.outflow) : null;
+          if (usage !== null || outflow !== null) {
+            clean.budgets[monthKey] = { usage, outflow };
+          }
+        }
+      });
+    }
+
+    const balance = input.settings?.currentBalance;
+    const reserve = input.settings?.minimumReserve;
+    clean.settings.currentBalance = balance === null || balance === undefined || balance === "" || !Number.isFinite(Number(balance)) ? null : Core.normalizeAmount(balance);
+    clean.settings.minimumReserve = reserve === null || reserve === undefined || reserve === "" || !Number.isFinite(Number(reserve)) ? null : Core.normalizeAmount(reserve);
+    clean.settings.theme = ["auto", "light", "dark"].includes(input.settings?.theme) ? input.settings.theme : "auto";
+    clean.settings.themeColor1 = /^#[0-9a-f]{6}$/i.test(input.settings?.themeColor1 || "") ? input.settings.themeColor1 : "#185a37";
+    clean.settings.themeColor2 = /^#[0-9a-f]{6}$/i.test(input.settings?.themeColor2 || "") ? input.settings.themeColor2 : "#388f5f";
+    clean.settings.budgetMode = ["usage", "outflow"].includes(input.settings?.budgetMode) ? input.settings.budgetMode : "usage";
     clean.updatedAt = String(input.updatedAt || new Date().toISOString());
     return clean;
   }
@@ -244,6 +260,14 @@
     $("history-month").addEventListener("change", renderHistory);
     $("history-category").addEventListener("change", renderHistory);
     $("history-payment").addEventListener("change", renderHistory);
+
+    $("mode-usage-btn").addEventListener("click", () => switchBudgetMode("usage"));
+    $("mode-outflow-btn").addEventListener("click", () => switchBudgetMode("outflow"));
+    $("open-budget-button").addEventListener("click", openBudgetDialog);
+    $("budget-form").addEventListener("submit", saveBudgetFromForm);
+    $("clear-budget-button").addEventListener("click", clearMonthlyBudget);
+    $("budget-usage-input").addEventListener("blur", formatMoneyInput);
+    $("budget-outflow-input").addEventListener("blur", formatMoneyInput);
 
     $("save-balance-settings").addEventListener("click", saveBalanceSettings);
     $("theme-select").addEventListener("change", saveTheme);
@@ -395,15 +419,184 @@
     return parts.join("、");
   }
 
+  function getEffectiveBudget(monthKey, type) {
+    if (!state.budgets) return null;
+    const exact = state.budgets[monthKey];
+    if (exact && exact[type] !== null && exact[type] !== undefined && Number(exact[type]) > 0) {
+      return Core.normalizeAmount(exact[type]);
+    }
+    // 前月以前の最新設定を探す（前月引き継ぎ）
+    const pastMonths = Object.keys(state.budgets)
+      .filter((k) => k <= monthKey && state.budgets[k] && state.budgets[k][type] !== null && state.budgets[k][type] !== undefined && Number(state.budgets[k][type]) > 0)
+      .sort((a, b) => b.localeCompare(a));
+    if (pastMonths.length > 0) {
+      return Core.normalizeAmount(state.budgets[pastMonths[0]][type]);
+    }
+    return null;
+  }
+
+  function switchBudgetMode(mode) {
+    if (!["usage", "outflow"].includes(mode)) return;
+    state.settings.budgetMode = mode;
+    saveState();
+    renderMonthlySummary();
+  }
+
   function renderMonthlySummary() {
     const monthKey = currentMonth.slice(0, 7);
     const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments);
-    $("summary-usage").textContent = formatYen(summary.usage);
+    const mode = state.settings.budgetMode || "usage";
+    const isUsage = mode === "usage";
+
+    // モード切り替えタブ
+    const usageBtn = $("mode-usage-btn");
+    const outflowBtn = $("mode-outflow-btn");
+    if (usageBtn && outflowBtn) {
+      usageBtn.classList.toggle("is-active", isUsage);
+      usageBtn.setAttribute("aria-selected", isUsage ? "true" : "false");
+      outflowBtn.classList.toggle("is-active", !isUsage);
+      outflowBtn.setAttribute("aria-selected", !isUsage ? "true" : "false");
+    }
+
+    // モード別の集計値と予算
+    const currentAmount = isUsage ? summary.usage : summary.outflow;
+    const budget = getEffectiveBudget(monthKey, mode);
+
+    const primaryLabel = $("budget-primary-label");
+    const remainingEl = $("budget-remaining-amount");
+    const gaugeFill = $("budget-gauge-fill");
+    const currentCalcEl = $("budget-current-calc");
+    const totalValEl = $("budget-total-val");
+    const percentValEl = $("budget-percent-val");
+
+    if (primaryLabel) {
+      primaryLabel.textContent = isUsage ? "今月あと使える金額" : "今月あと出ていく余裕";
+    }
+
+    if (budget === null) {
+      // 予算未設定時
+      if (remainingEl) {
+        remainingEl.textContent = "未設定";
+        remainingEl.classList.remove("is-over");
+      }
+      if (gaugeFill) {
+        gaugeFill.style.width = "0%";
+        gaugeFill.className = "budget-gauge-fill";
+      }
+      if (currentCalcEl) currentCalcEl.textContent = isUsage ? `利用合計: ${formatYen(currentAmount)}` : `出金合計: ${formatYen(currentAmount)}`;
+      if (totalValEl) totalValEl.textContent = "予算: 未設定";
+      if (percentValEl) percentValEl.textContent = "—";
+    } else {
+      // 予算設定済み
+      const remaining = budget - currentAmount;
+      const percent = budget > 0 ? Math.round((currentAmount / budget) * 100) : 0;
+      const ratio = Math.min(100, Math.max(0, percent));
+
+      if (remainingEl) {
+        if (remaining >= 0) {
+          remainingEl.textContent = formatYen(remaining);
+          remainingEl.classList.remove("is-over");
+        } else {
+          remainingEl.textContent = `超過 -${formatYen(Math.abs(remaining))}`;
+          remainingEl.classList.add("is-over");
+        }
+      }
+
+      if (gaugeFill) {
+        gaugeFill.style.width = `${ratio}%`;
+        gaugeFill.className = "budget-gauge-fill";
+        if (currentAmount > budget) {
+          gaugeFill.classList.add("is-danger");
+        } else if (currentAmount >= budget * 0.8) {
+          gaugeFill.classList.add("is-warning");
+        }
+      }
+
+      if (currentCalcEl) currentCalcEl.textContent = isUsage ? `利用額: ${formatYen(currentAmount)}` : `出金額: ${formatYen(currentAmount)}`;
+      if (totalValEl) totalValEl.textContent = `予算: ${formatYen(budget)}`;
+      if (percentValEl) percentValEl.textContent = `${percent}%`;
+    }
+
+    // 内訳グリッド
     $("summary-direct").textContent = formatYen(summary.direct);
     $("summary-card").textContent = formatYen(summary.cardWithdrawal);
     $("summary-outflow").textContent = formatYen(summary.outflow);
     const next = Core.getNextCardWithdrawal(Core.todayKey(), state.expenses, state.cards, state.manualPayments);
     $("summary-next-card").textContent = next ? `${formatShortDate(next.date)}・${formatYen(next.amount)}` : "予定なし";
+
+    // 注釈
+    const noteEl = $("summary-note-text");
+    if (noteEl) {
+      noteEl.textContent = isUsage
+        ? "利用ベース：買い物をした日で集計（クレジットカードの引き落とし額は含みません）"
+        : "支払いベース：当日決済＋今月口座から引き落とされる金額で集計（今月カード利用分は含みません）";
+    }
+  }
+
+  function openBudgetDialog() {
+    const monthKey = currentMonth.slice(0, 7);
+    const monthDate = Core.parseDateKey(currentMonth);
+    $("budget-dialog-title").textContent = `${monthDate.getFullYear()}年${monthDate.getMonth() + 1}月の予算`;
+
+    const directSetting = state.budgets ? state.budgets[monthKey] : null;
+    const effectiveUsage = getEffectiveBudget(monthKey, "usage");
+    const effectiveOutflow = getEffectiveBudget(monthKey, "outflow");
+
+    const usageVal = directSetting && directSetting.usage !== null && directSetting.usage !== undefined
+      ? directSetting.usage
+      : (effectiveUsage !== null ? effectiveUsage : "");
+    const outflowVal = directSetting && directSetting.outflow !== null && directSetting.outflow !== undefined
+      ? directSetting.outflow
+      : (effectiveOutflow !== null ? effectiveOutflow : "");
+
+    $("budget-usage-input").value = usageVal !== "" ? formatNumber(usageVal) : "";
+    $("budget-outflow-input").value = outflowVal !== "" ? formatNumber(outflowVal) : "";
+
+    showDialog($("budget-dialog"));
+    window.setTimeout(() => $("budget-usage-input").focus(), 40);
+  }
+
+  function saveBudgetFromForm(event) {
+    if (event) event.preventDefault();
+    const monthKey = currentMonth.slice(0, 7);
+    const usageRaw = $("budget-usage-input").value.trim();
+    const outflowRaw = $("budget-outflow-input").value.trim();
+
+    const usage = usageRaw === "" ? null : Core.normalizeAmount(usageRaw);
+    const outflow = outflowRaw === "" ? null : Core.normalizeAmount(outflowRaw);
+
+    if (!state.budgets) state.budgets = {};
+    if (usage === null && outflow === null) {
+      delete state.budgets[monthKey];
+    } else {
+      state.budgets[monthKey] = {
+        usage: usage > 0 ? usage : null,
+        outflow: outflow > 0 ? outflow : null,
+      };
+    }
+
+    saveState();
+    closeDialog($("budget-dialog"));
+    renderMonthlySummary();
+    showToast("月間予算を保存しました。");
+  }
+
+  async function clearMonthlyBudget() {
+    const monthKey = currentMonth.slice(0, 7);
+    const monthDate = Core.parseDateKey(currentMonth);
+    const confirmed = await confirmAction(
+      `${monthDate.getFullYear()}年${monthDate.getMonth() + 1}月の個別予算をクリアしますか？`,
+      "この月の個別設定を削除し、前月からの引き継ぎまたは未設定に戻します。",
+      "クリアする"
+    );
+    if (!confirmed) return;
+    if (state.budgets && state.budgets[monthKey]) {
+      delete state.budgets[monthKey];
+      saveState();
+    }
+    closeDialog($("budget-dialog"));
+    renderMonthlySummary();
+    showToast("この月の個別予算をクリアしました。");
   }
 
   function renderBalance() {
