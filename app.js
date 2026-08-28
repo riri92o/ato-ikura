@@ -444,9 +444,32 @@
     $("calendar-title").textContent = `${monthDate.getFullYear()}年${monthDate.getMonth() + 1}月`;
     $("month-picker").value = currentMonth.slice(0, 7);
     renderCalendar();
+    renderCalendarLegend();
     renderMonthlySummary();
     renderBalance();
     renderCategorySummary();
+  }
+
+  function renderCalendarLegend() {
+    const legend = $("calendar-legend");
+    if (!legend) return;
+
+    const nodes = [];
+
+    const usageSpan = createElement("span");
+    const usageDot = createElement("i", "legend-dot usage");
+    usageSpan.append(usageDot, document.createTextNode("使った金額"));
+    nodes.push(usageSpan);
+
+    state.cards.forEach((card) => {
+      const cardSpan = createElement("span");
+      const cardDot = createElement("i", "legend-dot");
+      cardDot.style.backgroundColor = card.color;
+      cardSpan.append(cardDot, document.createTextNode(card.name));
+      nodes.push(cardSpan);
+    });
+
+    legend.replaceChildren(...nodes);
   }
 
   function renderCalendar() {
