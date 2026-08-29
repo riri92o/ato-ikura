@@ -4,7 +4,7 @@
   const Core = window.AtoIkuraCore;
   const APP = {
     name: "あといくら",
-    version: "1.0.6",
+    version: "1.1.0",
     storageKey: "ato-ikura-data-v1",
   };
 
@@ -57,12 +57,22 @@
     registerServiceWorker();
   }
 
+  function defaultFavorites() {
+    return [
+      { id: "fav_1", title: "ランチ", amount: 1000, category: "食費", paymentMethod: "現金", cardId: "", memo: "ランチ" },
+      { id: "fav_2", title: "コンビニ", amount: 600, category: "食費", paymentMethod: "現金", cardId: "", memo: "コンビニ" },
+      { id: "fav_3", title: "スーパー", amount: 3000, category: "日用品", paymentMethod: "現金", cardId: "", memo: "スーパー" },
+      { id: "fav_4", title: "カフェ", amount: 550, category: "カフェ", paymentMethod: "現金", cardId: "", memo: "カフェ" },
+    ];
+  }
+
   function defaultState() {
     return {
       schemaVersion: 1,
       expenses: [],
       cards: [],
       manualPayments: [],
+      favorites: defaultFavorites(),
       budgets: {},
       settings: {
         currentBalance: null,
@@ -132,6 +142,22 @@
         createdAt: String(item.createdAt || new Date().toISOString()),
         isSample: Boolean(item.isSample),
       }));
+
+    if (Array.isArray(input.favorites)) {
+      clean.favorites = input.favorites
+        .filter((item) => item && typeof item === "object" && String(item.title || "").trim())
+        .map((item) => ({
+          id: String(item.id || uid("fav")),
+          title: String(item.title || "").trim().slice(0, 30),
+          amount: Core.normalizeAmount(item.amount),
+          category: CATEGORIES.includes(item.category) ? item.category : "食費",
+          paymentMethod: PAYMENT_METHODS.includes(item.paymentMethod) ? item.paymentMethod : "現金",
+          cardId: typeof item.cardId === "string" ? item.cardId : "",
+          memo: String(item.memo || "").slice(0, 200),
+        }));
+    } else {
+      clean.favorites = defaultFavorites();
+    }
 
     clean.manualPayments = input.manualPayments
       .filter((item) => item && Core.parseDateKey(item.date) && Core.normalizeAmount(item.amount) > 0)
@@ -297,6 +323,34 @@
     $("history-month").addEventListener("change", renderHistory);
     $("history-category").addEventListener("change", renderHistory);
     $("history-payment").addEventListener("change", renderHistory);
+
+    const historySearch = $("history-search");
+    const historySearchClear = $("history-search-clear");
+    if (historySearch) {
+      historySearch.addEventListener("input", () => {
+        if (historySearchClear) {
+          historySearchClear.classList.toggle("is-hidden", !historySearch.value);
+        }
+        renderHistory();
+      });
+    }
+    if (historySearchClear) {
+      historySearchClear.addEventListener("click", () => {
+        if (historySearch) historySearch.value = "";
+        historySearchClear.classList.add("is-hidden");
+        renderHistory();
+        historySearch?.focus();
+      });
+    }
+
+    const manageFavBtn = $("manage-favorites-button");
+    if (manageFavBtn) {
+      manageFavBtn.addEventListener("click", toggleFavoritesDeleteMode);
+    }
+    const addFavBtn = $("add-to-favorites-btn");
+    if (addFavBtn) {
+      addFavBtn.addEventListener("click", saveCurrentFormAsFavorite);
+    }
 
     $("mode-usage-btn").addEventListener("click", () => switchBudgetMode("usage"));
     $("mode-outflow-btn").addEventListener("click", () => switchBudgetMode("outflow"));
@@ -783,10 +837,23 @@
     const month = $("history-month").value;
     const category = $("history-category").value;
     const payment = $("history-payment").value;
+    const query = ($("history-search")?.value || "").trim().toLowerCase();
+
     const items = state.expenses
       .filter((expense) => !month || expense.date.startsWith(month))
       .filter((expense) => !category || expense.category === category)
       .filter((expense) => !payment || expense.paymentMethod === payment)
+      .filter((expense) => {
+        if (!query) return true;
+        const memoMatch = (expense.memo || "").toLowerCase().includes(query);
+        const catMatch = (expense.category || "").toLowerCase().includes(query);
+        const card = state.cards.find((c) => c.id === expense.cardId);
+        const cardMatch = card && card.name.toLowerCase().includes(query);
+        const payMatch = (expense.paymentMethod || "").toLowerCase().includes(query);
+        const amountMatch = String(expense.amount).includes(query);
+        const dateMatch = expense.date.includes(query);
+        return memoMatch || catMatch || cardMatch || payMatch || amountMatch || dateMatch;
+      })
       .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
 
     const filteredTotal = items.reduce((total, expense) => total + Core.normalizeAmount(expense.amount), 0);
@@ -797,7 +864,10 @@
     );
     const list = $("history-list");
     if (!items.length) {
-      list.replaceChildren(emptyState("該当する支出はありません", "条件を変えるか、右下の＋から登録できます。"));
+      list.replaceChildren(emptyState(
+        query ? "一致する支出が見つかりません" : "該当する支出はありません",
+        query ? "別のキーワードで検索してみてください。" : "条件を変えるか、右下の＋から登録できます。"
+      ));
       return;
     }
     list.replaceChildren(...items.map(createHistoryItem));
@@ -875,14 +945,37 @@
   function createCardItem(card) {
     const article = createElement("article", "card-item");
     article.style.setProperty("--card-color", card.color);
-    const top = createElement("div", "card-top");
-    top.append(createElement("h3", "", card.name), createElement("span", "card-meta", `${countCardExpenses(card.id)}件の利用`));
+
+    // --- 1. クレジットカード券面風UI (Card Face) ---
+    const cardFace = createElement("div", "credit-card-face");
+
+    // トップ行：ICチップ・非接触マーク & カードブランド名
+    const faceTop = createElement("div", "card-face-top");
+    const chipGroup = createElement("div", "card-chip-group");
+    chipGroup.append(
+      createElement("div", "card-emv-chip"),
+      createElement("div", "card-contactless", ")))")
+    );
+    const brand = createElement("span", "card-face-brand", card.name);
+    faceTop.append(chipGroup, brand);
+
+    // 中央行：仮想カード番号 & 利用件数バッジ
+    const faceMiddle = createElement("div", "card-face-middle");
+    const lastDigits = (card.id || "").replace(/[^0-9a-zA-Z]/g, "").slice(-4).padStart(4, "8");
+    const virtualNumber = createElement("span", "card-virtual-number", `•••• •••• •••• ${lastDigits.toUpperCase()}`);
+    const usageCount = createElement("span", "card-usage-pill", `${countCardExpenses(card.id)}件利用`);
+    faceMiddle.append(virtualNumber, usageCount);
+
+    // フッター行：締め日・支払日仕様 & 今月の確定額バッジ
+    const faceFooter = createElement("div", "card-face-footer");
+    const specCol = createElement("div", "card-face-spec");
     const closingLabel = card.closingDay === "end" ? "月末締め" : `${card.closingDay}日締め`;
     const monthLabel = Number(card.paymentMonth) === 0 ? "当月" : "翌月";
-    const weekendLabel = { none: "土日調整なし", previous: "土日は前営業日", next: "土日は翌営業日" }[card.weekendAdjustment];
-    const schedule = createElement("div", "card-schedule", `${closingLabel}・${monthLabel}${card.paymentDay}日払い・${weekendLabel}`);
-    article.append(top, schedule);
-    if (card.memo) article.append(createElement("p", "card-meta", card.memo));
+    const weekendLabel = { none: "", previous: "(前営業日)", next: "(翌営業日)" }[card.weekendAdjustment];
+    specCol.append(
+      createElement("span", "card-spec-label", "CLOSING / PAYMENT"),
+      createElement("strong", "card-spec-value", `${closingLabel} → ${monthLabel}${card.paymentDay}日${weekendLabel ? " " + weekendLabel : ""}`)
+    );
 
     // 今月の引き落とし確定額
     const monthKey = currentMonth.slice(0, 7);
@@ -890,55 +983,163 @@
       .filter((item) => item.cardId === card.id && item.date.startsWith(monthKey))
       .sort((a, b) => b.date.localeCompare(a.date));
 
-    const paymentBox = createElement("div", "card-month-payment-box");
-    const boxTitle = createElement("span", "card-month-payment-title", "今月の引き落とし");
-    const mainRow = createElement("div", "card-month-payment-main");
-
+    const paymentBadge = createElement("div", "card-face-payment-badge");
     if (currentMonthPayments.length > 0) {
-      const latest = currentMonthPayments[0];
       const totalAmount = currentMonthPayments.reduce((sum, item) => sum + item.amount, 0);
-      const dateText = formatShortDate(latest.date);
-      const amountWrap = createElement("div");
-      amountWrap.append(
-        createElement("strong", "card-month-payment-amount", formatYen(totalAmount)),
-        createElement("span", "card-month-payment-status", "確定")
+      paymentBadge.append(
+        createElement("span", "card-badge-label", "今月の引落確定額"),
+        createElement("strong", "card-badge-amount", formatYen(totalAmount))
       );
-      mainRow.append(createElement("span", "card-month-payment-date", dateText), amountWrap);
     } else {
-      mainRow.append(
-        createElement("span", "card-month-payment-date", "未登録"),
-        createElement("span", "card-meta", "確定額の登録がありません")
+      paymentBadge.append(
+        createElement("span", "card-badge-label", "今月の引落確定額"),
+        createElement("span", "card-badge-amount is-empty", "未確定")
       );
     }
-    paymentBox.append(boxTitle, mainRow);
-    article.append(paymentBox);
+    faceFooter.append(specCol, paymentBadge);
 
-    // アクションボタン
-    const actions = createElement("div", "card-actions");
-    const paymentButton = createElement("button", "small-button", "確定額を追加");
+    cardFace.append(faceTop, faceMiddle, faceFooter);
+    article.append(cardFace);
+
+    // --- 2. カード下部操作エリア (Card Controls Panel) ---
+    const controlsPanel = createElement("div", "card-controls-panel");
+    if (card.memo) {
+      controlsPanel.append(createElement("p", "card-memo-text", card.memo));
+    }
+
+    const actionsGroup = createElement("div", "card-actions-group");
+    const paymentButton = createElement("button", "small-button button-primary", "＋ 確定額を追加");
     paymentButton.type = "button";
     paymentButton.addEventListener("click", () => openManualPaymentDialog(card.id));
-    const editButton = createElement("button", "small-button", "設定を編集");
+
+    const editButton = createElement("button", "small-button", "⚙ 設定を編集");
     editButton.type = "button";
     editButton.addEventListener("click", () => openCardDialog(card.id));
-    actions.append(paymentButton, editButton);
-    article.append(actions);
 
-    // 確定額の履歴を見るリンクボタン
+    actionsGroup.append(paymentButton, editButton);
+    controlsPanel.append(actionsGroup);
+
+    // 確定額履歴リンク
     const historyLink = createElement("button", "card-history-link-btn");
     historyLink.type = "button";
     historyLink.append(
       createElement("span", "", "確定額の履歴を見る"),
-      createElement("span", "", "＞")
+      createElement("span", "", "›")
     );
     historyLink.addEventListener("click", () => switchCardSubView("history", card.id));
-    article.append(historyLink);
+    controlsPanel.append(historyLink);
 
+    article.append(controlsPanel);
     return article;
   }
 
   function countCardExpenses(cardId) {
     return state.expenses.filter((expense) => expense.cardId === cardId).length;
+  }
+
+  let isFavoritesDeleteMode = false;
+
+  function renderFavoriteChips() {
+    const list = $("favorites-chips-list");
+    const manageBtn = $("manage-favorites-button");
+    if (!list) return;
+
+    if (manageBtn) {
+      manageBtn.classList.toggle("is-active", isFavoritesDeleteMode);
+      manageBtn.textContent = isFavoritesDeleteMode ? "完了" : "整理";
+    }
+
+    if (!state.favorites || !state.favorites.length) {
+      list.replaceChildren(createElement("span", "favorites-empty-hint", "お気に入りはまだありません。「お気に入りに登録」で追加できます"));
+      return;
+    }
+
+    const chips = state.favorites.map((fav) => {
+      const chip = createElement("button", `favorite-chip${isFavoritesDeleteMode ? " is-deleting" : ""}`);
+      chip.type = "button";
+      chip.setAttribute("aria-label", isFavoritesDeleteMode ? `${fav.title}を削除` : `${fav.title}（${formatYen(fav.amount)}）を入力`);
+
+      const icon = createElement("span", "favorite-chip-icon", CATEGORY_ICONS[fav.category] || "★");
+      const title = createElement("span", "favorite-chip-title", fav.title);
+      const amount = createElement("span", "favorite-chip-amount", formatYen(fav.amount));
+      chip.append(icon, title, amount);
+
+      if (isFavoritesDeleteMode) {
+        chip.append(createElement("span", "favorite-chip-del-icon", "×"));
+      }
+
+      chip.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (isFavoritesDeleteMode) {
+          deleteFavorite(fav.id);
+        } else {
+          applyFavoriteToForm(fav);
+        }
+      });
+
+      return chip;
+    });
+
+    list.replaceChildren(...chips);
+  }
+
+  function toggleFavoritesDeleteMode() {
+    isFavoritesDeleteMode = !isFavoritesDeleteMode;
+    renderFavoriteChips();
+  }
+
+  function applyFavoriteToForm(fav) {
+    $("expense-amount").value = formatNumber(fav.amount);
+    $("expense-category").value = fav.category;
+    $("expense-payment").value = fav.paymentMethod;
+    refreshExpenseCardOptions(fav.cardId || "");
+    updateExpensePaymentFields();
+    $("expense-memo").value = fav.memo || fav.title || "";
+    updateCalculatedPaymentDate();
+    showToast(`「${fav.title}」を入力しました`);
+  }
+
+  function deleteFavorite(id) {
+    state.favorites = state.favorites.filter((f) => f.id !== id);
+    saveState();
+    renderFavoriteChips();
+    showToast("お気に入りを削除しました");
+  }
+
+  function saveCurrentFormAsFavorite() {
+    const rawAmount = $("expense-amount").value;
+    const amount = Core.normalizeAmount(rawAmount);
+    if (amount <= 0) {
+      showToast("金額を入力してからお気に入りに登録してください");
+      $("expense-amount").focus();
+      return;
+    }
+
+    const category = $("expense-category").value;
+    const paymentMethod = $("expense-payment").value;
+    const cardId = paymentMethod === Core.CREDIT_PAYMENT ? $("expense-card").value : "";
+    const memo = $("expense-memo").value.trim();
+
+    const defaultTitle = memo || category;
+    const title = window.prompt("お気に入りの名前を入力してください:", defaultTitle);
+    if (!title || !title.trim()) return;
+
+    if (!Array.isArray(state.favorites)) state.favorites = [];
+
+    const newFav = {
+      id: uid("fav"),
+      title: title.trim().slice(0, 30),
+      amount,
+      category,
+      paymentMethod,
+      cardId,
+      memo,
+    };
+
+    state.favorites.push(newFav);
+    saveState();
+    renderFavoriteChips();
+    showToast(`「${newFav.title}」をお気に入りに追加しました`);
   }
 
   function renderSettings() {
@@ -951,6 +1152,8 @@
 
   function openExpenseDialog(dateKey, expenseId = "") {
     const expense = expenseId ? state.expenses.find((item) => item.id === expenseId) : null;
+    isFavoritesDeleteMode = false;
+    renderFavoriteChips();
     $("expense-form").reset();
     $("expense-id").value = expense ? expense.id : "";
     $("expense-dialog-title").textContent = expense ? "支出を編集" : "支出を追加";

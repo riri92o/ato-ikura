@@ -102,9 +102,16 @@
         <section id="view-history" class="view" aria-labelledby="history-title">
           <div class="page-heading"><p class="section-kicker">記録を振り返る</p><h2 id="history-title">履歴</h2></div>
           <div class="filter-panel">
-            <label>月<input id="history-month" type="month" /></label>
-            <label>カテゴリ<select id="history-category"></select></label>
-            <label>支払い方法<select id="history-payment"></select></label>
+            <div class="search-input-field">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input id="history-search" type="search" placeholder="メモ・店舗・カテゴリ・カード名で検索" aria-label="支出の検索" />
+              <button id="history-search-clear" class="search-clear-btn is-hidden" type="button" aria-label="検索をクリア">×</button>
+            </div>
+            <div class="filter-select-grid">
+              <label>月<input id="history-month" type="month" /></label>
+              <label>カテゴリ<select id="history-category"></select></label>
+              <label>支払い方法<select id="history-payment"></select></label>
+            </div>
           </div>
           <div id="history-result-count" class="result-count"></div>
           <div id="history-list" class="record-list"></div>
@@ -367,6 +374,16 @@
           <div><p class="section-kicker">使った日を記録</p><h2 id="expense-dialog-title">支出を登録</h2></div>
           <button class="dialog-close icon-button" type="button" data-close-dialog="expense-dialog" aria-label="閉じる">×</button>
         </div>
+
+        <!-- よく使う支出（クイック入力） -->
+        <div class="favorites-quick-bar" id="favorites-quick-bar">
+          <div class="favorites-bar-header">
+            <span class="favorites-bar-title">★ よく使う支出（タップで入力）</span>
+            <button id="manage-favorites-button" class="favorites-manage-btn" type="button" aria-label="お気に入り管理">整理</button>
+          </div>
+          <div id="favorites-chips-list" class="favorites-chips-list" role="list"></div>
+        </div>
+
         <input id="expense-id" type="hidden" />
         <div class="form-grid">
           <label class="field-large">金額<span class="required">必須</span>
@@ -383,6 +400,13 @@
           </div>
           <label class="full-span">メモ<textarea id="expense-memo" rows="3" maxlength="200" placeholder="例：ランチ、日用品など"></textarea></label>
         </div>
+
+        <div class="favorite-save-row">
+          <button id="add-to-favorites-btn" class="text-button favorite-save-btn" type="button">
+            <span>★</span> 現在の内容をお気に入りに登録
+          </button>
+        </div>
+
         <div id="day-records-section" class="day-records-section">
           <h3>この日の支出</h3>
           <div id="day-records-list" class="compact-record-list"></div>

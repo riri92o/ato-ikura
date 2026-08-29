@@ -703,8 +703,8 @@ h3 {
 }
 
 .filter-panel {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   width: 100%;
   max-width: 100%;
@@ -714,38 +714,97 @@ h3 {
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow);
-  overflow: hidden;
 }
 
-.filter-panel label:first-child {
-  grid-column: 1 / -1;
+.search-input-field {
+  position: relative;
+  display: flex;
+  align-items: center;
   width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
 }
 
-.filter-panel label {
+.search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 0.9rem;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.search-input-field input[type="search"] {
+  width: 100%;
+  height: 42px;
+  min-height: 42px;
+  padding: 8px 36px 8px 36px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  color: var(--text);
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-input-field input[type="search"]:focus {
+  background: var(--surface);
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(24, 90, 55, 0.15);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.search-clear-btn:hover {
+  background: var(--text-muted);
+  color: var(--surface);
+}
+
+.filter-select-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.filter-select-grid label:first-child {
+  grid-column: 1 / -1;
+}
+
+.filter-select-grid label {
   display: flex;
   flex-direction: column;
   gap: 4px;
   width: 100%;
   min-width: 0;
-  max-width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
   color: var(--text-muted);
   font-size: 0.76rem;
   font-weight: 700;
 }
 
-.filter-panel input,
-.filter-panel select {
+.filter-select-grid input,
+.filter-select-grid select {
   display: block;
   width: 100%;
   min-width: 0;
-  max-width: 100%;
-  min-height: 40px;
   height: 40px;
+  min-height: 40px;
   padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: 11px;
@@ -896,49 +955,286 @@ textarea {
 }
 
 .cards-list {
+  display: grid;
+  gap: 16px;
   margin-bottom: 14px;
 }
 
+/* クレジットカード券面風リッチUI */
 .card-item {
-  padding: 16px;
-  border-left: 5px solid var(--card-color, var(--accent));
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
 }
 
-.card-top,
-.card-actions,
-.card-payment-row {
+.credit-card-face {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.6 / 1;
+  min-height: 190px;
+  padding: 20px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--card-color, #1e3a8a) 85%, #000) 0%, color-mix(in srgb, var(--card-color, #1e3a8a) 45%, #050b14) 100%);
+  color: #ffffff;
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.35), 0 4px 12px -2px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  box-sizing: border-box;
+  isolation: isolate;
+}
+
+/* 光沢・幾何学エフェクト */
+.credit-card-face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.25) 0%, transparent 55%),
+              linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.08) 45%, transparent 60%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 券面トップ行（ICチップ・非接触・カード名） */
+.card-face-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.card-chip-group {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.card-top h3 {
-  margin: 0;
+.card-emv-chip {
+  position: relative;
+  width: 38px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 50%, #d4af37 100%);
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 }
 
-.card-schedule {
-  margin: 11px 0;
-  padding: 10px 12px;
+.card-emv-chip::before {
+  content: "";
+  position: absolute;
+  inset: 4px 6px;
+  border: 1px solid rgba(130, 80, 20, 0.5);
+  border-radius: 3px;
+}
+
+.card-emv-chip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(130, 80, 20, 0.4);
+}
+
+.card-contactless {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -2px;
+  transform: rotate(90deg);
+}
+
+.card-face-brand {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  max-width: 55%;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 券面中央行（仮想カード番号・利用数バッジ） */
+.card-face-middle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 6px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.card-virtual-number {
+  font-family: "Courier New", Courier, monospace, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.card-usage-pill {
+  padding: 3px 8px;
   border-radius: 12px;
-  background: var(--surface-muted);
-  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 券面フッター行（締め・支払日と確定額バッジ） */
+.card-face-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.card-face-spec {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-spec-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
   font-weight: 700;
 }
 
-.card-actions {
-  justify-content: flex-end;
-  margin-top: 12px;
+.card-spec-value {
+  font-size: 0.78rem;
+  font-weight: 750;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.card-face-payment-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 5px 9px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-badge-label {
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 700;
+}
+
+.card-badge-amount {
+  font-size: 0.88rem;
+  font-weight: 850;
+  color: #5eead4;
+  letter-spacing: 0.02em;
+}
+
+.card-badge-amount.is-empty {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+}
+
+/* カード下部操作エリア */
+.card-controls-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.card-controls-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-memo-text {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.card-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-actions-group .button,
+.card-actions-group .small-button {
+  flex: 1;
 }
 
 .small-button {
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 38px;
+  padding: 6px 12px;
   border: 1px solid var(--border);
-  border-radius: 11px;
+  border-radius: 10px;
   background: var(--surface);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.small-button:hover {
+  background: var(--surface-muted);
+  border-color: var(--accent);
+}
+
+.card-history-link-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 6px 2px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
   font-size: 0.76rem;
-  font-weight: 750;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.card-history-link-btn:hover {
+  color: var(--accent);
 }
 
 .manual-payment-list {
@@ -1277,11 +1573,152 @@ dialog {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .dialog-close {
   flex: 0 0 auto;
+}
+
+/* よく使う支出（クイック入力） */
+.favorites-quick-bar {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+}
+
+.favorites-bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.favorites-bar-title {
+  font-size: 0.74rem;
+  font-weight: 750;
+  color: var(--text-muted);
+}
+
+.favorites-manage-btn {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.favorites-manage-btn.is-active {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.favorites-chips-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.favorites-chips-list::-webkit-scrollbar {
+  display: none;
+}
+
+.favorite-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.favorite-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.favorite-chip:active {
+  transform: scale(0.96);
+}
+
+.favorite-chip-icon {
+  font-size: 0.95rem;
+}
+
+.favorite-chip-title {
+  font-weight: 700;
+}
+
+.favorite-chip-amount {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--accent);
+  padding: 2px 6px;
+  background: var(--surface-muted);
+  border-radius: 10px;
+}
+
+.favorite-chip.is-deleting {
+  animation: chip-shake 0.3s infinite ease-in-out alternate;
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.favorite-chip-del-icon {
+  margin-left: 2px;
+  font-weight: 800;
+  color: var(--danger);
+}
+
+@keyframes chip-shake {
+  0% { transform: rotate(-2deg); }
+  100% { transform: rotate(2deg); }
+}
+
+.favorites-empty-hint {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  padding: 4px 2px;
+}
+
+.favorite-save-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.favorite-save-btn {
+  font-size: 0.76rem;
+  font-weight: 750;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.favorite-save-btn:hover {
+  text-decoration: underline;
 }
 
 .form-grid {
