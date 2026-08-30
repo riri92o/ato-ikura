@@ -1069,34 +1069,25 @@ textarea {
   white-space: nowrap;
 }
 
-/* 券面中央行（仮想カード番号・利用数バッジ） */
+/* 券面中央行（ナンバーレス・利用数バッジ） */
 .card-face-middle {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
-  margin: 6px 0;
+  margin: 12px 0 6px;
   position: relative;
   z-index: 2;
 }
 
-.card-virtual-number {
-  font-family: "Courier New", Courier, monospace, sans-serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-}
-
 .card-usage-pill {
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.72rem;
   font-weight: 700;
   white-space: nowrap;
 }

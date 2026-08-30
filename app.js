@@ -959,12 +959,10 @@
     const brand = createElement("span", "card-face-brand", card.name);
     faceTop.append(chipGroup, brand);
 
-    // 中央行：仮想カード番号 & 利用件数バッジ
+    // 中央行：利用件数バッジ
     const faceMiddle = createElement("div", "card-face-middle");
-    const lastDigits = (card.id || "").replace(/[^0-9a-zA-Z]/g, "").slice(-4).padStart(4, "8");
-    const virtualNumber = createElement("span", "card-virtual-number", `•••• •••• •••• ${lastDigits.toUpperCase()}`);
-    const usageCount = createElement("span", "card-usage-pill", `${countCardExpenses(card.id)}件利用`);
-    faceMiddle.append(virtualNumber, usageCount);
+    const usageCount = createElement("span", "card-usage-pill", `${countCardExpenses(card.id)}件の利用`);
+    faceMiddle.append(usageCount);
 
     // フッター行：締め日・支払日仕様 & 今月の確定額バッジ
     const faceFooter = createElement("div", "card-face-footer");
