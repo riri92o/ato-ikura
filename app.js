@@ -179,16 +179,31 @@
     });
 
     clean.budgets = {};
-    if (input.budgets && typeof input.budgets === "object") {
-      Object.entries(input.budgets).forEach(([monthKey, b]) => {
-        if (/^\d{4}-\d{2}$/.test(monthKey) && b && typeof b === "object") {
-          const usage = b.usage !== null && b.usage !== undefined && b.usage !== "" && Number.isFinite(Number(b.usage)) && Number(b.usage) > 0 ? Core.normalizeAmount(b.usage) : null;
-          const outflow = b.outflow !== null && b.outflow !== undefined && b.outflow !== "" && Number.isFinite(Number(b.outflow)) && Number(b.outflow) > 0 ? Core.normalizeAmount(b.outflow) : null;
-          if (usage !== null || outflow !== null) {
-            clean.budgets[monthKey] = { usage, outflow };
+    if (input.budgets && typeof input.budgets === "object" && !Array.isArray(input.budgets)) {
+      Object.entries(input.budgets).forEach(([key, b]) => {
+        const normalizedKey = typeof key === "string" ? key.replace(/\//g, "-").replace(/^(\d{4})-(\d)$/, "$1-0$2") : "";
+        if (/^\d{4}-\d{2}$/.test(normalizedKey)) {
+          if (b && typeof b === "object" && !Array.isArray(b)) {
+            const usage = parseBudgetValue(b.usage);
+            const outflow = parseBudgetValue(b.outflow);
+            if (usage !== null || outflow !== null) {
+              clean.budgets[normalizedKey] = { usage, outflow };
+            }
+          } else if (b !== null && b !== undefined) {
+            const amount = parseBudgetValue(b);
+            if (amount !== null) {
+              clean.budgets[normalizedKey] = { usage: amount, outflow: null };
+            }
           }
         }
       });
+    }
+
+    // 古いバージョンの設定（settings.budget等）からの救済
+    const legacyBudget = parseBudgetValue(input.settings?.monthlyBudget ?? input.settings?.budget ?? input.settings?.usageBudget ?? input.budget);
+    if (legacyBudget !== null && Object.keys(clean.budgets).length === 0) {
+      const currentMonthKey = Core.todayKey().slice(0, 7);
+      clean.budgets[currentMonthKey] = { usage: legacyBudget, outflow: null };
     }
 
     const balance = input.settings?.currentBalance;
@@ -619,18 +634,31 @@
     return parts.join("、");
   }
 
+  function parseBudgetValue(val) {
+    if (val === null || val === undefined || val === "") return null;
+    const num = Core.normalizeAmount(val);
+    return num > 0 ? num : null;
+  }
+
   function getEffectiveBudget(monthKey, type) {
-    if (!state.budgets) return null;
+    if (!state.budgets || typeof state.budgets !== "object") return null;
     const exact = state.budgets[monthKey];
-    if (exact && exact[type] !== null && exact[type] !== undefined && Number(exact[type]) > 0) {
-      return Core.normalizeAmount(exact[type]);
+    if (exact) {
+      const val = typeof exact === "object" ? parseBudgetValue(exact[type]) : parseBudgetValue(exact);
+      if (val !== null) return val;
     }
     // 前月以前の最新設定を探す（前月引き継ぎ）
     const pastMonths = Object.keys(state.budgets)
-      .filter((k) => k <= monthKey && state.budgets[k] && state.budgets[k][type] !== null && state.budgets[k][type] !== undefined && Number(state.budgets[k][type]) > 0)
+      .filter((k) => {
+        if (k > monthKey || !state.budgets[k]) return false;
+        const entry = state.budgets[k];
+        const val = typeof entry === "object" ? parseBudgetValue(entry[type]) : parseBudgetValue(entry);
+        return val !== null;
+      })
       .sort((a, b) => b.localeCompare(a));
     if (pastMonths.length > 0) {
-      return Core.normalizeAmount(state.budgets[pastMonths[0]][type]);
+      const latest = state.budgets[pastMonths[0]];
+      return typeof latest === "object" ? parseBudgetValue(latest[type]) : parseBudgetValue(latest);
     }
     return null;
   }
@@ -1543,7 +1571,9 @@
       const candidate = parsed && parsed.data ? parsed.data : parsed;
       if (!Core.isValidStateShape(candidate)) throw new Error("invalid");
       const clean = sanitizeState(candidate);
-      const message = `支出 ${clean.expenses.length}件、カード ${clean.cards.length}枚、確定額 ${clean.manualPayments.length}件を読み込みます。\n現在のデータは置き換わります。`;
+      const budgetCount = Object.keys(clean.budgets || {}).length;
+      const budgetInfo = budgetCount > 0 ? `、予算 ${budgetCount}ヶ月分` : "";
+      const message = `支出 ${clean.expenses.length}件、カード ${clean.cards.length}枚、確定額 ${clean.manualPayments.length}件${budgetInfo}を読み込みます。\n現在のデータは置き換わります。`;
       const confirmed = await confirmAction("バックアップ内容を確認", message, "読み込む");
       if (!confirmed) return;
       state = clean;
