@@ -1,5 +1,5 @@
 /* 更新時は CACHE_VERSION を上げると、古いキャッシュが自動削除されます。 */
-const CACHE_VERSION = "ato-ikura-v1.2.3";
+const CACHE_VERSION = "ato-ikura-v1.2.4";
 const APP_SHELL = [
   "./",
   "./index.html",
