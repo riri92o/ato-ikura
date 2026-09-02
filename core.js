@@ -62,11 +62,100 @@
     return { year: result.getFullYear(), monthIndex: result.getMonth() };
   }
 
+  function isSameDate(d1, d2) {
+    return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+  }
+
+  function getVernalEquinoxDay(year) {
+    return Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+  }
+
+  function getAutumnalEquinoxDay(year) {
+    return Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+  }
+
+  function getNthMonday(year, monthIndex, n) {
+    const firstDay = new Date(year, monthIndex, 1, 12).getDay();
+    const offset = (8 - firstDay) % 7;
+    return 1 + offset + (n - 1) * 7;
+  }
+
+  function isFixedOrCalculatedHoliday(year, monthIndex, day) {
+    // monthIndex: 0-indexed (0 = 1月, 11 = 12月)
+    const m = monthIndex + 1;
+    if (m === 1) {
+      if (day === 1) return true; // 元日
+      if (day === getNthMonday(year, 0, 2)) return true; // 成人の日 (第2月曜)
+    } else if (m === 2) {
+      if (day === 11) return true; // 建国記念の日
+      if (year >= 2020 && day === 23) return true; // 天皇誕生日
+    } else if (m === 3) {
+      if (day === getVernalEquinoxDay(year)) return true; // 春分の日
+    } else if (m === 4) {
+      if (day === 29) return true; // 昭和の日
+    } else if (m === 5) {
+      if (day === 3 || day === 4 || day === 5) return true; // 憲法記念日, みどりの日, こどもの日
+    } else if (m === 7) {
+      if (day === getNthMonday(year, 6, 3)) return true; // 海の日 (第3月曜)
+    } else if (m === 8) {
+      if (year >= 2016 && day === 11) return true; // 山の日
+    } else if (m === 9) {
+      if (day === getNthMonday(year, 8, 3)) return true; // 敬老の日 (第3月曜)
+      if (day === getAutumnalEquinoxDay(year)) return true; // 秋分の日
+    } else if (m === 10) {
+      if (day === getNthMonday(year, 9, 2)) return true; // スポーツの日 (第2月曜)
+    } else if (m === 11) {
+      if (day === 3 || day === 23) return true; // 文化の日, 勤労感謝の日
+    }
+    return false;
+  }
+
+  function isJapaneseHoliday(date) {
+    if (!date) return false;
+    const year = date.getFullYear();
+    const monthIndex = date.getMonth();
+    const day = date.getDate();
+
+    if (isFixedOrCalculatedHoliday(year, monthIndex, day)) return true;
+
+    // 国民の休日（前日と翌日の両方が祝日である平日）
+    const prevDate = new Date(year, monthIndex, day - 1, 12);
+    const nextDate = new Date(year, monthIndex, day + 1, 12);
+    if (
+      date.getDay() !== 0 &&
+      isFixedOrCalculatedHoliday(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate()) &&
+      isFixedOrCalculatedHoliday(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate())
+    ) {
+      return true;
+    }
+
+    // 振替休日判定（日曜日が祝日の場合、それ以降の直近の祝日でない平日）
+    if (date.getDay() !== 0) {
+      let check = new Date(year, monthIndex, day - 1, 12);
+      while (isFixedOrCalculatedHoliday(check.getFullYear(), check.getMonth(), check.getDate())) {
+        if (check.getDay() === 0) {
+          // 日曜日まで遡れて祝日だったなら、この日は振替休日
+          return true;
+        }
+        check.setDate(check.getDate() - 1);
+      }
+    }
+
+    return false;
+  }
+
+  function isNonBusinessDay(date) {
+    if (!date) return false;
+    const day = date.getDay();
+    if (day === 0 || day === 6) return true; // 土日
+    return isJapaneseHoliday(date); // 日本の祝日・振替休日・国民の休日
+  }
+
   function adjustWeekend(date, mode) {
     if (mode !== "previous" && mode !== "next") return date;
     const result = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
     const direction = mode === "previous" ? -1 : 1;
-    while (result.getDay() === 0 || result.getDay() === 6) {
+    while (isNonBusinessDay(result)) {
       result.setDate(result.getDate() + direction);
     }
     return result;
@@ -99,54 +188,54 @@
   }
 
   function calculateScheduledPaymentDate(monthDateKey, card) {
-  const monthDate = parseDateKey(monthDateKey);
-  if (!monthDate || !card) return "";
+    const monthDate = parseDateKey(monthDateKey);
+    if (!monthDate || !card) return "";
 
-  const year = monthDate.getFullYear();
-  const monthIndex = monthDate.getMonth();
-  const paymentDay = clampDay(
-    year,
-    monthIndex,
-    Number(card.paymentDay) || 1
-  );
+    const year = monthDate.getFullYear();
+    const monthIndex = monthDate.getMonth();
+    const paymentDay = clampDay(
+      year,
+      monthIndex,
+      Number(card.paymentDay) || 1
+    );
 
-  const unadjusted = new Date(
-    year,
-    monthIndex,
-    paymentDay,
-    12
-  );
+    const unadjusted = new Date(
+      year,
+      monthIndex,
+      paymentDay,
+      12
+    );
 
-  return toDateKey(
-    adjustWeekend(
-      unadjusted,
-      card.weekendAdjustment || "none"
-    )
-  );
-}
+    return toDateKey(
+      adjustWeekend(
+        unadjusted,
+        card.weekendAdjustment || "none"
+      )
+    );
+  }
 
   function getExpensePaymentDate(expense, cards) {
-  if (!expense || expense.paymentMethod !== CREDIT_PAYMENT) return "";
+    if (!expense || expense.paymentMethod !== CREDIT_PAYMENT) return "";
 
-  // 手動変更があれば最優先
-  if (parseDateKey(expense.paymentDateOverride)) {
-    return expense.paymentDateOverride;
+    // 手動変更があれば最優先
+    if (parseDateKey(expense.paymentDateOverride)) {
+      return expense.paymentDateOverride;
+    }
+
+    // 登録時に保存した自動計算日
+    if (parseDateKey(expense.calculatedPaymentDate)) {
+      return expense.calculatedPaymentDate;
+    }
+
+    // カード設定から再計算
+    const card = (cards || []).find((item) => item.id === expense.cardId);
+
+    if (card) {
+      return calculatePaymentDate(expense.date, card);
+    }
+
+    return "";
   }
-
-  // 登録時に保存した自動計算日
-  if (parseDateKey(expense.calculatedPaymentDate)) {
-    return expense.calculatedPaymentDate;
-  }
-
-  // カード設定から再計算
-  const card = (cards || []).find((item) => item.id === expense.cardId);
-
-  if (card) {
-    return calculatePaymentDate(expense.date, card);
-  }
-
-  return "";
-}
 
   function normalizeAmount(value) {
     const numeric = typeof value === "string" ? Number(value.replace(/[^0-9-]/g, "")) : Number(value);
@@ -196,7 +285,84 @@
     return totals;
   }
 
-  function summarizeMonth(monthKey, expenses, cards, manualPayments) {
+  function getCycleRange(monthKey, cycleStartDay) {
+    const parsed = parseDateKey(`${monthKey}-01`);
+    if (!parsed) return { startDate: `${monthKey}-01`, endDate: `${monthKey}-28`, label: monthKey };
+
+    const year = parsed.getFullYear();
+    const monthIndex = parsed.getMonth();
+    const startDayNum = cycleStartDay === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleStartDay) || 1));
+
+    if (startDayNum === 1) {
+      const lastDay = daysInMonth(year, monthIndex);
+      const start = `${year}-${pad2(monthIndex + 1)}-01`;
+      const end = `${year}-${pad2(monthIndex + 1)}-${pad2(lastDay)}`;
+      return {
+        startDate: start,
+        endDate: end,
+        label: `${monthIndex + 1}月1日〜${monthIndex + 1}月${lastDay}日`,
+        shortLabel: `${monthIndex + 1}/1〜${monthIndex + 1}/${lastDay}`,
+      };
+    }
+
+    if (startDayNum === "end") {
+      const curLastDay = daysInMonth(year, monthIndex);
+      const nextMonth = addMonths(year, monthIndex, 1);
+      const nextLastDay = daysInMonth(nextMonth.year, nextMonth.monthIndex);
+      const start = `${year}-${pad2(monthIndex + 1)}-${pad2(curLastDay)}`;
+      const end = `${nextMonth.year}-${pad2(nextMonth.monthIndex + 1)}-${pad2(nextLastDay - 1)}`;
+      return {
+        startDate: start,
+        endDate: end,
+        label: `${monthIndex + 1}月末〜${nextMonth.monthIndex + 1}月末前日`,
+        shortLabel: `${monthIndex + 1}月末〜${nextMonth.monthIndex + 1}/${nextLastDay - 1}`,
+      };
+    }
+
+    const start = `${year}-${pad2(monthIndex + 1)}-${pad2(startDayNum)}`;
+    const nextMonth = addMonths(year, monthIndex, 1);
+    const endDayNum = startDayNum - 1;
+    const end = `${nextMonth.year}-${pad2(nextMonth.monthIndex + 1)}-${pad2(endDayNum)}`;
+
+    return {
+      startDate: start,
+      endDate: end,
+      label: `${monthIndex + 1}月${startDayNum}日〜${nextMonth.monthIndex + 1}月${endDayNum}日`,
+      shortLabel: `${monthIndex + 1}/${startDayNum}〜${nextMonth.monthIndex + 1}/${endDayNum}`,
+    };
+  }
+
+  function getDateCycleMonthKey(dateKey, cycleStartDay) {
+    const date = parseDateKey(dateKey);
+    if (!date) return "";
+    const startDayNum = cycleStartDay === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleStartDay) || 1));
+    const year = date.getFullYear();
+    const monthIndex = date.getMonth();
+    const day = date.getDate();
+
+    if (startDayNum === 1) {
+      return `${year}-${pad2(monthIndex + 1)}`;
+    }
+
+    if (startDayNum === "end") {
+      const lastDay = daysInMonth(year, monthIndex);
+      if (day === lastDay) {
+        return `${year}-${pad2(monthIndex + 1)}`;
+      }
+      const prev = addMonths(year, monthIndex, -1);
+      return `${prev.year}-${pad2(prev.monthIndex + 1)}`;
+    }
+
+    if (day >= startDayNum) {
+      return `${year}-${pad2(monthIndex + 1)}`;
+    } else {
+      const prev = addMonths(year, monthIndex, -1);
+      return `${prev.year}-${pad2(prev.monthIndex + 1)}`;
+    }
+  }
+
+  function summarizeMonth(monthKey, expenses, cards, manualPayments, cycleStartDay = 1) {
+    const range = getCycleRange(monthKey, cycleStartDay);
     const daily = buildDailyTotals(expenses, cards, manualPayments);
     const summary = {
       usage: 0,
@@ -204,20 +370,27 @@
       cardWithdrawal: 0,
       outflow: 0,
       categories: {},
+      startDate: range.startDate,
+      endDate: range.endDate,
+      label: range.label,
+      shortLabel: range.shortLabel,
     };
 
     (expenses || []).forEach((expense) => {
-      if (monthKeyFromDateKey(expense.date) !== monthKey) return;
-      const amount = normalizeAmount(expense.amount);
-      summary.usage += amount;
-      summary.categories[expense.category || "その他"] = (summary.categories[expense.category || "その他"] || 0) + amount;
+      if (!parseDateKey(expense.date)) return;
+      if (expense.date >= range.startDate && expense.date <= range.endDate) {
+        const amount = normalizeAmount(expense.amount);
+        summary.usage += amount;
+        summary.categories[expense.category || "その他"] = (summary.categories[expense.category || "その他"] || 0) + amount;
+      }
     });
 
     daily.forEach((value, dateKey) => {
-      if (monthKeyFromDateKey(dateKey) !== monthKey) return;
-      summary.direct += value.direct;
-      summary.cardWithdrawal += value.cardWithdrawal;
-      summary.outflow += value.outflow;
+      if (dateKey >= range.startDate && dateKey <= range.endDate) {
+        summary.direct += value.direct;
+        summary.cardWithdrawal += value.cardWithdrawal;
+        summary.outflow += value.outflow;
+      }
     });
     return summary;
   }
@@ -253,13 +426,19 @@
   const api = {
     CREDIT_PAYMENT,
     addDays,
+    addMonths,
     buildDailyTotals,
     calculatePaymentDate,
+    calculateScheduledPaymentDate,
     daysInMonth,
+    getCycleRange,
+    getDateCycleMonthKey,
     getExpensePaymentDate,
     getNextCardWithdrawal,
     getUpcomingCardTotal,
     isDirectPayment,
+    isJapaneseHoliday,
+    isNonBusinessDay,
     isValidStateShape,
     monthKeyFromDateKey,
     normalizeAmount,
@@ -267,9 +446,9 @@
     summarizeMonth,
     toDateKey,
     todayKey,
-    calculateScheduledPaymentDate,
   };
 
   global.AtoIkuraCore = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);
+

@@ -4,7 +4,7 @@
   const Core = window.AtoIkuraCore;
   const APP = {
     name: "あといくら",
-    version: "1.1.0",
+    version: "1.3.0",
     storageKey: "ato-ikura-data-v1",
   };
 
@@ -84,6 +84,7 @@
         borderColor: "#e2e8f0",
         gaugeColor: "#34d399",
         budgetMode: "usage",
+        cycleStartDay: 1,
       },
       updatedAt: new Date().toISOString(),
     };
@@ -217,6 +218,8 @@
     clean.settings.borderColor = /^#[0-9a-f]{6}$/i.test(input.settings?.borderColor || "") ? input.settings.borderColor : "#e2e8f0";
     clean.settings.gaugeColor = /^#[0-9a-f]{6}$/i.test(input.settings?.gaugeColor || "") ? input.settings.gaugeColor : "#34d399";
     clean.settings.budgetMode = ["usage", "outflow"].includes(input.settings?.budgetMode) ? input.settings.budgetMode : "usage";
+    const cycleDay = input.settings?.cycleStartDay;
+    clean.settings.cycleStartDay = cycleDay === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleDay) || 1));
     clean.updatedAt = String(input.updatedAt || new Date().toISOString());
     return clean;
   }
@@ -243,6 +246,27 @@
     fillSelect($("card-closing-day"), closingOptions);
     fillSelect($("card-payment-day"), paymentOptions);
     $("card-payment-day").value = "27";
+
+    const cycleOptions = [
+      { value: "1", label: "毎月1日（1日〜末日・カレンダー月）" },
+      { value: "5", label: "毎月5日（5日〜翌月4日）" },
+      { value: "10", label: "毎月10日（10日〜翌月9日）" },
+      { value: "15", label: "毎月15日（15日〜翌月14日）" },
+      { value: "20", label: "毎月20日（20日〜翌月19日）" },
+      { value: "25", label: "毎月25日（25日〜翌月24日）" },
+    ];
+    for (let day = 2; day <= 28; day += 1) {
+      if (![5, 10, 15, 20, 25].includes(day)) {
+        cycleOptions.push({ value: String(day), label: `毎月${day}日（${day}日〜翌月${day - 1}日）` });
+      }
+    }
+    cycleOptions.sort((a, b) => {
+      const aNum = Number(a.value) || 999;
+      const bNum = Number(b.value) || 999;
+      return aNum - bNum;
+    });
+    cycleOptions.push({ value: "end", label: "毎月末日（月末〜翌月末日前日）" });
+    fillSelect($("setting-cycle-start-day"), cycleOptions);
   }
 
   function fillSelect(select, options) {
@@ -375,6 +399,8 @@
     $("budget-usage-input").addEventListener("blur", formatMoneyInput);
     $("budget-outflow-input").addEventListener("blur", formatMoneyInput);
 
+    $("save-cycle-settings").addEventListener("click", saveCycleSettings);
+    $("setting-cycle-start-day").addEventListener("change", updateCyclePreview);
     $("save-balance-settings").addEventListener("click", saveBalanceSettings);
     $("theme-select").addEventListener("change", saveTheme);
     $("theme-color-1").addEventListener("input", (e) => {
@@ -454,6 +480,7 @@
   function switchSettingsSubView(viewKey) {
     const subviews = {
       menu: $("settings-menu-subview"),
+      cycle: $("settings-subview-cycle"),
       balance: $("settings-subview-balance"),
       theme: $("settings-subview-theme"),
       backup: $("settings-subview-backup"),
@@ -530,8 +557,20 @@
 
   function renderCalendarView() {
     const monthDate = Core.parseDateKey(currentMonth);
+    const monthKey = currentMonth.slice(0, 7);
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const cycleRange = Core.getCycleRange(monthKey, cycleDay);
+
     $("calendar-title").textContent = `${monthDate.getFullYear()}年${monthDate.getMonth() + 1}月`;
-    $("month-picker").value = currentMonth.slice(0, 7);
+    $("month-picker").value = monthKey;
+
+    const cycleBadge = $("cycle-period-badge");
+    if (cycleBadge) {
+      cycleBadge.textContent = cycleDay === 1
+        ? `集計期間: ${cycleRange.label}`
+        : `集計期間（給料日基準）: ${cycleRange.label}`;
+    }
+
     renderCalendar();
     renderCalendarLegend();
     renderMonthlySummary();
@@ -564,6 +603,9 @@
   function renderCalendar() {
     const grid = $("calendar-grid");
     const monthDate = Core.parseDateKey(currentMonth);
+    const monthKey = currentMonth.slice(0, 7);
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const cycleRange = Core.getCycleRange(monthKey, cycleDay);
     const start = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1 - monthDate.getDay(), 12);
     const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments);
     const today = Core.todayKey();
@@ -578,6 +620,10 @@
       button.dataset.date = dateKey;
       button.classList.toggle("is-outside", cellDate.getMonth() !== monthDate.getMonth());
       button.classList.toggle("is-today", dateKey === today);
+      if (cycleDay !== 1) {
+        const inCycle = dateKey >= cycleRange.startDate && dateKey <= cycleRange.endDate;
+        button.classList.toggle("is-in-cycle", inCycle);
+      }
       button.setAttribute("aria-label", buildCalendarAriaLabel(dateKey, totals));
       button.append(createElement("span", "day-number", String(cellDate.getDate())));
       if (totals.usage > 0) button.append(createElement("span", "day-amount usage", formatYen(totals.usage)));
@@ -672,7 +718,8 @@
 
   function renderMonthlySummary() {
     const monthKey = currentMonth.slice(0, 7);
-    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments);
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
     const mode = state.settings.budgetMode || "usage";
     const isUsage = mode === "usage";
 
@@ -764,21 +811,17 @@
   function openBudgetDialog() {
     const monthKey = currentMonth.slice(0, 7);
     const monthDate = Core.parseDateKey(currentMonth);
-    $("budget-dialog-title").textContent = `${monthDate.getFullYear()}年${monthDate.getMonth() + 1}月の予算`;
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const cycleRange = Core.getCycleRange(monthKey, cycleDay);
+    $("budget-dialog-title").textContent = cycleDay === 1
+      ? `${monthDate.getFullYear()}年${monthDate.getMonth() + 1}月の予算`
+      : `${monthDate.getFullYear()}年${monthDate.getMonth() + 1}月度 (${cycleRange.shortLabel}) の予算`;
 
-    const directSetting = state.budgets ? state.budgets[monthKey] : null;
-    const effectiveUsage = getEffectiveBudget(monthKey, "usage");
-    const effectiveOutflow = getEffectiveBudget(monthKey, "outflow");
+    const usageVal = getEffectiveBudget(monthKey, "usage");
+    const outflowVal = getEffectiveBudget(monthKey, "outflow");
 
-    const usageVal = directSetting && directSetting.usage !== null && directSetting.usage !== undefined
-      ? directSetting.usage
-      : (effectiveUsage !== null ? effectiveUsage : "");
-    const outflowVal = directSetting && directSetting.outflow !== null && directSetting.outflow !== undefined
-      ? directSetting.outflow
-      : (effectiveOutflow !== null ? effectiveOutflow : "");
-
-    $("budget-usage-input").value = usageVal !== "" ? formatNumber(usageVal) : "";
-    $("budget-outflow-input").value = outflowVal !== "" ? formatNumber(outflowVal) : "";
+    $("budget-usage-input").value = usageVal === null ? "" : formatNumber(usageVal);
+    $("budget-outflow-input").value = outflowVal === null ? "" : formatNumber(outflowVal);
 
     showDialog($("budget-dialog"));
     window.setTimeout(() => $("budget-usage-input").focus(), 40);
@@ -841,7 +884,9 @@
 
   function renderCategorySummary() {
     const container = $("category-summary");
-    const summary = Core.summarizeMonth(currentMonth.slice(0, 7), state.expenses, state.cards, state.manualPayments);
+    const monthKey = currentMonth.slice(0, 7);
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
     const entries = Object.entries(summary.categories).sort((a, b) => b[1] - a[1]);
     if (!entries.length) {
       container.replaceChildren(createElement("p", "empty-inline", "この月の支出はまだありません。"));
@@ -866,9 +911,14 @@
     const category = $("history-category").value;
     const payment = $("history-payment").value;
     const query = ($("history-search")?.value || "").trim().toLowerCase();
+    const cycleDay = state.settings.cycleStartDay || 1;
 
     const items = state.expenses
-      .filter((expense) => !month || expense.date.startsWith(month))
+      .filter((expense) => {
+        if (!month) return true;
+        if (cycleDay === 1) return expense.date.startsWith(month);
+        return Core.getDateCycleMonthKey(expense.date, cycleDay) === month;
+      })
       .filter((expense) => !category || expense.category === category)
       .filter((expense) => !payment || expense.paymentMethod === payment)
       .filter((expense) => {
@@ -1169,11 +1219,32 @@
   }
 
   function renderSettings() {
+    $("setting-cycle-start-day").value = String(state.settings.cycleStartDay || 1);
+    updateCyclePreview();
     $("setting-balance").value = state.settings.currentBalance === null ? "" : formatNumber(state.settings.currentBalance);
     $("setting-reserve").value = state.settings.minimumReserve === null ? "" : formatNumber(state.settings.minimumReserve);
     $("theme-select").value = state.settings.theme;
     renderPresetPalette();
     applyThemeColors();
+  }
+
+  function updateCyclePreview() {
+    const cycleDayVal = $("setting-cycle-start-day").value;
+    const cycleDay = cycleDayVal === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleDayVal) || 1));
+    const curMonthKey = currentMonth.slice(0, 7);
+    const range = Core.getCycleRange(curMonthKey, cycleDay);
+    const previewEl = $("cycle-preview-dates");
+    if (previewEl) {
+      previewEl.textContent = `${range.label} (${curMonthKey}度)`;
+    }
+  }
+
+  function saveCycleSettings() {
+    const cycleDayVal = $("setting-cycle-start-day").value;
+    state.settings.cycleStartDay = cycleDayVal === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleDayVal) || 1));
+    saveState();
+    renderAll();
+    showToast("集計期間・給料日設定を保存しました。");
   }
 
   function openExpenseDialog(dateKey, expenseId = "") {
@@ -1835,9 +1906,20 @@
     if (!reportTitle) return;
 
     const monthDate = Core.parseDateKey(reportMonth);
+    const monthKey = reportMonth.slice(0, 7);
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const cycleRange = Core.getCycleRange(monthKey, cycleDay);
+
     reportTitle.textContent = `${monthDate.getFullYear()}年${monthDate.getMonth() + 1}月`;
     const picker = $("report-month-picker");
-    if (picker) picker.value = reportMonth.slice(0, 7);
+    if (picker) picker.value = monthKey;
+
+    const badge = $("report-cycle-period-badge");
+    if (badge) {
+      badge.textContent = cycleDay === 1
+        ? `集計期間: ${cycleRange.label}`
+        : `集計期間（給料日基準）: ${cycleRange.label}`;
+    }
 
     if (typeof window.Chart === "undefined") {
       return;
@@ -1856,7 +1938,8 @@
 
   function renderCategoryDoughnutChart(textColor, textMutedColor) {
     const monthKey = reportMonth.slice(0, 7);
-    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments);
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
     const entries = Object.entries(summary.categories).sort((a, b) => b[1] - a[1]);
     const legendContainer = $("category-chart-legend");
     const chartCanvas = $("category-chart");
@@ -1931,6 +2014,7 @@
     if (!chartCanvas) return;
 
     const monthDate = Core.parseDateKey(reportMonth);
+    const cycleDay = state.settings.cycleStartDay || 1;
     const months = [];
     for (let i = 5; i >= 0; i--) {
       const date = new Date(monthDate.getFullYear(), monthDate.getMonth() - i, 1, 12);
@@ -1941,7 +2025,7 @@
     const outflowData = [];
 
     months.forEach((monthKey) => {
-      const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments);
+      const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
       usageData.push(summary.usage);
       outflowData.push(summary.outflow);
     });

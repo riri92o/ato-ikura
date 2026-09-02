@@ -36,6 +36,7 @@
             <input id="month-picker" class="visually-hidden" type="month" aria-label="表示する月" />
             <button id="next-month" class="icon-button" type="button" aria-label="次の月">›</button>
           </div>
+          <div id="cycle-period-bar" class="cycle-period-bar"><span id="cycle-period-badge" class="cycle-period-badge">集計期間: —</span></div>
 
           <section class="summary-panel" aria-label="月間サマリー">
             <div class="budget-mode-switch" role="tablist" aria-label="集計方式の切り替え">
@@ -128,6 +129,7 @@
             <input id="report-month-picker" class="visually-hidden" type="month" aria-label="レポートの表示月" />
             <button id="report-next-month" class="icon-button" type="button" aria-label="翌月">›</button>
           </div>
+          <div id="report-cycle-period-bar" class="cycle-period-bar"><span id="report-cycle-period-badge" class="cycle-period-badge">集計期間: —</span></div>
           <div class="report-container">
             <section class="chart-card">
               <h3>カテゴリ別支出割合</h3>
@@ -154,7 +156,7 @@
             <div id="cards-list" class="cards-list"></div>
             <article class="info-card">
               <h3>支払日の計算について</h3>
-              <p>カード利用日と締め日の設定から支払日を自動計算します。祝日による変更は、支出の編集画面で支払日を手動変更してください。</p>
+              <p>カード利用日と締め日の設定から支払日を自動計算します。土日や日本の祝日・振替休日は、設定に応じて自動で前後の平日に調整されます。</p>
             </article>
           </div>
 
@@ -173,6 +175,11 @@
             <div class="page-heading"><p class="section-kicker">アプリの設定・案内</p><h2 id="settings-title">設定</h2></div>
 
             <div class="settings-nav-list">
+              <button type="button" class="settings-menu-card" data-settings-nav="cycle">
+                <span class="settings-menu-title">集計期間・給料日</span>
+                <span class="settings-menu-arrow" aria-hidden="true">›</span>
+              </button>
+
               <button type="button" class="settings-menu-card" data-settings-nav="balance">
                 <span class="settings-menu-title">残高・使用可能額</span>
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
@@ -200,6 +207,22 @@
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
               </button>
             </div>
+          </div>
+
+          <div id="settings-subview-cycle" class="settings-subview">
+            <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
+            <div class="page-heading"><p class="section-kicker">家計簿の締め日サイクル</p><h2>集計期間・給料日</h2></div>
+            <section class="settings-card">
+              <p class="settings-description">給料日などに合わせて、1ヶ月の集計開始日を変更できます。カレンダーサマリー、予算メーター、履歴、レポートの集計期間に反映されます。</p>
+              <label>毎月の集計開始日（給料日）
+                <select id="setting-cycle-start-day"></select>
+              </label>
+              <div id="cycle-preview-card" class="cycle-preview-card">
+                <span class="cycle-preview-label">現在の集計期間（当月度）：</span>
+                <strong id="cycle-preview-dates">1日 〜 末日</strong>
+              </div>
+              <button id="save-cycle-settings" class="button button-primary full-width" type="button">保存する</button>
+            </section>
           </div>
 
           <div id="settings-subview-balance" class="settings-subview">
@@ -442,11 +465,11 @@
               <option value="1" selected>締め月の翌月</option>
             </select>
           </label>
-          <label>土日の調整
+          <label>休日の調整（土日・祝日）
             <select id="card-weekend">
               <option value="none">調整しない</option>
-              <option value="previous">前の平日へ</option>
-              <option value="next">次の平日へ</option>
+              <option value="previous">前の平日へ（土日祝を回避）</option>
+              <option value="next">次の平日へ（土日祝を回避）</option>
             </select>
           </label>
           <label>表示色<input id="card-color" type="color" value="#4f9d73" /></label>
