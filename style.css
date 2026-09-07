@@ -2986,132 +2986,73 @@ dialog {
   }
 }
 
-/* --- 豚の貯金箱 AIアドバイザーカード --- */
-.piggy-advisor-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 12px 0 16px;
-  padding: 10px 14px;
+/* --- スマート家計アドバイザー（シンプル版） --- */
+.smart-advisor-banner {
+  margin: 10px 0 14px;
+  padding: 11px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow);
-  transition: transform 0.15s ease, border-color 0.15s ease;
-}
-
-.report-piggy-card {
-  margin: 0 0 16px;
-}
-
-.piggy-avatar-btn {
-  background: transparent;
-  border: none;
-  padding: 2px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  touch-action: manipulation;
-  border-radius: 50%;
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.piggy-avatar-img {
-  width: 58px;
-  height: 52px;
-  object-fit: contain;
-  filter: drop-shadow(0 3px 6px rgba(248, 156, 178, 0.35));
-}
-
-.piggy-avatar-btn:hover,
-.piggy-avatar-btn:active {
-  transform: scale(1.12) rotate(-4deg);
-}
-
-.piggy-speech-bubble {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  padding: 9px 13px;
-  background: var(--surface-soft);
-  border: 1px solid var(--border);
-  border-radius: 14px;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
-.piggy-speech-bubble::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: -6px;
-  transform: translateY(-50%) rotate(45deg);
-  width: 10px;
-  height: 10px;
-  background: var(--surface-soft);
-  border-left: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-
-.piggy-speech-bubble:hover {
-  background: color-mix(in srgb, var(--accent) 5%, var(--surface-soft));
+.smart-advisor-banner:hover {
   border-color: var(--accent);
+  background: var(--surface-soft);
 }
 
-.piggy-bubble-header {
+.smart-advisor-banner:active {
+  transform: scale(0.99);
+}
+
+.advisor-badge-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 3px;
+  margin-bottom: 5px;
 }
 
-.piggy-bubble-tag {
-  display: inline-block;
+.advisor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 800;
   background: var(--accent-soft);
   color: var(--accent);
   letter-spacing: 0.02em;
 }
 
-.piggy-tap-hint {
-  font-size: 0.66rem;
+.advisor-refresh-hint {
+  font-size: 0.68rem;
   color: var(--text-muted);
   font-weight: 600;
 }
 
-.piggy-bubble-text {
+.advisor-text {
   margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.42;
+  font-size: 0.84rem;
+  line-height: 1.45;
   color: var(--text);
   font-weight: 600;
 }
 
-.piggy-bounce {
-  animation: piggyJump 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+.banner-pulse {
+  animation: bannerPulse 0.25s ease-out;
 }
 
-.bubble-pop {
-  animation: bubblePop 0.25s ease-out;
-}
-
-@keyframes piggyJump {
-  0%, 100% { transform: scale(1) translateY(0); }
-  50% { transform: scale(1.18) translateY(-5px) rotate(-6deg); }
-}
-
-@keyframes bubblePop {
-  0% { opacity: 0.4; transform: scale(0.97); }
+@keyframes bannerPulse {
+  0% { opacity: 0.5; transform: scale(0.98); }
   100% { opacity: 1; transform: scale(1); }
 }
+
 
 
 

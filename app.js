@@ -347,15 +347,11 @@
     if (reportOutlookBtn) reportOutlookBtn.addEventListener("click", () => switchReportSubTab("outlook"));
     if (reportAnalysisBtn) reportAnalysisBtn.addEventListener("click", () => switchReportSubTab("analysis"));
 
-    const piggyHomeAvatar = $("piggy-avatar-btn");
-    const piggyHomeBubble = $("piggy-speech-bubble");
-    if (piggyHomeAvatar) piggyHomeAvatar.addEventListener("click", () => nextPiggyAdvice("piggy"));
-    if (piggyHomeBubble) piggyHomeBubble.addEventListener("click", () => nextPiggyAdvice("piggy"));
+    const smartAdvisor = $("smart-advisor-banner");
+    if (smartAdvisor) smartAdvisor.addEventListener("click", () => nextSmartAdvice("advisor"));
 
-    const piggyReportAvatar = $("report-piggy-avatar-btn");
-    const piggyReportBubble = $("report-piggy-speech-bubble");
-    if (piggyReportAvatar) piggyReportAvatar.addEventListener("click", () => nextPiggyAdvice("report-piggy"));
-    if (piggyReportBubble) piggyReportBubble.addEventListener("click", () => nextPiggyAdvice("report-piggy"));
+    const reportAdvisor = $("report-smart-advisor-banner");
+    if (reportAdvisor) reportAdvisor.addEventListener("click", () => nextSmartAdvice("report-advisor"));
 
     document.querySelectorAll(".nav-item").forEach((button) => {
       button.addEventListener("click", () => switchView(button.dataset.view));
@@ -695,7 +691,7 @@
     renderCalendar();
     renderCalendarLegend();
     renderMonthlySummary();
-    renderPiggyAdvisor("piggy");
+    renderSmartAdvisor("advisor");
   }
 
   function renderCalendarLegend() {
@@ -2088,7 +2084,7 @@
       renderBalance();
       renderUpcomingWithdrawals();
     } else {
-      renderPiggyAdvisor("report-piggy");
+      renderSmartAdvisor("report-advisor");
       if (typeof window.Chart === "undefined") {
         return;
       }
@@ -2150,10 +2146,10 @@
     list.replaceChildren(...rows);
   }
 
-  let piggyHomeIndex = 0;
-  let piggyReportIndex = 0;
+  let advisorHomeIndex = 0;
+  let advisorReportIndex = 0;
 
-  function generatePiggyAdvices(monthKey) {
+  function generateSmartAdvices(monthKey) {
     const today = Core.todayKey();
     const cycleDay = state.settings.cycleStartDay || 1;
     const range = Core.getCycleRange(monthKey, cycleDay);
@@ -2178,8 +2174,7 @@
     // 1. 予算設定状況と消化ペース
     if (budget === null || budget <= 0) {
       advices.push({
-        tag: "はじめの一歩",
-        emotion: "normal",
+        tag: "💡 はじめの一歩",
         text: "月間予算を設定すると、今月あと使える目安や1日の推奨ペースをお知らせします。"
       });
     } else {
@@ -2198,8 +2193,7 @@
 
       if (remaining < 0) {
         advices.push({
-          tag: "予算超過に注意",
-          emotion: "worry",
+          tag: "⚠️ 予算超過に注意",
           text: `今月の予算を ${formatYen(Math.abs(remaining))} 上回っています。固定費以外の買い物を少し控えめにしてみましょう。`
         });
       } else if (isCurrentMonth) {
@@ -2208,21 +2202,18 @@
         if (curSpent > expectedBurn * 1.15 && remainingDays > 3) {
           const overrun = Math.round(curSpent + (curSpent / passedDays) * remainingDays - budget);
           advices.push({
-            tag: "ペース注意",
-            emotion: "worry",
+            tag: "⚠️ ペース注意",
             text: `このペースが続くと月末に予算を約 ${formatYen(overrun)} 上回る見込みです。今日の目安は ${formatYen(dailyAllowance)} に控えてみましょう。`
           });
         } else {
           advices.push({
-            tag: "予算の目安",
-            emotion: "happy",
+            tag: "✨ 予算の目安",
             text: `今月の残り予算は ${formatYen(remaining)} です。月末まで1日あたり約 ${formatYen(dailyAllowance)} 使える計算です。`
           });
         }
       } else {
         advices.push({
-          tag: "月間予算",
-          emotion: remaining >= 0 ? "happy" : "worry",
+          tag: "📊 月間予算",
           text: remaining >= 0
             ? `この月は予算内に ${formatYen(remaining)} 収まりました。素晴らしい管理です。`
             : `この月は予算を ${formatYen(Math.abs(remaining))} 上回りました。`
@@ -2236,14 +2227,12 @@
       const pct = Math.abs(Math.round((diff / prevSpent) * 100));
       if (diff < 0) {
         advices.push({
-          tag: "節約順調",
-          emotion: "happy",
+          tag: "🌱 節約順調",
           text: `先月と比べて支出が ${formatYen(Math.abs(diff))}（${pct}％）抑えられています。とても良いペースです。`
         });
       } else if (diff > 0 && pct >= 5) {
         advices.push({
-          tag: "支出増加に注意",
-          emotion: "worry",
+          tag: "📈 支出増加に注意",
           text: `先月と比べて支出が +${formatYen(diff)}（${pct}％増）多めです。大きな買い物の予定がないか確認しておきましょう。`
         });
       }
@@ -2261,8 +2250,7 @@
         const topPct = Math.round((topCat[1] / (curSpent || 1)) * 100);
         if (topPct >= 35 && topCat[1] >= 5000) {
           advices.push({
-            tag: "カテゴリ分析",
-            emotion: "normal",
+            tag: "🏷️ カテゴリ分析",
             text: `今月の支出で最も多いのは『${topCat[0]}』（${formatYen(topCat[1])}・全体の${topPct}％）です。`
           });
         }
@@ -2278,8 +2266,7 @@
         const nextBill = upcoming[0];
         const dateParts = nextBill.date.split("-");
         advices.push({
-          tag: "引き落とし予定",
-          emotion: "normal",
+          tag: "💳 引き落とし予定",
           text: `${Number(dateParts[1])}月${Number(dateParts[2])}日に『${nextBill.cardName}』から ${formatYen(nextBill.amount)} の引き落とし予定があります。口座残高を確認しておきましょう。`
         });
       }
@@ -2288,8 +2275,7 @@
     // 5. デフォルト案内
     if (advices.length === 0 || curSpent === 0) {
       advices.push({
-        tag: "今月の見守り",
-        emotion: "happy",
+        tag: "💡 今月の見守り",
         text: "買い物をしたら右下の「＋」ボタンから記録しましょう。支出の傾向に合わせてアドバイスをお届けします。"
       });
     }
@@ -2297,53 +2283,43 @@
     return advices;
   }
 
-  function renderPiggyAdvisor(prefix = "piggy") {
-    const card = $(`${prefix}-advisor-card`) || $(`${prefix}-card`);
-    if (!card) return;
+  function renderSmartAdvisor(prefix = "advisor") {
+    const banner = $(prefix === "report-advisor" ? "report-smart-advisor-banner" : "smart-advisor-banner");
+    if (!banner) return;
 
-    const monthKey = (prefix === "report-piggy" ? reportMonth : currentMonth).slice(0, 7);
-    const advices = generatePiggyAdvices(monthKey);
+    const monthKey = (prefix === "report-advisor" ? reportMonth : currentMonth).slice(0, 7);
+    const advices = generateSmartAdvices(monthKey);
     if (!advices.length) return;
 
-    const idx = prefix === "report-piggy" ? piggyReportIndex : piggyHomeIndex;
+    const idx = prefix === "report-advisor" ? advisorReportIndex : advisorHomeIndex;
     const currentAdvice = advices[idx % advices.length];
 
-    const tagEl = $(`${prefix}-bubble-tag`);
-    const textEl = $(`${prefix}-bubble-text`);
-    const imgEl = $(`${prefix}-avatar-img`);
+    const badgeEl = $(prefix === "report-advisor" ? "report-advisor-badge" : "advisor-badge");
+    const textEl = $(prefix === "report-advisor" ? "report-advisor-text" : "advisor-text");
 
-    if (tagEl) tagEl.textContent = currentAdvice.tag;
+    if (badgeEl) badgeEl.textContent = currentAdvice.tag;
     if (textEl) textEl.textContent = currentAdvice.text;
-    if (imgEl) {
-      imgEl.src = `icons/piggy-${currentAdvice.emotion || "normal"}.svg`;
-    }
   }
 
-  function nextPiggyAdvice(prefix = "piggy") {
-    const monthKey = (prefix === "report-piggy" ? reportMonth : currentMonth).slice(0, 7);
-    const advices = generatePiggyAdvices(monthKey);
+  function nextSmartAdvice(prefix = "advisor") {
+    const monthKey = (prefix === "report-advisor" ? reportMonth : currentMonth).slice(0, 7);
+    const advices = generateSmartAdvices(monthKey);
     if (advices.length <= 1) return;
 
-    if (prefix === "report-piggy") {
-      piggyReportIndex = (piggyReportIndex + 1) % advices.length;
+    if (prefix === "report-advisor") {
+      advisorReportIndex = (advisorReportIndex + 1) % advices.length;
     } else {
-      piggyHomeIndex = (piggyHomeIndex + 1) % advices.length;
+      advisorHomeIndex = (advisorHomeIndex + 1) % advices.length;
     }
 
-    const bubble = $(`${prefix}-speech-bubble`);
-    const avatar = $(`${prefix}-avatar-img`);
-    if (bubble) {
-      bubble.classList.remove("bubble-pop");
-      void bubble.offsetWidth;
-      bubble.classList.add("bubble-pop");
-    }
-    if (avatar) {
-      avatar.classList.remove("piggy-bounce");
-      void avatar.offsetWidth;
-      avatar.classList.add("piggy-bounce");
+    const banner = $(prefix === "report-advisor" ? "report-smart-advisor-banner" : "smart-advisor-banner");
+    if (banner) {
+      banner.classList.remove("banner-pulse");
+      void banner.offsetWidth;
+      banner.classList.add("banner-pulse");
     }
 
-    renderPiggyAdvisor(prefix);
+    renderSmartAdvisor(prefix);
   }
 
   function renderMonthComparisonBanner() {

@@ -99,19 +99,16 @@
                 </div>
               </div>
             </div>
-          <!-- 豚の貯金箱 AIアドバイザーカード -->
-          <section id="piggy-advisor-card" class="piggy-advisor-card" aria-label="豚の貯金箱 AIアドバイザー">
-            <button id="piggy-avatar-btn" class="piggy-avatar-btn" type="button" aria-label="アドバイスを切り替える">
-              <img id="piggy-avatar-img" src="icons/piggy-normal.svg" alt="貯金箱キャラクター" class="piggy-avatar-img" width="52" height="46" />
-            </button>
-            <div id="piggy-speech-bubble" class="piggy-speech-bubble" role="button" tabindex="0" aria-label="次のアドバイスを見る">
-              <div class="piggy-bubble-header">
-                <span id="piggy-bubble-tag" class="piggy-bubble-tag">家計アドバイス</span>
-                <span class="piggy-tap-hint">タップで切替 ↻</span>
-              </div>
-              <p id="piggy-bubble-text" class="piggy-bubble-text">今月の支出状況を分析しています…</p>
-            </div>
           </section>
+
+          <!-- スマート家計アドバイス（シンプル・キャラなし） -->
+          <div id="smart-advisor-banner" class="smart-advisor-banner" role="button" tabindex="0" aria-label="タップで別のアドバイスを表示">
+            <div class="advisor-badge-row">
+              <span id="advisor-badge" class="advisor-badge">今月の分析</span>
+              <span class="advisor-refresh-hint">タップで切替 ↻</span>
+            </div>
+            <p id="advisor-text" class="advisor-text">支出状況を分析しています…</p>
+          </div>
 
           <section class="calendar-card" aria-label="月間カレンダー">
             <div class="weekday-row" aria-hidden="true">
@@ -187,19 +184,14 @@
           <!-- 分析タブ -->
           <div id="report-pane-analysis" class="report-pane">
             <div class="report-container">
-              <!-- レポート用 豚の貯金箱アドバイザー -->
-              <section id="report-piggy-card" class="piggy-advisor-card report-piggy-card" aria-label="豚の貯金箱 AI分析レポート">
-                <button id="report-piggy-avatar-btn" class="piggy-avatar-btn" type="button" aria-label="アドバイスを切り替える">
-                  <img id="report-piggy-avatar-img" src="icons/piggy-normal.svg" alt="貯金箱キャラクター" class="piggy-avatar-img" width="52" height="46" />
-                </button>
-                <div id="report-piggy-speech-bubble" class="piggy-speech-bubble" role="button" tabindex="0" aria-label="次のアドバイスを見る">
-                  <div class="piggy-bubble-header">
-                    <span id="report-piggy-bubble-tag" class="piggy-bubble-tag">家計アドバイス</span>
-                    <span class="piggy-tap-hint">タップで切替 ↻</span>
-                  </div>
-                  <p id="report-piggy-bubble-text" class="piggy-bubble-text">今月の支出状況を分析しています…</p>
+              <!-- レポート用 スマート分析アドバイス -->
+              <div id="report-smart-advisor-banner" class="smart-advisor-banner" role="button" tabindex="0" aria-label="タップで別のアドバイスを表示">
+                <div class="advisor-badge-row">
+                  <span id="report-advisor-badge" class="advisor-badge">分析アドバイス</span>
+                  <span class="advisor-refresh-hint">タップで切替 ↻</span>
                 </div>
-              </section>
+                <p id="report-advisor-text" class="advisor-text">支出状況を分析しています…</p>
+              </div>
 
               <section class="chart-card">
                 <h3>カテゴリ別支出割合</h3>
