@@ -2986,4 +2986,133 @@ dialog {
   }
 }
 
+/* --- 豚の貯金箱 AIアドバイザーカード --- */
+.piggy-advisor-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 16px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.report-piggy-card {
+  margin: 0 0 16px;
+}
+
+.piggy-avatar-btn {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  border-radius: 50%;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.piggy-avatar-img {
+  width: 54px;
+  height: 48px;
+  object-fit: contain;
+  color: var(--text);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+.piggy-avatar-btn:hover,
+.piggy-avatar-btn:active {
+  transform: scale(1.1) rotate(-4deg);
+}
+
+.piggy-speech-bubble {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 9px 13px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.piggy-speech-bubble::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -6px;
+  transform: translateY(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: var(--surface-soft);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.piggy-speech-bubble:hover {
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface-soft));
+  border-color: var(--accent);
+}
+
+.piggy-bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.piggy-bubble-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: var(--accent-soft);
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.piggy-tap-hint {
+  font-size: 0.66rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.piggy-bubble-text {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.42;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.piggy-bounce {
+  animation: piggyJump 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bubble-pop {
+  animation: bubblePop 0.25s ease-out;
+}
+
+@keyframes piggyJump {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.18) translateY(-5px) rotate(-6deg); }
+}
+
+@keyframes bubblePop {
+  0% { opacity: 0.4; transform: scale(0.97); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+
 

@@ -347,6 +347,16 @@
     if (reportOutlookBtn) reportOutlookBtn.addEventListener("click", () => switchReportSubTab("outlook"));
     if (reportAnalysisBtn) reportAnalysisBtn.addEventListener("click", () => switchReportSubTab("analysis"));
 
+    const piggyHomeAvatar = $("piggy-avatar-btn");
+    const piggyHomeBubble = $("piggy-speech-bubble");
+    if (piggyHomeAvatar) piggyHomeAvatar.addEventListener("click", () => nextPiggyAdvice("piggy"));
+    if (piggyHomeBubble) piggyHomeBubble.addEventListener("click", () => nextPiggyAdvice("piggy"));
+
+    const piggyReportAvatar = $("report-piggy-avatar-btn");
+    const piggyReportBubble = $("report-piggy-speech-bubble");
+    if (piggyReportAvatar) piggyReportAvatar.addEventListener("click", () => nextPiggyAdvice("report-piggy"));
+    if (piggyReportBubble) piggyReportBubble.addEventListener("click", () => nextPiggyAdvice("report-piggy"));
+
     document.querySelectorAll(".nav-item").forEach((button) => {
       button.addEventListener("click", () => switchView(button.dataset.view));
     });
@@ -685,6 +695,7 @@
     renderCalendar();
     renderCalendarLegend();
     renderMonthlySummary();
+    renderPiggyAdvisor("piggy");
   }
 
   function renderCalendarLegend() {
@@ -2077,6 +2088,7 @@
       renderBalance();
       renderUpcomingWithdrawals();
     } else {
+      renderPiggyAdvisor("report-piggy");
       if (typeof window.Chart === "undefined") {
         return;
       }
@@ -2136,6 +2148,202 @@
     });
 
     list.replaceChildren(...rows);
+  }
+
+  let piggyHomeIndex = 0;
+  let piggyReportIndex = 0;
+
+  function generatePiggyAdvices(monthKey) {
+    const today = Core.todayKey();
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const range = Core.getCycleRange(monthKey, cycleDay);
+    
+    const curDate = Core.parseDateKey(`${monthKey}-01`);
+    const prevDate = new Date(curDate.getFullYear(), curDate.getMonth() - 1, 1, 12);
+    const prevMonthKey = Core.toDateKey(prevDate).slice(0, 7);
+
+    const curSummary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
+    const prevSummary = Core.summarizeMonth(prevMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
+
+    const mode = state.settings.budgetMode || "usage";
+    const curSpent = mode === "usage" ? curSummary.usage : curSummary.outflow;
+    const prevSpent = mode === "usage" ? prevSummary.usage : prevSummary.outflow;
+    const budget = getEffectiveBudget(monthKey, mode);
+
+    const isCurrentMonth = today >= range.startDate && today <= range.endDate;
+    const curCycleExpenses = state.expenses.filter((e) => e.date >= range.startDate && e.date <= range.endDate);
+
+    const advices = [];
+
+    // 1. 予算設定状況と消化ペース
+    if (budget === null || budget <= 0) {
+      advices.push({
+        tag: "はじめの一歩",
+        emotion: "normal",
+        text: "月間予算を設定すると、今月あと使える目安や1日の推奨ペースをお知らせします。"
+      });
+    } else {
+      const remaining = budget - curSpent;
+      const totalDays = Math.max(1, Math.round((new Date(range.endDate) - new Date(range.startDate)) / 86400000) + 1);
+      let remainingDays = 1;
+      if (isCurrentMonth) {
+        remainingDays = Math.max(1, Math.round((new Date(range.endDate) - new Date(today)) / 86400000) + 1);
+      } else if (today < range.startDate) {
+        remainingDays = totalDays;
+      } else {
+        remainingDays = 1;
+      }
+
+      const dailyAllowance = Math.max(0, Math.floor(remaining / remainingDays));
+
+      if (remaining < 0) {
+        advices.push({
+          tag: "予算超過に注意",
+          emotion: "worry",
+          text: `今月の予算を ${formatYen(Math.abs(remaining))} 上回っています。固定費以外の買い物を少し控えめにしてみましょう。`
+        });
+      } else if (isCurrentMonth) {
+        const passedDays = Math.max(1, totalDays - remainingDays);
+        const expectedBurn = Math.round((budget / totalDays) * passedDays);
+        if (curSpent > expectedBurn * 1.15 && remainingDays > 3) {
+          const overrun = Math.round(curSpent + (curSpent / passedDays) * remainingDays - budget);
+          advices.push({
+            tag: "ペース注意",
+            emotion: "worry",
+            text: `このペースが続くと月末に予算を約 ${formatYen(overrun)} 上回る見込みです。今日の目安は ${formatYen(dailyAllowance)} に控えてみましょう。`
+          });
+        } else {
+          advices.push({
+            tag: "予算の目安",
+            emotion: "happy",
+            text: `今月の残り予算は ${formatYen(remaining)} です。月末まで1日あたり約 ${formatYen(dailyAllowance)} 使える計算です。`
+          });
+        }
+      } else {
+        advices.push({
+          tag: "月間予算",
+          emotion: remaining >= 0 ? "happy" : "worry",
+          text: remaining >= 0
+            ? `この月は予算内に ${formatYen(remaining)} 収まりました。素晴らしい管理です。`
+            : `この月は予算を ${formatYen(Math.abs(remaining))} 上回りました。`
+        });
+      }
+    }
+
+    // 2. 前月同期比較
+    if (prevSpent > 0 && curSpent > 0) {
+      const diff = curSpent - prevSpent;
+      const pct = Math.abs(Math.round((diff / prevSpent) * 100));
+      if (diff < 0) {
+        advices.push({
+          tag: "節約順調",
+          emotion: "happy",
+          text: `先月と比べて支出が ${formatYen(Math.abs(diff))}（${pct}％）抑えられています。とても良いペースです。`
+        });
+      } else if (diff > 0 && pct >= 5) {
+        advices.push({
+          tag: "支出増加に注意",
+          emotion: "worry",
+          text: `先月と比べて支出が +${formatYen(diff)}（${pct}％増）多めです。大きな買い物の予定がないか確認しておきましょう。`
+        });
+      }
+    }
+
+    // 3. カテゴリ別の傾向
+    if (curCycleExpenses.length > 0) {
+      const catTotals = {};
+      curCycleExpenses.forEach((e) => {
+        catTotals[e.category] = (catTotals[e.category] || 0) + Number(e.amount || 0);
+      });
+      const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+      if (sortedCats.length > 0) {
+        const topCat = sortedCats[0];
+        const topPct = Math.round((topCat[1] / (curSpent || 1)) * 100);
+        if (topPct >= 35 && topCat[1] >= 5000) {
+          advices.push({
+            tag: "カテゴリ分析",
+            emotion: "normal",
+            text: `今月の支出で最も多いのは『${topCat[0]}』（${formatYen(topCat[1])}・全体の${topPct}％）です。`
+          });
+        }
+      }
+    }
+
+    // 4. 直近のカード引き落とし予定（7日以内）
+    if (isCurrentMonth) {
+      const upcoming = (curSummary.cardWithdrawalsList || []).filter((item) => {
+        return item.date >= today && (new Date(item.date) - new Date(today)) <= 7 * 86400000;
+      });
+      if (upcoming.length > 0) {
+        const nextBill = upcoming[0];
+        const dateParts = nextBill.date.split("-");
+        advices.push({
+          tag: "引き落とし予定",
+          emotion: "normal",
+          text: `${Number(dateParts[1])}月${Number(dateParts[2])}日に『${nextBill.cardName}』から ${formatYen(nextBill.amount)} の引き落とし予定があります。口座残高を確認しておきましょう。`
+        });
+      }
+    }
+
+    // 5. デフォルト案内
+    if (advices.length === 0 || curSpent === 0) {
+      advices.push({
+        tag: "今月の見守り",
+        emotion: "happy",
+        text: "買い物をしたら右下の「＋」ボタンから記録しましょう。支出の傾向に合わせてアドバイスをお届けします。"
+      });
+    }
+
+    return advices;
+  }
+
+  function renderPiggyAdvisor(prefix = "piggy") {
+    const card = $(`${prefix}-advisor-card`) || $(`${prefix}-card`);
+    if (!card) return;
+
+    const monthKey = (prefix === "report-piggy" ? reportMonth : currentMonth).slice(0, 7);
+    const advices = generatePiggyAdvices(monthKey);
+    if (!advices.length) return;
+
+    const idx = prefix === "report-piggy" ? piggyReportIndex : piggyHomeIndex;
+    const currentAdvice = advices[idx % advices.length];
+
+    const tagEl = $(`${prefix}-bubble-tag`);
+    const textEl = $(`${prefix}-bubble-text`);
+    const imgEl = $(`${prefix}-avatar-img`);
+
+    if (tagEl) tagEl.textContent = currentAdvice.tag;
+    if (textEl) textEl.textContent = currentAdvice.text;
+    if (imgEl) {
+      imgEl.src = `icons/piggy-${currentAdvice.emotion || "normal"}.svg`;
+    }
+  }
+
+  function nextPiggyAdvice(prefix = "piggy") {
+    const monthKey = (prefix === "report-piggy" ? reportMonth : currentMonth).slice(0, 7);
+    const advices = generatePiggyAdvices(monthKey);
+    if (advices.length <= 1) return;
+
+    if (prefix === "report-piggy") {
+      piggyReportIndex = (piggyReportIndex + 1) % advices.length;
+    } else {
+      piggyHomeIndex = (piggyHomeIndex + 1) % advices.length;
+    }
+
+    const bubble = $(`${prefix}-speech-bubble`);
+    const avatar = $(`${prefix}-avatar-img`);
+    if (bubble) {
+      bubble.classList.remove("bubble-pop");
+      void bubble.offsetWidth;
+      bubble.classList.add("bubble-pop");
+    }
+    if (avatar) {
+      avatar.classList.remove("piggy-bounce");
+      void avatar.offsetWidth;
+      avatar.classList.add("piggy-bounce");
+    }
+
+    renderPiggyAdvisor(prefix);
   }
 
   function renderMonthComparisonBanner() {
