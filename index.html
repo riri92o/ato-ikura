@@ -39,37 +39,62 @@
           <div id="cycle-period-bar" class="cycle-period-bar"><span id="cycle-period-badge" class="cycle-period-badge">集計期間: —</span></div>
 
           <section class="summary-panel" aria-label="月間サマリー">
-            <div class="budget-mode-switch" role="tablist" aria-label="集計方式の切り替え">
-              <button id="mode-usage-btn" class="budget-mode-tab is-active" type="button" role="tab" aria-selected="true" data-mode="usage">利用ベース</button>
-              <button id="mode-outflow-btn" class="budget-mode-tab" type="button" role="tab" aria-selected="false" data-mode="outflow">支払いベース</button>
+            <div class="budget-mode-switch-wrapper">
+              <div class="budget-mode-switch" role="tablist" aria-label="集計方式の切り替え">
+                <button id="mode-usage-btn" class="budget-mode-tab is-active" type="button" role="tab" aria-selected="true" data-mode="usage">使った額</button>
+                <button id="mode-outflow-btn" class="budget-mode-tab" type="button" role="tab" aria-selected="false" data-mode="outflow">口座から出る額</button>
+              </div>
+              <button id="mode-help-btn" class="mode-help-btn" type="button" aria-label="集計方式の違いを見る">？</button>
             </div>
 
-            <div class="summary-primary budget-hero">
-              <div class="budget-title-row">
-                <p id="budget-primary-label">今月あと使える金額</p>
-                <button id="open-budget-button" class="budget-setting-trigger" type="button">予算を設定</button>
+            <!-- 予算設定済みの表示 -->
+            <div id="summary-budget-set" class="summary-budget-state">
+              <div class="summary-primary budget-hero">
+                <div class="budget-title-row">
+                  <p id="budget-primary-label">今月あと使える金額</p>
+                  <button id="open-budget-button" class="budget-setting-trigger" type="button">予算を設定</button>
+                </div>
+                <strong id="budget-remaining-amount">未設定</strong>
               </div>
-              <strong id="budget-remaining-amount">未設定</strong>
+
+              <div class="budget-gauge-card" id="budget-gauge-card">
+                <div class="budget-gauge-track">
+                  <div id="budget-gauge-fill" class="budget-gauge-fill" style="width: 0%;"></div>
+                </div>
+                <div class="budget-gauge-info">
+                  <span id="budget-current-calc">集計額: 0円</span>
+                  <span id="budget-total-val">予算: 未設定</span>
+                  <span id="budget-percent-val">0%</span>
+                </div>
+              </div>
             </div>
 
-            <div class="budget-gauge-card" id="budget-gauge-card">
-              <div class="budget-gauge-track">
-                <div id="budget-gauge-fill" class="budget-gauge-fill" style="width: 0%;"></div>
+            <!-- 予算未設定時の簡潔な案内 -->
+            <div id="summary-budget-unset" class="summary-budget-unset is-hidden">
+              <div class="budget-unset-box">
+                <p class="budget-unset-message">予算を設定すると、今月あと使える金額が表示されます</p>
+                <button id="open-budget-from-unset-button" class="button button-primary compact-action-btn" type="button">予算を設定</button>
               </div>
-              <div class="budget-gauge-info">
-                <span id="budget-current-calc">集計額: 0円</span>
-                <span id="budget-total-val">予算: 未設定</span>
-                <span id="budget-percent-val">0%</span>
+              <div class="budget-unset-subinfo">
+                <span id="budget-unset-current-spent">今月の支出: 0円</span>
               </div>
             </div>
 
-            <div class="summary-grid">
-              <div><span>当日決済の出金</span><strong id="summary-direct">0円</strong></div>
-              <div><span>カード引落</span><strong id="summary-card">0円</strong></div>
-              <div class="summary-total"><span>実際の出金合計</span><strong id="summary-outflow">0円</strong></div>
-              <div><span>次のカード引落</span><strong id="summary-next-card">予定なし</strong></div>
+            <!-- 内訳を見る（折りたたみ） -->
+            <div class="summary-breakdown-wrapper">
+              <button id="toggle-breakdown-btn" class="breakdown-toggle-btn" type="button" aria-expanded="false">
+                <span id="toggle-breakdown-text">内訳を見る</span>
+                <span id="toggle-breakdown-arrow" class="breakdown-arrow" aria-hidden="true">⌄</span>
+              </button>
+              <div id="summary-breakdown-content" class="summary-breakdown-content is-hidden">
+                <div class="summary-grid">
+                  <div><span>当日決済の出金</span><strong id="summary-direct">0円</strong></div>
+                  <div><span>カード引落</span><strong id="summary-card">0円</strong></div>
+                  <div class="summary-total"><span>実際の出金合計</span><strong id="summary-outflow">0円</strong></div>
+                  <div><span>次のカード引落</span><strong id="summary-next-card">予定なし</strong></div>
+                </div>
+              </div>
             </div>
-            <p class="summary-note" id="summary-note-text">利用額は買い物をした日、出金額は口座や財布から実際に減る日で集計します。</p>
           </section>
 
           <section class="calendar-card" aria-label="月間カレンダー">
@@ -78,25 +103,6 @@
             </div>
             <div id="calendar-grid" class="calendar-grid"></div>
             <div id="calendar-legend" class="calendar-legend" aria-label="凡例"></div>
-          </section>
-
-          <section class="balance-panel" aria-labelledby="balance-title">
-            <div class="section-heading-row">
-              <div><p class="section-kicker">これから30日</p><h2 id="balance-title">残高の見通し</h2></div>
-              <button id="open-balance-settings" class="text-button" type="button">設定する</button>
-            </div>
-            <div class="balance-grid">
-              <div><span>現在残高</span><strong id="balance-current">未設定</strong></div>
-              <div><span>カード引落予定</span><strong id="balance-upcoming">0円</strong></div>
-              <div><span>引落後の予想残高</span><strong id="balance-after">未設定</strong></div>
-              <div class="available"><span>あと使える目安</span><strong id="balance-available">未設定</strong></div>
-            </div>
-            <p class="fine-print">登録内容だけを使った目安です。今後の収入やカード以外の予定支出は含みません。</p>
-          </section>
-
-          <section class="category-panel" aria-labelledby="category-title">
-            <div class="section-heading-row"><h2 id="category-title">カテゴリ別</h2></div>
-            <div id="category-summary" class="category-summary"></div>
           </section>
         </section>
 
@@ -119,7 +125,13 @@
         </section>
 
         <section id="view-report" class="view" aria-labelledby="report-title">
-          <div class="page-heading"><p class="section-kicker">支出の分析</p><h2 id="report-title">レポート</h2></div>
+          <div class="page-heading"><p class="section-kicker">見通しと分析</p><h2 id="report-title">レポート</h2></div>
+          
+          <div class="report-subtab-switch" role="tablist" aria-label="レポートの表示切り替え">
+            <button id="report-tab-outlook-btn" class="report-subtab-btn is-active" type="button" role="tab" aria-selected="true">見通し</button>
+            <button id="report-tab-analysis-btn" class="report-subtab-btn" type="button" role="tab" aria-selected="false">分析</button>
+          </div>
+
           <div class="month-toolbar">
             <button id="report-prev-month" class="icon-button" type="button" aria-label="先月">‹</button>
             <button id="report-month-picker-button" class="month-heading" type="button" aria-label="表示する月を選ぶ">
@@ -130,20 +142,62 @@
             <button id="report-next-month" class="icon-button" type="button" aria-label="翌月">›</button>
           </div>
           <div id="report-cycle-period-bar" class="cycle-period-bar"><span id="report-cycle-period-badge" class="cycle-period-badge">集計期間: —</span></div>
-          <div class="report-container">
-            <section class="chart-card">
-              <h3>カテゴリ別支出割合</h3>
-              <div class="chart-wrapper">
-                <canvas id="category-chart"></canvas>
+
+          <!-- 見通しタブ -->
+          <div id="report-pane-outlook" class="report-pane is-active">
+            <section class="balance-panel" aria-labelledby="balance-title">
+              <div class="section-heading-row">
+                <div><p class="section-kicker">これから30日</p><h2 id="balance-title">残高の見通し</h2></div>
+                <button id="open-balance-settings" class="text-button" type="button">設定する</button>
               </div>
-              <div id="category-chart-legend" class="chart-custom-legend"></div>
-            </section>
-            <section class="chart-card">
-              <h3>月別支出推移（直近6ヶ月）</h3>
-              <div class="chart-wrapper">
-                <canvas id="monthly-trend-chart"></canvas>
+              <div class="balance-grid">
+                <div><span>現在残高</span><strong id="balance-current">未設定</strong></div>
+                <div><span>カード引落予定</span><strong id="balance-upcoming">0円</strong></div>
+                <div><span>固定費予定</span><strong id="balance-fixed-upcoming">0円</strong></div>
+                <div><span>引落後の予想残高</span><strong id="balance-after">未設定</strong></div>
+                <div class="available"><span>あと使える目安</span><strong id="balance-available">未設定</strong></div>
               </div>
+              <p class="fine-print">登録内容だけを使った目安です。今後の収入や未登録の予定支出は含みません。</p>
             </section>
+
+            <section class="chart-card">
+              <div class="section-heading-row">
+                <h3>カード引き落とし予定</h3>
+              </div>
+              <div id="report-upcoming-withdrawals-list" class="record-list"></div>
+            </section>
+          </div>
+
+          <!-- 分析タブ -->
+          <div id="report-pane-analysis" class="report-pane">
+            <div class="report-container">
+              <section class="chart-card">
+                <h3>カテゴリ別支出割合</h3>
+                <div class="chart-wrapper">
+                  <canvas id="category-chart"></canvas>
+                </div>
+                <div id="category-chart-legend" class="chart-custom-legend"></div>
+                <div id="category-summary" class="category-summary"></div>
+              </section>
+
+              <section class="chart-card">
+                <h3>月別支出推移（直近6ヶ月・前月比較）</h3>
+                <div id="report-month-comparison-card" class="comparison-pill-box"></div>
+                <div class="chart-wrapper">
+                  <canvas id="monthly-trend-chart"></canvas>
+                </div>
+              </section>
+
+              <section class="chart-card">
+                <h3>支払い方法別の内訳</h3>
+                <div id="payment-methods-breakdown" class="breakdown-bars-container"></div>
+              </section>
+
+              <section class="chart-card">
+                <h3>固定費とその他の支出</h3>
+                <div id="fixed-vs-other-breakdown" class="breakdown-bars-container"></div>
+              </section>
+            </div>
           </div>
         </section>
 
@@ -374,6 +428,12 @@
               </div>
             </section>
 
+            <section class="settings-card">
+              <h3>初回ガイド（オンボーディング）</h3>
+              <p class="settings-description">初回利用時の案内画面をいつでも再表示できます。</p>
+              <button id="reopen-onboarding-btn" class="button button-secondary full-width" type="button">初回ガイドを再表示</button>
+            </section>
+
             <p id="app-version" class="app-version"></p>
           </div>
         </section>
@@ -390,9 +450,10 @@
       </nav>
     </div>
 
-    <!-- 支出登録・編集ダイアログ -->
-    <dialog id="expense-dialog" class="app-dialog">
+    <!-- 支出登録・編集ダイアログ（ボトムシート対応） -->
+    <dialog id="expense-dialog" class="app-dialog bottom-sheet-dialog">
       <form id="expense-form" method="dialog" novalidate>
+        <div class="dialog-sheet-handle" aria-hidden="true"></div>
         <div class="dialog-header">
           <div><p class="section-kicker">使った日を記録</p><h2 id="expense-dialog-title">支出を登録</h2></div>
           <button class="dialog-close icon-button" type="button" data-close-dialog="expense-dialog" aria-label="閉じる">×</button>
@@ -408,32 +469,44 @@
         </div>
 
         <input id="expense-id" type="hidden" />
-        <div class="form-grid">
+
+        <!-- メイン入力項目（優先4項目） -->
+        <div class="form-grid primary-form-grid">
           <label class="field-large">金額<span class="required">必須</span>
             <div class="money-input"><span>¥</span><input id="expense-amount" type="text" inputmode="numeric" autocomplete="off" placeholder="0" required /></div>
             <small id="expense-amount-error" class="field-error"></small>
           </label>
           <label>利用日<span class="required">必須</span><input id="expense-date" type="date" required /></label>
-          <label>カテゴリ<select id="expense-category"></select></label>
           <label>支払い方法<select id="expense-payment"></select></label>
-          <label id="expense-card-field" class="is-hidden">使用したカード<select id="expense-card"></select></label>
-          <div id="payment-date-section" class="payment-date-box is-hidden">
-            <p>自動計算の支払日：<strong id="calculated-payment-date">—</strong></p>
-            <label>この支出だけ支払日を変更<input id="expense-payment-date" type="date" /></label>
-          </div>
-          <label class="full-span">メモ<textarea id="expense-memo" rows="3" maxlength="200" placeholder="例：ランチ、日用品など"></textarea></label>
+          <label>カテゴリ<select id="expense-category"></select></label>
         </div>
 
-        <div class="favorite-save-row">
-          <button id="add-to-favorites-btn" class="text-button favorite-save-btn" type="button">
-            <span>★</span> 現在の内容をお気に入りに登録
-          </button>
-        </div>
+        <!-- 詳細設定（折りたたみ） -->
+        <details id="expense-details-accordion" class="expense-details-accordion">
+          <summary class="expense-details-summary">
+            <span>詳細設定（カード選択・メモなど）</span>
+            <span class="details-chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div class="form-grid details-form-grid">
+            <label id="expense-card-field" class="full-span is-hidden">使用したカード<select id="expense-card"></select></label>
+            <div id="payment-date-section" class="payment-date-box full-span is-hidden">
+              <p>自動計算の支払日：<strong id="calculated-payment-date">—</strong></p>
+              <label>この支出だけ支払日を変更<input id="expense-payment-date" type="date" /></label>
+            </div>
+            <label class="full-span">メモ<textarea id="expense-memo" rows="2" maxlength="200" placeholder="例：ランチ、日用品など"></textarea></label>
+            <div class="favorite-save-row full-span">
+              <button id="add-to-favorites-btn" class="text-button favorite-save-btn" type="button">
+                <span>★</span> 現在の内容をお気に入りに登録
+              </button>
+            </div>
+          </div>
+        </details>
 
         <div id="day-records-section" class="day-records-section">
-          <h3>この日の支出</h3>
+          <h3>この日の支出一覧</h3>
           <div id="day-records-list" class="compact-record-list"></div>
         </div>
+
         <div class="dialog-actions">
           <button id="delete-expense-button" class="button button-danger is-hidden" type="button">削除</button>
           <span class="action-spacer"></span>
@@ -443,9 +516,84 @@
       </form>
     </dialog>
 
+    <!-- 集計方式の「？」説明ダイアログ -->
+    <dialog id="mode-help-dialog" class="app-dialog app-dialog-small bottom-sheet-dialog">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header">
+        <div><p class="section-kicker">集計の違い</p><h2>集計方式について</h2></div>
+        <button class="dialog-close icon-button" type="button" data-close-dialog="mode-help-dialog" aria-label="閉じる">×</button>
+      </div>
+      <div class="mode-help-content">
+        <div class="guide-box">
+          <div class="guide-box-header">
+            <span class="mode-badge usage">使った額</span>
+            <strong>買い物をした日で集計</strong>
+          </div>
+          <p>現金・デビット・カードを、買い物した日で集計します。カードの引き落としは含みません。</p>
+        </div>
+        <div class="guide-box" style="margin-top: 12px;">
+          <div class="guide-box-header">
+            <span class="mode-badge outflow">口座から出る額</span>
+            <strong>口座から減る日で集計</strong>
+          </div>
+          <p>現金・デビットと、実際のカード引き落とし日を基準に集計します。カード利用額との二重計算はしません。</p>
+        </div>
+      </div>
+      <div class="dialog-actions" style="margin-top: 18px;">
+        <button class="button button-primary full-width" type="button" data-close-dialog="mode-help-dialog">閉じる</button>
+      </div>
+    </dialog>
+
+    <!-- 初回オンボーディングダイアログ -->
+    <dialog id="onboarding-dialog" class="app-dialog bottom-sheet-dialog onboarding-dialog">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="onboarding-content">
+        <div class="onboarding-header">
+          <span class="onboarding-badge">はじめての利用</span>
+          <h2 class="onboarding-title">今月あといくら使えるか確認しましょう</h2>
+          <p class="onboarding-desc">3つの簡単なステップで、「使った日」と「減る日」をすっきり管理できます。</p>
+        </div>
+
+        <div class="onboarding-steps">
+          <div class="onboarding-step-item">
+            <div class="step-num">1</div>
+            <div class="step-info">
+              <strong>月間予算を設定する</strong>
+              <p>今月使える上限額を設定します。</p>
+            </div>
+            <button id="onboarding-step-budget" class="button button-secondary compact-btn" type="button">設定する</button>
+          </div>
+
+          <div class="onboarding-step-item">
+            <div class="step-num">2</div>
+            <div class="step-info">
+              <strong>カードを登録する（任意）</strong>
+              <p>締め日・支払日から引き落とし日を自動計算。</p>
+            </div>
+            <button id="onboarding-step-card" class="button button-secondary compact-btn" type="button">登録する</button>
+          </div>
+
+          <div class="onboarding-step-item">
+            <div class="step-num">3</div>
+            <div class="step-info">
+              <strong>最初の支出を登録する</strong>
+              <p>使った日・金額を記録してみましょう。</p>
+            </div>
+            <button id="onboarding-step-expense" class="button button-secondary compact-btn" type="button">記録する</button>
+          </div>
+        </div>
+
+        <div class="onboarding-footer-actions">
+          <button id="onboarding-sample-btn" class="button button-secondary full-width" type="button">お試しデータで見る</button>
+          <button id="onboarding-start-btn" class="button button-primary full-width" type="button">設定せずに始める</button>
+        </div>
+      </div>
+    </dialog>
+
     <!-- クレジットカード追加・編集ダイアログ -->
-    <dialog id="card-dialog" class="app-dialog">
+    <dialog id="card-dialog" class="app-dialog bottom-sheet-dialog">
       <form id="card-form" method="dialog" novalidate>
+        <div class="dialog-sheet-handle" aria-hidden="true"></div>
         <div class="dialog-header">
           <div><p class="section-kicker">支払日を設定</p><h2 id="card-dialog-title">カードを追加</h2></div>
           <button class="dialog-close icon-button" type="button" data-close-dialog="card-dialog" aria-label="閉じる">×</button>
@@ -485,8 +633,9 @@
     </dialog>
 
     <!-- 確定額登録・編集ダイアログ -->
-    <dialog id="manual-payment-dialog" class="app-dialog app-dialog-small">
+    <dialog id="manual-payment-dialog" class="app-dialog app-dialog-small bottom-sheet-dialog">
       <form id="manual-payment-form" method="dialog" novalidate>
+        <div class="dialog-sheet-handle" aria-hidden="true"></div>
         <div class="dialog-header">
           <div><p class="section-kicker">初回の確定額にも使えます</p><h2>確定済みの引落を追加</h2></div>
           <button class="dialog-close icon-button" type="button" data-close-dialog="manual-payment-dialog" aria-label="閉じる">×</button>
@@ -508,18 +657,19 @@
     </dialog>
 
     <!-- 月間予算設定ダイアログ -->
-    <dialog id="budget-dialog" class="app-dialog app-dialog-small">
+    <dialog id="budget-dialog" class="app-dialog app-dialog-small bottom-sheet-dialog">
       <form id="budget-form" method="dialog" novalidate>
+        <div class="dialog-sheet-handle" aria-hidden="true"></div>
         <div class="dialog-header">
           <div><p class="section-kicker">月ごとの予算管理</p><h2 id="budget-dialog-title">月間予算を設定</h2></div>
           <button class="dialog-close icon-button" type="button" data-close-dialog="budget-dialog" aria-label="閉じる">×</button>
         </div>
         <div class="form-grid">
-          <label class="field-large">利用ベースの予算（買い物枠）
+          <label class="field-large">使った額の予算（買い物枠）
             <div class="money-input"><span>¥</span><input id="budget-usage-input" type="text" inputmode="numeric" placeholder="例：100,000" /></div>
             <small class="field-hint">現金・デビット・クレカで今月購入する合計の上限</small>
           </label>
-          <label class="field-large">支払いベースの予算（出金枠）
+          <label class="field-large">口座から出る額の予算（出金枠）
             <div class="money-input"><span>¥</span><input id="budget-outflow-input" type="text" inputmode="numeric" placeholder="例：120,000" /></div>
             <small class="field-hint">現金決済＋今月口座から引き落とされる合計の上限</small>
           </label>

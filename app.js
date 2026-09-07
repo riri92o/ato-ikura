@@ -4,8 +4,9 @@
   const Core = window.AtoIkuraCore;
   const APP = {
     name: "あといくら",
-    version: "1.3.0",
+    version: "1.4.0",
     storageKey: "ato-ikura-data-v1",
+    onboardedKey: "ato-ikura-onboarded-v1",
   };
 
   const THEME_PRESETS = [
@@ -37,6 +38,8 @@
   let currentMonth = firstOfMonth(Core.todayKey());
   let reportMonth = currentMonth;
   let currentView = "calendar";
+  let reportSubTab = "outlook";
+  let isSummaryBreakdownOpen = false;
   let categoryChartInstance = null;
   let trendChartInstance = null;
   let toastTimer = null;
@@ -55,6 +58,18 @@
     $("history-month").value = currentMonth.slice(0, 7);
     renderAll();
     registerServiceWorker();
+    checkFirstTimeOnboarding();
+  }
+
+  function checkFirstTimeOnboarding() {
+    const hasOnboarded = localStorage.getItem(APP.onboardedKey);
+    const hasData = state.expenses.length > 0 || state.cards.length > 0 || Object.keys(state.budgets || {}).length > 0;
+    if (!hasOnboarded && !hasData) {
+      window.setTimeout(() => {
+        const dialog = $("onboarding-dialog");
+        if (dialog) showDialog(dialog);
+      }, 250);
+    }
   }
 
   function defaultFavorites() {
@@ -311,6 +326,11 @@
       }
     });
 
+    const reportOutlookBtn = $("report-tab-outlook-btn");
+    const reportAnalysisBtn = $("report-tab-analysis-btn");
+    if (reportOutlookBtn) reportOutlookBtn.addEventListener("click", () => switchReportSubTab("outlook"));
+    if (reportAnalysisBtn) reportAnalysisBtn.addEventListener("click", () => switchReportSubTab("analysis"));
+
     document.querySelectorAll(".nav-item").forEach((button) => {
       button.addEventListener("click", () => switchView(button.dataset.view));
     });
@@ -344,7 +364,13 @@
     $("manual-payment-amount").addEventListener("blur", formatMoneyInput);
     $("setting-balance").addEventListener("blur", formatMoneyInput);
     $("setting-reserve").addEventListener("blur", formatMoneyInput);
-    $("expense-payment").addEventListener("change", updateExpensePaymentFields);
+    $("expense-payment").addEventListener("change", () => {
+      updateExpensePaymentFields();
+      if ($("expense-payment").value === Core.CREDIT_PAYMENT) {
+        const accordion = $("expense-details-accordion");
+        if (accordion) accordion.open = true;
+      }
+    });
     $("expense-card").addEventListener("change", updateCalculatedPaymentDate);
     $("expense-date").addEventListener("change", () => {
       updateCalculatedPaymentDate();
@@ -393,11 +419,79 @@
 
     $("mode-usage-btn").addEventListener("click", () => switchBudgetMode("usage"));
     $("mode-outflow-btn").addEventListener("click", () => switchBudgetMode("outflow"));
+    const modeHelpBtn = $("mode-help-btn");
+    if (modeHelpBtn) modeHelpBtn.addEventListener("click", () => showDialog($("mode-help-dialog")));
+
     $("open-budget-button").addEventListener("click", openBudgetDialog);
+    const openBudgetFromUnsetBtn = $("open-budget-from-unset-button");
+    if (openBudgetFromUnsetBtn) openBudgetFromUnsetBtn.addEventListener("click", openBudgetDialog);
+
+    const toggleBreakdownBtn = $("toggle-breakdown-btn");
+    if (toggleBreakdownBtn) {
+      toggleBreakdownBtn.addEventListener("click", () => {
+        isSummaryBreakdownOpen = !isSummaryBreakdownOpen;
+        const content = $("summary-breakdown-content");
+        const text = $("toggle-breakdown-text");
+        const arrow = $("toggle-breakdown-arrow");
+        if (content) content.classList.toggle("is-hidden", !isSummaryBreakdownOpen);
+        if (text) text.textContent = isSummaryBreakdownOpen ? "内訳を閉じる" : "内訳を見る";
+        if (arrow) arrow.textContent = isSummaryBreakdownOpen ? "⌃" : "⌄";
+        toggleBreakdownBtn.setAttribute("aria-expanded", isSummaryBreakdownOpen ? "true" : "false");
+      });
+    }
+
     $("budget-form").addEventListener("submit", saveBudgetFromForm);
     $("clear-budget-button").addEventListener("click", clearMonthlyBudget);
     $("budget-usage-input").addEventListener("blur", formatMoneyInput);
     $("budget-outflow-input").addEventListener("blur", formatMoneyInput);
+
+    // オンボーディングボタン
+    const obStartBtn = $("onboarding-start-btn");
+    if (obStartBtn) {
+      obStartBtn.addEventListener("click", () => {
+        localStorage.setItem(APP.onboardedKey, "true");
+        closeDialog($("onboarding-dialog"));
+        showToast("「あといくら」へようこそ！");
+      });
+    }
+    const obSampleBtn = $("onboarding-sample-btn");
+    if (obSampleBtn) {
+      obSampleBtn.addEventListener("click", () => {
+        localStorage.setItem(APP.onboardedKey, "true");
+        closeDialog($("onboarding-dialog"));
+        addSampleData();
+      });
+    }
+    const obStepBudget = $("onboarding-step-budget");
+    if (obStepBudget) {
+      obStepBudget.addEventListener("click", () => {
+        localStorage.setItem(APP.onboardedKey, "true");
+        closeDialog($("onboarding-dialog"));
+        openBudgetDialog();
+      });
+    }
+    const obStepCard = $("onboarding-step-card");
+    if (obStepCard) {
+      obStepCard.addEventListener("click", () => {
+        localStorage.setItem(APP.onboardedKey, "true");
+        closeDialog($("onboarding-dialog"));
+        openCardDialog();
+      });
+    }
+    const obStepExp = $("onboarding-step-expense");
+    if (obStepExp) {
+      obStepExp.addEventListener("click", () => {
+        localStorage.setItem(APP.onboardedKey, "true");
+        closeDialog($("onboarding-dialog"));
+        openExpenseDialog(Core.todayKey());
+      });
+    }
+    const reopenObBtn = $("reopen-onboarding-btn");
+    if (reopenObBtn) {
+      reopenObBtn.addEventListener("click", () => {
+        showDialog($("onboarding-dialog"));
+      });
+    }
 
     $("save-cycle-settings").addEventListener("click", saveCycleSettings);
     $("setting-cycle-start-day").addEventListener("change", updateCyclePreview);
@@ -574,8 +668,6 @@
     renderCalendar();
     renderCalendarLegend();
     renderMonthlySummary();
-    renderBalance();
-    renderCategorySummary();
   }
 
   function renderCalendarLegend() {
@@ -737,32 +829,34 @@
     const currentAmount = isUsage ? summary.usage : summary.outflow;
     const budget = getEffectiveBudget(monthKey, mode);
 
+    const budgetSetContainer = $("summary-budget-set");
+    const budgetUnsetContainer = $("summary-budget-unset");
     const primaryLabel = $("budget-primary-label");
     const remainingEl = $("budget-remaining-amount");
     const gaugeFill = $("budget-gauge-fill");
     const currentCalcEl = $("budget-current-calc");
     const totalValEl = $("budget-total-val");
     const percentValEl = $("budget-percent-val");
+    const unsetSpentEl = $("budget-unset-current-spent");
 
     if (primaryLabel) {
-      primaryLabel.textContent = "今月あと使える金額";
+      primaryLabel.textContent = isUsage ? "今月あと使える金額" : "今月あと支払える金額";
     }
 
     if (budget === null) {
       // 予算未設定時
-      if (remainingEl) {
-        remainingEl.textContent = "未設定";
-        remainingEl.classList.remove("is-over");
+      if (budgetSetContainer) budgetSetContainer.classList.add("is-hidden");
+      if (budgetUnsetContainer) budgetUnsetContainer.classList.remove("is-hidden");
+      if (unsetSpentEl) {
+        unsetSpentEl.textContent = isUsage
+          ? `今月の利用額: ${formatYen(currentAmount)}`
+          : `今月の口座出金額: ${formatYen(currentAmount)}`;
       }
-      if (gaugeFill) {
-        gaugeFill.style.width = "0%";
-        gaugeFill.className = "budget-gauge-fill";
-      }
-      if (currentCalcEl) currentCalcEl.textContent = isUsage ? `利用合計: ${formatYen(currentAmount)}` : `出金合計: ${formatYen(currentAmount)}`;
-      if (totalValEl) totalValEl.textContent = "予算: 未設定";
-      if (percentValEl) percentValEl.textContent = "—";
     } else {
       // 予算設定済み
+      if (budgetSetContainer) budgetSetContainer.classList.remove("is-hidden");
+      if (budgetUnsetContainer) budgetUnsetContainer.classList.add("is-hidden");
+
       const remaining = budget - currentAmount;
       const percent = budget > 0 ? Math.round((currentAmount / budget) * 100) : 0;
       const ratio = Math.min(100, Math.max(0, percent));
@@ -787,8 +881,8 @@
         }
       }
 
-      if (currentCalcEl) currentCalcEl.textContent = isUsage ? `利用額: ${formatYen(currentAmount)}` : `出金額: ${formatYen(currentAmount)}`;
-      if (totalValEl) totalValEl.textContent = `予算: ${formatYen(budget)}`;
+      if (currentCalcEl) currentCalcEl.textContent = isUsage ? `使った額: ${formatYen(currentAmount)}` : `口座から出る額: ${formatYen(currentAmount)}`;
+      if (totalValEl) totalValEl.textContent = isUsage ? `予算: ${formatYen(budget)}` : `出金予算: ${formatYen(budget)}`;
       if (percentValEl) percentValEl.textContent = `${percent}%`;
     }
 
@@ -798,14 +892,6 @@
     $("summary-outflow").textContent = formatYen(summary.outflow);
     const next = Core.getNextCardWithdrawal(Core.todayKey(), state.expenses, state.cards, state.manualPayments);
     $("summary-next-card").textContent = next ? `${formatShortDate(next.date)}・${formatYen(next.amount)}` : "予定なし";
-
-    // 注釈
-    const noteEl = $("summary-note-text");
-    if (noteEl) {
-      noteEl.textContent = isUsage
-        ? "利用ベース：買い物をした日で集計（クレジットカードの引き落とし額は含みません）"
-        : "支払いベース：当日決済＋今月口座から引き落とされる金額で集計（今月カード利用分は含みません）";
-    }
   }
 
   function openBudgetDialog() {
@@ -874,17 +960,37 @@
     const current = state.settings.currentBalance;
     const reserve = state.settings.minimumReserve;
     const upcoming = Core.getUpcomingCardTotal(Core.todayKey(), 30, state.expenses, state.cards, state.manualPayments);
-    $("balance-current").textContent = current === null ? "未設定" : formatYen(current);
-    $("balance-upcoming").textContent = formatYen(upcoming);
-    $("balance-after").textContent = current === null ? "未設定" : formatSignedYen(current - upcoming);
-    $("balance-available").textContent = current === null || reserve === null ? "未設定" : formatSignedYen(current - upcoming - reserve);
-    $("balance-after").parentElement.classList.toggle("is-negative", current !== null && current - upcoming < 0);
-    $("balance-available").parentElement.classList.toggle("is-negative", current !== null && reserve !== null && current - upcoming - reserve < 0);
+    
+    // 今月/直近30日の固定費予定
+    const today = Core.todayKey();
+    const next30 = Core.addDays(today, 30);
+    const fixedTotal = state.expenses
+      .filter((e) => e.category === "固定費" && e.date >= today && e.date <= next30)
+      .reduce((sum, e) => sum + Core.normalizeAmount(e.amount), 0);
+
+    const balanceCurrentEl = $("balance-current");
+    const balanceUpcomingEl = $("balance-upcoming");
+    const balanceFixedEl = $("balance-fixed-upcoming");
+    const balanceAfterEl = $("balance-after");
+    const balanceAvailableEl = $("balance-available");
+
+    if (balanceCurrentEl) balanceCurrentEl.textContent = current === null ? "未設定" : formatYen(current);
+    if (balanceUpcomingEl) balanceUpcomingEl.textContent = formatYen(upcoming);
+    if (balanceFixedEl) balanceFixedEl.textContent = formatYen(fixedTotal);
+    if (balanceAfterEl) {
+      balanceAfterEl.textContent = current === null ? "未設定" : formatSignedYen(current - upcoming);
+      balanceAfterEl.parentElement.classList.toggle("is-negative", current !== null && current - upcoming < 0);
+    }
+    if (balanceAvailableEl) {
+      balanceAvailableEl.textContent = current === null || reserve === null ? "未設定" : formatSignedYen(current - upcoming - reserve);
+      balanceAvailableEl.parentElement.classList.toggle("is-negative", current !== null && reserve !== null && current - upcoming - reserve < 0);
+    }
   }
 
   function renderCategorySummary() {
     const container = $("category-summary");
-    const monthKey = currentMonth.slice(0, 7);
+    if (!container) return;
+    const monthKey = reportMonth.slice(0, 7);
     const cycleDay = state.settings.cycleStartDay || 1;
     const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
     const entries = Object.entries(summary.categories).sort((a, b) => b[1] - a[1]);
@@ -1264,6 +1370,12 @@
     $("delete-expense-button").classList.toggle("is-hidden", !expense);
     refreshExpenseCardOptions(expense ? expense.cardId : "");
     updateExpensePaymentFields();
+
+    const accordion = $("expense-details-accordion");
+    if (accordion) {
+      accordion.open = Boolean(expense && (expense.memo || expense.paymentDateOverride || expense.paymentMethod === Core.CREDIT_PAYMENT));
+    }
+
     renderDayRecords($("expense-date").value);
     showDialog($("expense-dialog"));
     window.setTimeout(() => $("expense-amount").focus(), 40);
@@ -1882,6 +1994,29 @@
     });
   }
 
+  function switchReportSubTab(subTab) {
+    if (!["outlook", "analysis"].includes(subTab)) return;
+    reportSubTab = subTab;
+    const isOutlook = subTab === "outlook";
+    const outlookBtn = $("report-tab-outlook-btn");
+    const analysisBtn = $("report-tab-analysis-btn");
+    const outlookPane = $("report-pane-outlook");
+    const analysisPane = $("report-pane-analysis");
+
+    if (outlookBtn) {
+      outlookBtn.classList.toggle("is-active", isOutlook);
+      outlookBtn.setAttribute("aria-selected", isOutlook ? "true" : "false");
+    }
+    if (analysisBtn) {
+      analysisBtn.classList.toggle("is-active", !isOutlook);
+      analysisBtn.setAttribute("aria-selected", !isOutlook ? "true" : "false");
+    }
+    if (outlookPane) outlookPane.classList.toggle("is-active", isOutlook);
+    if (analysisPane) analysisPane.classList.toggle("is-active", !isOutlook);
+
+    renderReport();
+  }
+
   function moveReportMonth(amount) {
     const date = Core.parseDateKey(reportMonth);
     date.setMonth(date.getMonth() + amount, 1);
@@ -1921,19 +2056,203 @@
         : `集計期間（給料日基準）: ${cycleRange.label}`;
     }
 
-    if (typeof window.Chart === "undefined") {
+    if (reportSubTab === "outlook") {
+      renderBalance();
+      renderUpcomingWithdrawals();
+    } else {
+      if (typeof window.Chart === "undefined") {
+        return;
+      }
+
+      const styles = getComputedStyle(document.documentElement);
+      const textColor = styles.getPropertyValue("--text").trim() || "#17231c";
+      const textMutedColor = styles.getPropertyValue("--text-muted").trim() || "#68756d";
+      const borderColor = styles.getPropertyValue("--border").trim() || "#dce6df";
+      const usageColor = styles.getPropertyValue("--usage").trim() || "#3478b8";
+      const outflowColor = styles.getPropertyValue("--outflow").trim() || "#d27b32";
+
+      renderCategoryDoughnutChart(textColor, textMutedColor);
+      renderCategorySummary();
+      renderMonthComparisonBanner();
+      renderMonthlyTrendChart(textColor, textMutedColor, borderColor, usageColor, outflowColor);
+      renderPaymentMethodsBreakdown();
+      renderFixedVsOtherBreakdown();
+    }
+  }
+
+  function renderUpcomingWithdrawals() {
+    const list = $("report-upcoming-withdrawals-list");
+    if (!list) return;
+
+    const today = Core.todayKey();
+    const next60 = Core.addDays(today, 60);
+    const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments);
+    
+    const withdrawalDays = [];
+    dailyTotals.forEach((val, dateKey) => {
+      if (dateKey >= today && dateKey <= next60 && val.cardWithdrawal > 0) {
+        withdrawalDays.push({ date: dateKey, amount: val.cardWithdrawal });
+      }
+    });
+    withdrawalDays.sort((a, b) => a.date.localeCompare(b.date));
+
+    if (!withdrawalDays.length) {
+      list.replaceChildren(emptyState("直近のカード引き落とし予定はありません", "カード利用や確定額が登録されると、予定がここに表示されます。"));
       return;
     }
 
-    const styles = getComputedStyle(document.documentElement);
-    const textColor = styles.getPropertyValue("--text").trim() || "#17231c";
-    const textMutedColor = styles.getPropertyValue("--text-muted").trim() || "#68756d";
-    const borderColor = styles.getPropertyValue("--border").trim() || "#dce6df";
-    const usageColor = styles.getPropertyValue("--usage").trim() || "#3478b8";
-    const outflowColor = styles.getPropertyValue("--outflow").trim() || "#d27b32";
+    const rows = withdrawalDays.map((item) => {
+      const el = createElement("div", "record-item");
+      const icon = createElement("span", "record-icon", "引落");
+      const main = createElement("span", "record-main");
+      main.append(createElement("strong", "", formatDate(item.date)));
+      
+      const cardBreakdowns = state.cards.map((card) => {
+        const amt = getCardWithdrawalAmount(card.id, item.date);
+        return amt > 0 ? `${card.name}: ${formatYen(amt)}` : null;
+      }).filter(Boolean);
 
-    renderCategoryDoughnutChart(textColor, textMutedColor);
-    renderMonthlyTrendChart(textColor, textMutedColor, borderColor, usageColor, outflowColor);
+      main.append(createElement("span", "", cardBreakdowns.length ? cardBreakdowns.join(" / ") : "クレジットカード引き落とし"));
+      const amountEl = createElement("strong", "record-amount", formatYen(item.amount));
+      el.append(icon, main, amountEl);
+      return el;
+    });
+
+    list.replaceChildren(...rows);
+  }
+
+  function renderMonthComparisonBanner() {
+    const banner = $("report-month-comparison-card");
+    if (!banner) return;
+
+    const curMonthKey = reportMonth.slice(0, 7);
+    const curDate = Core.parseDateKey(reportMonth);
+    const prevDate = new Date(curDate.getFullYear(), curDate.getMonth() - 1, 1, 12);
+    const prevMonthKey = Core.toDateKey(prevDate).slice(0, 7);
+    const cycleDay = state.settings.cycleStartDay || 1;
+
+    const curSum = Core.summarizeMonth(curMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
+    const prevSum = Core.summarizeMonth(prevMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
+
+    const curUsage = curSum.usage;
+    const prevUsage = prevSum.usage;
+    const diff = curUsage - prevUsage;
+
+    const curPill = createElement("div", "comparison-stat");
+    curPill.append(createElement("span", "comparison-stat-label", "今月利用"), createElement("strong", "", formatYen(curUsage)));
+
+    const prevPill = createElement("div", "comparison-stat");
+    prevPill.append(createElement("span", "comparison-stat-label", "前月利用"), createElement("strong", "", formatYen(prevUsage)));
+
+    const diffPill = createElement("div", "comparison-stat");
+    diffPill.append(createElement("span", "comparison-stat-label", "前月比"));
+    if (prevUsage === 0 && curUsage === 0) {
+      diffPill.append(createElement("strong", "", "±0円"));
+    } else if (diff < 0) {
+      diffPill.append(createElement("strong", "is-positive", `-${formatYen(Math.abs(diff))} (${Math.abs(Math.round((diff / (prevUsage || 1)) * 100))}％減)`));
+    } else if (diff > 0) {
+      diffPill.append(createElement("strong", "is-negative", `+${formatYen(diff)} (${Math.round((diff / (prevUsage || 1)) * 100)}％増)`));
+    } else {
+      diffPill.append(createElement("strong", "", "前月と同額"));
+    }
+
+    banner.replaceChildren(curPill, prevPill, diffPill);
+  }
+
+  function renderPaymentMethodsBreakdown() {
+    const container = $("payment-methods-breakdown");
+    if (!container) return;
+
+    const monthKey = reportMonth.slice(0, 7);
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const range = Core.getCycleRange(monthKey, cycleDay);
+    
+    const monthlyExpenses = state.expenses.filter((e) => {
+      if (cycleDay === 1) return e.date.startsWith(monthKey);
+      return e.date >= range.startDate && e.date <= range.endDate;
+    });
+
+    if (!monthlyExpenses.length) {
+      container.replaceChildren(emptyState("この月の支出データはありません", ""));
+      return;
+    }
+
+    const payTotals = {};
+    PAYMENT_METHODS.forEach((pm) => { payTotals[pm] = 0; });
+    monthlyExpenses.forEach((e) => {
+      const pm = PAYMENT_METHODS.includes(e.paymentMethod) ? e.paymentMethod : "その他";
+      payTotals[pm] = (payTotals[pm] || 0) + Core.normalizeAmount(e.amount);
+    });
+
+    const entries = Object.entries(payTotals).filter(([, amt]) => amt > 0).sort((a, b) => b[1] - a[1]);
+    if (!entries.length) {
+      container.replaceChildren(emptyState("この月の支出データはありません", ""));
+      return;
+    }
+
+    const total = entries.reduce((sum, [, amt]) => sum + amt, 0) || 1;
+    const nodes = entries.map(([method, amount]) => {
+      const row = createElement("div", "category-row");
+      const label = createElement("span", "", method);
+      const track = createElement("div", "progress-track");
+      const value = createElement("div", "progress-value");
+      value.style.width = `${Math.max(3, Math.round((amount / total) * 100))}%`;
+      value.style.background = "var(--usage)";
+      track.append(value);
+      const valText = createElement("strong", "", `${formatYen(amount)} (${Math.round((amount / total) * 100)}%)`);
+      row.append(label, track, valText);
+      return row;
+    });
+
+    container.replaceChildren(...nodes);
+  }
+
+  function renderFixedVsOtherBreakdown() {
+    const container = $("fixed-vs-other-breakdown");
+    if (!container) return;
+
+    const monthKey = reportMonth.slice(0, 7);
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const range = Core.getCycleRange(monthKey, cycleDay);
+    
+    const monthlyExpenses = state.expenses.filter((e) => {
+      if (cycleDay === 1) return e.date.startsWith(monthKey);
+      return e.date >= range.startDate && e.date <= range.endDate;
+    });
+
+    if (!monthlyExpenses.length) {
+      container.replaceChildren(emptyState("この月の支出データはありません", ""));
+      return;
+    }
+
+    let fixedSum = 0;
+    let otherSum = 0;
+    monthlyExpenses.forEach((e) => {
+      const amt = Core.normalizeAmount(e.amount);
+      if (e.category === "固定費") fixedSum += amt;
+      else otherSum += amt;
+    });
+
+    const total = fixedSum + otherSum || 1;
+    const entries = [
+      { label: "固定費", amount: fixedSum, color: "var(--card)" },
+      { label: "変動費・その他", amount: otherSum, color: "var(--accent)" },
+    ];
+
+    const nodes = entries.map((item) => {
+      const row = createElement("div", "category-row");
+      const label = createElement("span", "", item.label);
+      const track = createElement("div", "progress-track");
+      const value = createElement("div", "progress-value");
+      value.style.width = `${Math.max(3, Math.round((item.amount / total) * 100))}%`;
+      value.style.background = item.color;
+      track.append(value);
+      const valText = createElement("strong", "", `${formatYen(item.amount)} (${Math.round((item.amount / total) * 100)}%)`);
+      row.append(label, track, valText);
+      return row;
+    });
+
+    container.replaceChildren(...nodes);
   }
 
   function renderCategoryDoughnutChart(textColor, textMutedColor) {
