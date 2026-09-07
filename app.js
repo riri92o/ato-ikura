@@ -50,7 +50,8 @@
 
   function initialize() {
     document.title = APP.name;
-    $("app-title").textContent = APP.name;
+    const titleEl = $("app-title");
+    if (titleEl) titleEl.textContent = APP.name;
     $("app-version").textContent = `${APP.name} v${APP.version}`;
     populateStaticSelects();
     bindEvents();
@@ -58,7 +59,21 @@
     $("history-month").value = currentMonth.slice(0, 7);
     renderAll();
     registerServiceWorker();
+    initSplashScreen();
     checkFirstTimeOnboarding();
+  }
+
+  function initSplashScreen() {
+    const splash = $("app-splash-screen");
+    if (!splash) return;
+    const hideSplash = () => {
+      splash.classList.add("is-hidden");
+      setTimeout(() => {
+        splash.style.display = "none";
+      }, 450);
+    };
+    setTimeout(hideSplash, 850);
+    splash.addEventListener("click", hideSplash, { once: true });
   }
 
   function checkFirstTimeOnboarding() {
@@ -297,7 +312,8 @@
   function bindEvents() {
     $("prev-month").addEventListener("click", () => moveMonth(-1));
     $("next-month").addEventListener("click", () => moveMonth(1));
-    $("today-button").addEventListener("click", goToday);
+    const todayBtn = $("today-button");
+    if (todayBtn) todayBtn.addEventListener("click", goToday);
     $("month-picker-button").addEventListener("click", () => {
       const picker = $("month-picker");
       picker.value = currentMonth.slice(0, 7);
@@ -627,7 +643,8 @@
       if (active) button.setAttribute("aria-current", "page");
       else button.removeAttribute("aria-current");
     });
-    $("today-button").classList.toggle("is-hidden", view !== "calendar");
+    const todayBtn = $("today-button");
+    if (todayBtn) todayBtn.classList.toggle("is-hidden", view !== "calendar");
     if (view === "history") renderHistory();
     if (view === "report") renderReport();
     if (view === "cards") {

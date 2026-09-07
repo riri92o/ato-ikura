@@ -16,15 +16,19 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <header class="app-header">
-        <div>
-          <p class="eyebrow">使った日と、減る日をひと目で</p>
-          <h1 id="app-title">あといくら</h1>
+    <!-- 起動時アニメーション（スプラッシュスクリーン） -->
+    <div id="app-splash-screen" class="app-splash-screen" aria-hidden="true">
+      <div class="splash-inner">
+        <div class="splash-icon-box">
+          <img src="icons/icon.svg" alt="" class="splash-logo-img" width="64" height="64" />
         </div>
-        <button id="today-button" class="button button-secondary header-action" type="button">今日</button>
-      </header>
+        <h1 class="splash-app-name">あといくら</h1>
+        <p class="splash-app-tagline">使った日と、減る日をひと目で</p>
+        <div class="splash-pulse-line"></div>
+      </div>
+    </div>
 
+    <div class="app-shell">
       <main id="main-content">
         <section id="view-calendar" class="view is-active" aria-labelledby="calendar-title">
           <div class="month-toolbar">
