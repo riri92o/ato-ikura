@@ -3019,16 +3019,15 @@ dialog {
 }
 
 .piggy-avatar-img {
-  width: 54px;
-  height: 48px;
+  width: 58px;
+  height: 52px;
   object-fit: contain;
-  color: var(--text);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+  filter: drop-shadow(0 3px 6px rgba(248, 156, 178, 0.35));
 }
 
 .piggy-avatar-btn:hover,
 .piggy-avatar-btn:active {
-  transform: scale(1.1) rotate(-4deg);
+  transform: scale(1.12) rotate(-4deg);
 }
 
 .piggy-speech-bubble {

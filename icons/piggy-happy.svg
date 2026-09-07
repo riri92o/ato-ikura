@@ -1,36 +1,93 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" width="200" height="180" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-  <!-- 手書き風 豚の貯金箱（ご機嫌・にっこり） -->
-  <!-- コインのきらめき -->
-  <path d="M 124 16 L 124 26" stroke-width="3.5"/>
-  <path d="M 119 21 L 129 21" stroke-width="3.5"/>
-  
-  <!-- 背中のコイン投入口 -->
-  <path d="M 112 43 L 134 39" stroke-width="6" stroke="currentColor"/>
-  
-  <!-- くるくる尻尾 -->
-  <path d="M 152 38 C 160 26, 172 20, 168 12 C 164 4, 154 8, 154 18 C 154 28, 162 34, 165 42" stroke-width="4.5"/>
-  
-  <!-- 豚の輪郭 -->
-  <!-- 左耳 -->
-  <path d="M 36 44 L 38 27 L 50 33" stroke-width="4.5"/>
-  <!-- 右耳 -->
-  <path d="M 82 25 L 98 17 L 98 38" stroke-width="4.5"/>
-  
-  <!-- 頭の上のライン -->
-  <path d="M 50 33 L 82 25" stroke-width="4.5"/>
-  
-  <!-- 背中からお尻、後ろ足 -->
-  <path d="M 100 20 C 130 18, 160 22, 165 42 C 170 56, 168 85, 162 98 L 155 125 C 153 132, 142 133, 140 124 L 138 114 C 135 116, 126 117, 122 117 L 118 128 C 114 136, 102 136, 100 126 L 98 118" stroke-width="4.5"/>
-  
-  <!-- お腹から前足、あご、左ほっぺ -->
-  <path d="M 98 118 C 85 119, 65 121, 56 119 L 52 128 C 48 136, 38 135, 36 126 L 35 117 C 28 114, 24 105, 24 95 C 24 80, 26 70, 36 58 L 36 44" stroke-width="4.5"/>
-  
-  <!-- 鼻（楕円と2つの鼻の穴） -->
-  <path d="M 44 80 C 44 72, 70 70, 72 78 C 74 86, 68 96, 56 96 C 45 96, 44 88, 44 80 Z" stroke-width="4.5"/>
-  <circle cx="53" cy="83" r="2" fill="currentColor" stroke="none"/>
-  <circle cx="63" cy="82" r="2" fill="currentColor" stroke="none"/>
-  
-  <!-- 目（ご機嫌：にっこり弧線 ^ ^） -->
-  <path d="M 41 60 Q 46 53 51 60" stroke-width="3.5"/>
-  <path d="M 79 56 Q 84 49 89 56" stroke-width="3.5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" width="200" height="180">
+  <defs>
+    <linearGradient id="pigBodyGradHappy" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#fff0f4" />
+      <stop offset="60%" stop-color="#ffb8cb" />
+      <stop offset="100%" stop-color="#f89cb2" />
+    </linearGradient>
+    
+    <linearGradient id="pigNoseGradHappy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff99b3" />
+      <stop offset="100%" stop-color="#ee6b8b" />
+    </linearGradient>
+    
+    <linearGradient id="coinGradHappy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    
+    <radialGradient id="cheekGradHappy" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff3366" stop-opacity="0.65" />
+      <stop offset="100%" stop-color="#ff3366" stop-opacity="0" />
+    </radialGradient>
+
+    <filter id="softShadowHappy" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <g filter="url(#softShadowHappy)">
+    <!-- きらめきスター ✨ -->
+    <path d="M 20 40 Q 24 38 25 32 Q 26 38 30 40 Q 26 42 25 48 Q 24 42 20 40 Z" fill="#f59e0b" />
+    <path d="M 174 54 Q 177 52 178 48 Q 179 52 182 54 Q 179 56 178 60 Q 177 56 174 54 Z" fill="#f59e0b" />
+
+    <!-- くるくる尻尾 -->
+    <path d="M 152 46 C 166 32, 180 24, 174 14 C 168 4, 154 8, 154 22 C 154 34, 166 40, 168 50" 
+          fill="none" stroke="#f07290" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- 背中の金のコイン（きらめき効果） -->
+    <g transform="translate(108, 10) rotate(14)">
+      <ellipse cx="14" cy="18" rx="14" ry="18" fill="url(#coinGradHappy)" stroke="#d97706" stroke-width="2.5" />
+      <ellipse cx="14" cy="18" rx="10" ry="14" fill="none" stroke="#fef3c7" stroke-width="1.8" stroke-dasharray="3 2" />
+      <text x="14" y="23" font-size="14" font-weight="900" fill="#78350f" text-anchor="middle" font-family="sans-serif">¥</text>
+    </g>
+
+    <!-- 背中のコイン投入口 -->
+    <path d="M 104 46 L 138 40" stroke="#701a2d" stroke-width="7" stroke-linecap="round" />
+
+    <!-- 足 -->
+    <path d="M 120 125 L 120 148 C 120 154, 134 154, 134 148 L 136 126 Z" fill="#f89cb2" stroke="#4a1521" stroke-width="4" stroke-linejoin="round" />
+    <path d="M 144 120 L 144 144 C 144 150, 158 150, 158 144 L 160 114 Z" fill="#f89cb2" stroke="#4a1521" stroke-width="4" stroke-linejoin="round" />
+    <path d="M 40 124 L 40 148 C 40 154, 54 154, 54 148 L 56 126 Z" fill="#f89cb2" stroke="#4a1521" stroke-width="4" stroke-linejoin="round" />
+    <path d="M 76 124 L 76 148 C 76 154, 90 154, 90 148 L 92 126 Z" fill="#f89cb2" stroke="#4a1521" stroke-width="4" stroke-linejoin="round" />
+
+    <!-- メイン胴体 -->
+    <path d="M 42 48 
+             C 42 48, 48 30, 56 34
+             C 64 38, 76 34, 88 28
+             C 98 22, 102 38, 102 38
+             C 124 28, 160 36, 168 56
+             C 178 78, 176 110, 162 126
+             C 150 134, 46 138, 30 120
+             C 18 106, 18 78, 28 62
+             C 34 52, 42 48, 42 48 Z" 
+          fill="url(#pigBodyGradHappy)" stroke="#4a1521" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- 耳 -->
+    <path d="M 38 52 L 42 30 L 56 38 Z" fill="url(#pigNoseGradHappy)" stroke="#4a1521" stroke-width="4" stroke-linejoin="round" />
+    <path d="M 82 32 L 96 20 L 98 42 Z" fill="url(#pigNoseGradHappy)" stroke="#4a1521" stroke-width="4" stroke-linejoin="round" />
+
+    <!-- ハイライト -->
+    <path d="M 120 44 C 140 44, 154 52, 158 64" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.75" />
+
+    <!-- ほっぺのチーク（華やかピンク） -->
+    <circle cx="36" cy="80" r="14" fill="url(#cheekGradHappy)" />
+    <circle cx="86" cy="74" r="14" fill="url(#cheekGradHappy)" />
+
+    <!-- 鼻 -->
+    <g transform="translate(46, 70)">
+      <ellipse cx="14" cy="12" rx="18" ry="14" fill="url(#pigNoseGradHappy)" stroke="#4a1521" stroke-width="4" />
+      <ellipse cx="9" cy="11" rx="3.2" ry="4" fill="#4a1521" />
+      <ellipse cx="19" cy="11" rx="3.2" ry="4" fill="#4a1521" />
+      <ellipse cx="12" cy="6" rx="5" ry="2" fill="#ffffff" opacity="0.65" />
+    </g>
+
+    <!-- にっこり笑顔の目（^ ^） -->
+    <path d="M 38 60 Q 44 50 50 60" fill="none" stroke="#3b131d" stroke-width="4" stroke-linecap="round" />
+    <path d="M 76 55 Q 82 45 88 55" fill="none" stroke="#3b131d" stroke-width="4" stroke-linecap="round" />
+
+    <!-- 開いた嬉しい口元（ヮ） -->
+    <path d="M 52 97 Q 60 109 68 97 Z" fill="#e11d48" stroke="#4a1521" stroke-width="3" stroke-linejoin="round" />
+  </g>
 </svg>
