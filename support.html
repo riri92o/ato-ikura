@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#185a37" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="「あといくら」のサポートページです。アプリの使い方、よくある質問（FAQ）、お問い合わせ窓口をご案内しています。" />
+    <title>サポート・よくある質問 - あといくら</title>
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="static-page-body">
+    <div class="static-page-shell">
+      <header class="static-page-header">
+        <a href="index.html" class="static-back-btn" aria-label="アプリに戻る">
+          <span class="back-arrow" aria-hidden="true">‹</span>
+          <span>アプリに戻る</span>
+        </a>
+        <div class="static-header-title">
+          <span class="eyebrow">User Support & FAQ</span>
+          <h1>サポート・よくある質問</h1>
+        </div>
+      </header>
+
+      <main class="static-page-content">
+        <!-- アプリ概要 -->
+        <section class="static-section">
+          <h2>アプリについて</h2>
+          <div class="app-intro-card">
+            <div class="app-intro-header">
+              <img src="icons/icon.svg" alt="あといくら アイコン" class="app-intro-logo" width="48" height="48" />
+              <div>
+                <h3 class="app-intro-name">あといくら</h3>
+                <p class="app-intro-tagline">使った日と、減る日をひと目で管理</p>
+              </div>
+            </div>
+            <p class="static-lead-text" style="margin-top: 12px;">
+              「あといくら」は、買い物をした日（利用）と銀行口座から実際にお金が減る日（引き落とし）を分けて直感的に管理できる支出管理アプリです。
+            </p>
+            <div class="feature-pills-grid">
+              <div class="feature-pill-item">
+                <span class="pill-icon">📅</span>
+                <div class="pill-text">
+                  <strong>カレンダーで日ごとの利用額を確認</strong>
+                  <small>いつ・いくら使ったかがカレンダー上にひと目で並びます。</small>
+                </div>
+              </div>
+              <div class="feature-pill-item">
+                <span class="pill-icon">💳</span>
+                <div class="pill-text">
+                  <strong>利用日と実際の引き落とし日を分離管理</strong>
+                  <small>カード締め日と祝日調整から口座引落日を自動計算します。</small>
+                </div>
+              </div>
+              <div class="feature-pill-item">
+                <span class="pill-icon">📊</span>
+                <div class="pill-text">
+                  <strong>予算と「今月あといくら」を確認</strong>
+                  <small>月間予算に対する残り枠と進捗ゲージで使いすぎを防ぎます。</small>
+                </div>
+              </div>
+              <div class="feature-pill-item">
+                <span class="pill-icon">🎨</span>
+                <div class="pill-text">
+                  <strong>テーマや背景色を自由に変更</strong>
+                  <small>好みのグラデーションや背景色・ダークモードにカスタマイズ可能です。</small>
+                </div>
+              </div>
+              <div class="feature-pill-item">
+                <span class="pill-icon">🔒</span>
+                <div class="pill-text">
+                  <strong>データは端末内に安全に保存</strong>
+                  <small>外部サーバーへの送信や会員登録は不要。プライバシーを守ります。</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- よくある質問 -->
+        <section class="static-section">
+          <h2>よくある質問（FAQ）</h2>
+          <div class="faq-list">
+            <details class="faq-accordion-item" open>
+              <summary class="faq-question">
+                <span>登録したデータはどこに保存されますか？</span>
+                <span class="faq-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div class="faq-answer">
+                <p>
+                  すべてお使いのスマートフォンやPCのブラウザ内（localStorage）にのみ保存されます。開発者や外部のサーバーへ送信・保存されることは一切ありません。
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-accordion-item">
+              <summary class="faq-question">
+                <span>機種変更時にデータを移行できますか？</span>
+                <span class="faq-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div class="faq-answer">
+                <p>
+                  はい、簡単に移行できます。旧端末の設定メニュー「バックアップ」から「JSONで書き出す」をタップしてファイルを保存し、新しい端末で「JSONから読み込む」を実行してください。
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-accordion-item">
+              <summary class="faq-question">
+                <span>データが消えた場合は復元できますか？</span>
+                <span class="faq-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div class="faq-answer">
+                <p>
+                  事前に書き出したJSONバックアップファイルがあれば、いつでも元の状態に復元できます。ブラウザのキャッシュ消去や端末の故障に備えて、定期的にバックアップファイルをiCloud DriveやGoogle ドライブ等に保存しておくことをおすすめします。
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-accordion-item">
+              <summary class="faq-question">
+                <span>カード番号や口座番号を登録する必要はありますか？</span>
+                <span class="faq-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div class="faq-answer">
+                <p>
+                  いいえ、一切必要ありません。カード番号、有効期限、セキュリティコードや銀行の暗証番号などを入力する欄はありません。カードの「締め日」「支払日」と任意の名称（例：メインカード）を設定するだけで安全にご利用いただけます。
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-accordion-item">
+              <summary class="faq-question">
+                <span>カードの利用日と引き落とし日の違いは何ですか？</span>
+                <span class="faq-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div class="faq-answer">
+                <p>
+                  「利用日」は実際に買い物をしてカードを切った日、「引き落とし日」はカード会社から銀行口座のお金が引き落とされる日です。<br />
+                  本アプリでは、今月の消費ペース（使った額）と、今月口座から実際に出ていく金額（口座から出る額）を別々に把握できるため、月末の残高不足を防ぐことができます。
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-accordion-item">
+              <summary class="faq-question">
+                <span>ログインやアカウント登録は必要ですか？</span>
+                <span class="faq-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div class="faq-answer">
+                <p>
+                  いいえ、アカウント登録やログインは一切不要です。アプリを開けばすぐに全機能を無料でお使いいただけます。
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-accordion-item">
+              <summary class="faq-question">
+                <span>データをすべて削除するにはどうすればよいですか？</span>
+                <span class="faq-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div class="faq-answer">
+                <p>
+                  アプリ内の下部メニュー「設定」を開き、最下部にある「データを削除」ボタンからすべての登録データ（支出、カード情報、設定内容）を一括消去できます。
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-accordion-item">
+              <summary class="faq-question">
+                <span>不具合を見つけた場合はどうすればよいですか？</span>
+                <span class="faq-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div class="faq-answer">
+                <p>
+                  ご不便をおかけして申し訳ありません。下記のお問い合わせ窓口より、ご利用の端末（機種名やOS）と不具合の詳しい状況を添えてメールでお知らせいただけますと幸いです。
+                </p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <!-- お問い合わせ窓口 -->
+        <section id="contact" class="static-section contact-section">
+          <h2>お問い合わせ</h2>
+          <div class="contact-card">
+            <p class="contact-lead-text">
+              「あといくら」に関するご質問、不具合のご報告、機能改善のご要望は以下の窓口より承っております。
+            </p>
+
+            <div class="contact-email-box">
+              <span class="contact-label">お問い合わせ先メールアドレス</span>
+              <a href="mailto:atoikura.support@gmail.com" class="contact-email-link">atoikura.support@gmail.com</a>
+            </div>
+
+            <div class="contact-action-wrapper">
+              <a
+                href="mailto:atoikura.support@gmail.com?subject=%E3%81%82%E3%81%A8%E3%81%84%E3%81%8F%E3%82%89%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8B%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B&body=%E3%80%90%E3%81%94%E5%88%A9%E7%94%A8%E7%AB%AF%E6%9C%AB%E3%80%9F%0A%E3%80%90OS%E3%83%90%E3%83%BC%E3%82%B8%E3%83%A7%E3%83%B3%E3%80%9F%0A%E3%80%90%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B%E5%86%85%E5%AE%B9%E3%80%9F%0A%0A%E2%80%BB%E3%83%91%E3%82%B9%E3%83%AF%E3%83%BC%E3%83%89%E3%80%81%E3%82%AF%E3%83%AC%E3%82%B8%E3%83%83%E3%83%88%E3%82%AB%E3%83%BC%E3%83%89%E7%95%AA%E5%8F%B7%E3%80%81%E5%8F%A3%E5%BA%A7%E7%95%AA%E5%8F%B7%E3%81%AA%E3%81%A9%E3%81%AE%E9%87%8D%E8%A6%81%E6%83%85%E5%A0%B1%E3%81%AF%E8%A8%98%E5%85%A5%E3%81%97%E3%81%AA%E3%81%84%E3%81%A7%E3%81%8F%E3%81%A0%E3%81%95%E3%81%84%E3%80%82"
+                class="button button-primary contact-mail-btn"
+              >
+                ✉️ メールで問い合わせる
+              </a>
+            </div>
+
+            <div class="contact-notice-box">
+              <ul class="contact-notice-list">
+                <li>個人の開発・運営のため、返信まで数日お時間をいただく場合がございます。</li>
+                <li><strong>パスワード、クレジットカード番号、銀行口座番号、暗証番号などの重要情報は絶対にメールに記載しないでください。</strong></li>
+                <li>お問い合わせ時に取得したメールアドレスおよび内容は、サポート対応の目的のみに使用し、適切に管理いたします。詳しくは<a href="privacy.html">プライバシーポリシー</a>をご確認ください。</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <div class="static-footer-nav">
+          <a href="privacy.html" class="button button-secondary static-nav-btn">プライバシーポリシーを見る</a>
+          <a href="index.html" class="button button-primary static-nav-btn">アプリに戻る</a>
+        </div>
+      </main>
+
+      <footer class="static-page-footer">
+        <p>&copy; 2026 あといくら</p>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -407,7 +407,27 @@
 
           <div id="settings-subview-guide" class="settings-subview">
             <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
-            <div class="page-heading"><p class="section-kicker">使い方・保存仕様・情報</p><h2>使い方・アプリ情報</h2></div>
+            <div class="page-heading"><p class="section-kicker">サポート・利用規約・情報</p><h2>使い方・アプリ情報</h2></div>
+
+            <!-- サポート＆ポリシー（外部リンク・別ページ） -->
+            <section class="settings-card">
+              <h3>サポート・利用規約</h3>
+              <p class="settings-description">アプリの使い方、FAQ、お問い合わせ窓口、プライバシーポリシーをご確認いただけます。</p>
+              <div class="settings-nav-list" style="margin-top: 10px;">
+                <a href="support.html" class="settings-menu-card settings-menu-link">
+                  <span class="settings-menu-title">📖 使い方・よくある質問</span>
+                  <span class="settings-menu-arrow" aria-hidden="true">›</span>
+                </a>
+                <a href="support.html#contact" class="settings-menu-card settings-menu-link">
+                  <span class="settings-menu-title">✉️ お問い合わせ</span>
+                  <span class="settings-menu-arrow" aria-hidden="true">›</span>
+                </a>
+                <a href="privacy.html" class="settings-menu-card settings-menu-link">
+                  <span class="settings-menu-title">🔒 プライバシーポリシー</span>
+                  <span class="settings-menu-arrow" aria-hidden="true">›</span>
+                </a>
+              </div>
+            </section>
 
             <section class="settings-card">
               <h3>アプリの基本的な使い方</h3>
@@ -456,7 +476,12 @@
               <button id="reopen-onboarding-btn" class="button button-secondary full-width" type="button">初回ガイドを再表示</button>
             </section>
 
-            <p id="app-version" class="app-version"></p>
+            <section class="settings-card" style="padding: 12px 16px;">
+              <div class="settings-meta-item" style="border: none; padding: 0; background: transparent;">
+                <span class="meta-label">アプリバージョン</span>
+                <strong id="app-version" class="meta-value">あといくら v1.4.0</strong>
+              </div>
+            </section>
           </div>
         </section>
       </main>
