@@ -349,6 +349,8 @@
 
     const smartAdvisor = $("smart-advisor-banner");
     if (smartAdvisor) smartAdvisor.addEventListener("click", () => nextSmartAdvice("advisor"));
+    const smartAdvisorUnset = $("smart-advisor-banner-unset");
+    if (smartAdvisorUnset) smartAdvisorUnset.addEventListener("click", () => nextSmartAdvice("advisor"));
 
     const reportAdvisor = $("report-smart-advisor-banner");
     if (reportAdvisor) reportAdvisor.addEventListener("click", () => nextSmartAdvice("report-advisor"));
@@ -716,6 +718,20 @@
     legend.replaceChildren(...nodes);
   }
 
+  function formatCalendarAmount(amount) {
+    const num = Math.round(amount);
+    if (num <= 0) return "";
+    if (num >= 100000000) {
+      const oku = (num / 100000000).toFixed(1).replace(/\.0$/, "");
+      return `${oku}億`;
+    }
+    if (num >= 10000) {
+      const man = (num / 10000).toFixed(1).replace(/\.0$/, "");
+      return `${man}万`;
+    }
+    return `${num.toLocaleString("ja-JP")}円`;
+  }
+
   function renderCalendar() {
     const grid = $("calendar-grid");
     const monthDate = Core.parseDateKey(currentMonth);
@@ -742,7 +758,7 @@
       }
       button.setAttribute("aria-label", buildCalendarAriaLabel(dateKey, totals));
       button.append(createElement("span", "day-number", String(cellDate.getDate())));
-      if (totals.usage > 0) button.append(createElement("span", "day-amount usage", formatYen(totals.usage)));
+      if (totals.usage > 0) button.append(createElement("span", "day-amount usage", formatCalendarAmount(totals.usage)));
       appendCardPaymentMarkers(button, dateKey);
       button.addEventListener("click", () => openExpenseDialog(dateKey));
       nodes.push(button);
@@ -756,7 +772,7 @@
       const amount = getCardWithdrawalAmount(card.id, dateKey);
       if (scheduledDate !== dateKey && amount <= 0) return;
 
-      const marker = createElement("span", "day-amount card card-custom", formatYen(amount));
+      const marker = createElement("span", "day-amount card card-custom", formatCalendarAmount(amount));
       marker.style.color = card.color;
       marker.style.backgroundColor = colorWithAlpha(card.color, 0.15);
       marker.title = `${card.name}の引き落とし`;
@@ -861,23 +877,21 @@
     const spentLabel = $("budget-spent-label");
     const spentAmountEl = $("budget-spent-amount");
     const gaugeFill = $("budget-gauge-fill");
-    const currentCalcEl = $("budget-current-calc");
     const totalValEl = $("budget-total-val");
     const percentValEl = $("budget-percent-val");
-    const gaugeStatusEl = $("budget-gauge-status");
     const unsetSpentLabel = $("budget-unset-spent-label");
     const unsetSpentAmountEl = $("budget-unset-spent-amount");
 
     const spentLabelText = isUsage ? "使った額" : "口座から出る額";
     if (spentLabel) spentLabel.textContent = spentLabelText;
-    if (unsetSpentLabel) unsetSpentLabel.textContent = spentLabelText;
+    if (unsetSpentLabel) unsetSpentLabel.textContent = isUsage ? "今月の支出" : "今月の口座出金";
 
     if (budget === null) {
       // 予算未設定時
       if (budgetSetContainer) budgetSetContainer.classList.add("is-hidden");
       if (budgetUnsetContainer) budgetUnsetContainer.classList.remove("is-hidden");
       if (unsetSpentAmountEl) {
-        unsetSpentAmountEl.textContent = formatYen(currentAmount);
+        unsetSpentAmountEl.textContent = formatNumber(currentAmount);
       }
     } else {
       // 予算設定済み
@@ -885,57 +899,39 @@
       if (budgetUnsetContainer) budgetUnsetContainer.classList.add("is-hidden");
 
       if (spentAmountEl) spentAmountEl.textContent = formatYen(currentAmount);
-      if (primaryLabel) primaryLabel.textContent = "今月あと";
+      if (primaryLabel) primaryLabel.textContent = isUsage ? "今月あと" : "あと支払える";
 
       const remaining = budget - currentAmount;
       const percent = budget > 0 ? Math.round((currentAmount / budget) * 100) : 0;
       const ratio = Math.min(100, Math.max(0, percent));
 
-      if (remainingEl && remainingUnitEl) {
+      if (remainingEl) {
         if (remaining >= 0) {
-          remainingEl.textContent = formatYen(remaining);
+          remainingEl.textContent = formatNumber(remaining);
+          if (remainingUnitEl) remainingUnitEl.textContent = "円";
           remainingEl.classList.remove("is-over");
-          remainingUnitEl.textContent = isUsage ? "使える" : "出せる";
-          remainingUnitEl.classList.remove("is-over");
         } else {
-          remainingEl.textContent = formatYen(Math.abs(remaining));
+          remainingEl.textContent = `-${formatNumber(Math.abs(remaining))}`;
+          if (remainingUnitEl) remainingUnitEl.textContent = "円 (超過)";
           remainingEl.classList.add("is-over");
-          remainingUnitEl.textContent = "超過";
-          remainingUnitEl.classList.add("is-over");
         }
       }
 
-      if (percentValEl) {
-        percentValEl.textContent = remaining >= 0
-          ? `残り ${Math.max(0, 100 - percent)}%`
-          : `予算の ${percent}%`;
+      if (totalValEl) {
+        totalValEl.textContent = formatYen(budget);
       }
 
-      if (totalValEl) {
-        totalValEl.textContent = isUsage ? `予算: ${formatYen(budget)}` : `出金予算: ${formatYen(budget)}`;
+      if (percentValEl) {
+        percentValEl.textContent = `${percent}%使用`;
       }
 
       if (gaugeFill) {
         gaugeFill.style.width = `${ratio}%`;
-        gaugeFill.className = "budget-gauge-fill";
+        gaugeFill.className = "summary-gauge-fill";
         if (currentAmount > budget) {
           gaugeFill.classList.add("is-danger");
         } else if (currentAmount >= budget * 0.8) {
           gaugeFill.classList.add("is-warning");
-        }
-      }
-
-      if (currentCalcEl) currentCalcEl.textContent = `消化: ${percent}%`;
-      if (gaugeStatusEl) {
-        if (currentAmount > budget) {
-          gaugeStatusEl.textContent = "予算を超過しています";
-          gaugeStatusEl.style.color = "#ffdada";
-        } else if (currentAmount >= budget * 0.8) {
-          gaugeStatusEl.textContent = "予算の80%を超過";
-          gaugeStatusEl.style.color = "#fef08a";
-        } else {
-          gaugeStatusEl.textContent = "予算内に収まっています";
-          gaugeStatusEl.style.color = "";
         }
       }
     }
@@ -2326,9 +2322,11 @@
 
     const badgeEl = $(prefix === "report-advisor" ? "report-advisor-badge" : "advisor-badge");
     const textEl = $(prefix === "report-advisor" ? "report-advisor-text" : "advisor-text");
+    const unsetAdvisorTextEl = $("advisor-text-unset");
 
     if (badgeEl) badgeEl.textContent = currentAdvice.tag;
     if (textEl) textEl.textContent = currentAdvice.text;
+    if (unsetAdvisorTextEl) unsetAdvisorTextEl.textContent = currentAdvice.text;
   }
 
   function nextSmartAdvice(prefix = "advisor") {
@@ -2347,6 +2345,12 @@
       banner.classList.remove("banner-pulse");
       void banner.offsetWidth;
       banner.classList.add("banner-pulse");
+    }
+    const unsetBanner = $("smart-advisor-banner-unset");
+    if (unsetBanner) {
+      unsetBanner.classList.remove("banner-pulse");
+      void unsetBanner.offsetWidth;
+      unsetBanner.classList.add("banner-pulse");
     }
 
     renderSmartAdvisor(prefix);
