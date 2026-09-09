@@ -247,6 +247,7 @@
     clean.settings.bgColor = /^#[0-9a-f]{6}$/i.test(input.settings?.bgColor || "") ? input.settings.bgColor : "#ffffff";
     clean.settings.borderColor = /^#[0-9a-f]{6}$/i.test(input.settings?.borderColor || "") ? input.settings.borderColor : "#e2e8f0";
     clean.settings.gaugeColor = /^#[0-9a-f]{6}$/i.test(input.settings?.gaugeColor || "") ? input.settings.gaugeColor : "#34d399";
+    clean.settings.usageColor = /^#[0-9a-f]{6}$/i.test(input.settings?.usageColor || "") ? input.settings.usageColor : "#0284c7";
     clean.settings.budgetMode = ["usage", "outflow"].includes(input.settings?.budgetMode) ? input.settings.budgetMode : "usage";
     const cycleDay = input.settings?.cycleStartDay;
     clean.settings.cycleStartDay = cycleDay === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleDay) || 1));
@@ -701,15 +702,37 @@
     if (!legend) return;
 
     const nodes = [];
+    const usageColor = state.settings.usageColor || "#0284c7";
 
-    const usageSpan = createElement("span");
-    const usageDot = createElement("i", "legend-dot usage");
-    usageSpan.append(usageDot, document.createTextNode("使った金額"));
-    nodes.push(usageSpan);
+    // 利用額（タップして色変更可能）
+    const usageLabel = createElement("label", "legend-item legend-usage-trigger");
+    usageLabel.title = "タップして利用額の表示色を変更";
+    const usagePreview = createElement("span", "legend-color-preview");
+    usagePreview.style.backgroundColor = usageColor;
+    const usageText = createElement("span", "", "使った金額");
+    const usageEditIcon = createElement("span", "legend-edit-icon", "🎨");
 
+    const usageColorInput = createElement("input", "visually-hidden");
+    usageColorInput.type = "color";
+    usageColorInput.value = usageColor;
+    usageColorInput.addEventListener("input", (e) => {
+      state.settings.usageColor = e.target.value;
+      applyThemeColors();
+      renderCalendar();
+      usagePreview.style.backgroundColor = e.target.value;
+    });
+    usageColorInput.addEventListener("change", () => {
+      saveState();
+      showToast("利用額の表示色を変更しました。");
+    });
+
+    usageLabel.append(usagePreview, usageText, usageEditIcon, usageColorInput);
+    nodes.push(usageLabel);
+
+    // 登録カード一覧
     state.cards.forEach((card) => {
-      const cardSpan = createElement("span");
-      const cardDot = createElement("i", "legend-dot");
+      const cardSpan = createElement("span", "legend-item");
+      const cardDot = createElement("span", "legend-color-preview");
       cardDot.style.backgroundColor = card.color;
       cardSpan.append(cardDot, document.createTextNode(card.name));
       nodes.push(cardSpan);
@@ -758,7 +781,13 @@
       }
       button.setAttribute("aria-label", buildCalendarAriaLabel(dateKey, totals));
       button.append(createElement("span", "day-number", String(cellDate.getDate())));
-      if (totals.usage > 0) button.append(createElement("span", "day-amount usage", formatCalendarAmount(totals.usage)));
+      if (totals.usage > 0) {
+        const usageMarker = createElement("span", "day-amount usage", formatCalendarAmount(totals.usage));
+        const usageColor = state.settings.usageColor || "#0284c7";
+        usageMarker.style.color = usageColor;
+        usageMarker.style.backgroundColor = colorWithAlpha(usageColor, 0.15);
+        button.append(usageMarker);
+      }
       appendCardPaymentMarkers(button, dateKey);
       button.addEventListener("click", () => openExpenseDialog(dateKey));
       nodes.push(button);
@@ -850,6 +879,13 @@
 
   function renderMonthlySummary() {
     const monthKey = currentMonth.slice(0, 7);
+    const todayMonthKey = Core.todayKey().slice(0, 7);
+    const monthDate = Core.parseDateKey(currentMonth);
+    const monthNum = monthDate.getMonth() + 1;
+    const isCurrentMonth = monthKey === todayMonthKey;
+    const isPastMonth = monthKey < todayMonthKey;
+    const isFutureMonth = monthKey > todayMonthKey;
+
     const cycleDay = state.settings.cycleStartDay || 1;
     const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
     const mode = state.settings.budgetMode || "usage";
@@ -884,7 +920,16 @@
 
     const spentLabelText = isUsage ? "使った額" : "口座から出る額";
     if (spentLabel) spentLabel.textContent = spentLabelText;
-    if (unsetSpentLabel) unsetSpentLabel.textContent = isUsage ? "今月の支出" : "今月の口座出金";
+
+    if (unsetSpentLabel) {
+      if (isCurrentMonth) {
+        unsetSpentLabel.textContent = isUsage ? "今月の支出" : "今月の口座出金";
+      } else if (isPastMonth) {
+        unsetSpentLabel.textContent = isUsage ? `${monthNum}月の支出` : `${monthNum}月の口座出金`;
+      } else {
+        unsetSpentLabel.textContent = isUsage ? `${monthNum}月の支出予定` : `${monthNum}月の出金予定`;
+      }
+    }
 
     if (budget === null) {
       // 予算未設定時
@@ -899,30 +944,74 @@
       if (budgetUnsetContainer) budgetUnsetContainer.classList.add("is-hidden");
 
       if (spentAmountEl) spentAmountEl.textContent = formatYen(currentAmount);
-      if (primaryLabel) primaryLabel.textContent = isUsage ? "今月あと" : "あと支払える";
 
       const remaining = budget - currentAmount;
       const percent = budget > 0 ? Math.round((currentAmount / budget) * 100) : 0;
       const ratio = Math.min(100, Math.max(0, percent));
 
-      if (remainingEl) {
-        if (remaining >= 0) {
-          remainingEl.textContent = formatNumber(remaining);
-          if (remainingUnitEl) remainingUnitEl.textContent = "円";
-          remainingEl.classList.remove("is-over");
-        } else {
-          remainingEl.textContent = `-${formatNumber(Math.abs(remaining))}`;
-          if (remainingUnitEl) remainingUnitEl.textContent = "円 (超過)";
-          remainingEl.classList.add("is-over");
+      if (isPastMonth) {
+        // 過去月（例: 8月）
+        if (primaryLabel) primaryLabel.textContent = `${monthNum}月は`;
+        if (remainingEl && remainingUnitEl) {
+          if (remaining >= 0) {
+            remainingEl.textContent = formatNumber(remaining);
+            remainingUnitEl.textContent = "円 浮いた";
+            remainingEl.classList.remove("is-over");
+            remainingUnitEl.classList.remove("is-over");
+          } else {
+            remainingEl.textContent = formatNumber(Math.abs(remaining));
+            remainingUnitEl.textContent = "円 超過";
+            remainingEl.classList.add("is-over");
+            remainingUnitEl.classList.add("is-over");
+          }
+        }
+        if (percentValEl) {
+          percentValEl.textContent = remaining >= 0
+            ? `${percent}%使用（予算内）`
+            : `${percent}%使用（超過）`;
+        }
+      } else if (isFutureMonth) {
+        // 未来月（例: 10月）
+        if (primaryLabel) primaryLabel.textContent = `${monthNum}月あと`;
+        if (remainingEl && remainingUnitEl) {
+          if (remaining >= 0) {
+            remainingEl.textContent = formatNumber(remaining);
+            remainingUnitEl.textContent = isUsage ? "円 使える" : "円 出せる";
+            remainingEl.classList.remove("is-over");
+            remainingUnitEl.classList.remove("is-over");
+          } else {
+            remainingEl.textContent = `-${formatNumber(Math.abs(remaining))}`;
+            remainingUnitEl.textContent = "円 (超過)";
+            remainingEl.classList.add("is-over");
+            remainingUnitEl.classList.add("is-over");
+          }
+        }
+        if (percentValEl) {
+          percentValEl.textContent = `${percent}%使用`;
+        }
+      } else {
+        // 当月（今月）
+        if (primaryLabel) primaryLabel.textContent = isUsage ? "今月あと" : "あと支払える";
+        if (remainingEl && remainingUnitEl) {
+          if (remaining >= 0) {
+            remainingEl.textContent = formatNumber(remaining);
+            remainingUnitEl.textContent = "円";
+            remainingEl.classList.remove("is-over");
+            remainingUnitEl.classList.remove("is-over");
+          } else {
+            remainingEl.textContent = `-${formatNumber(Math.abs(remaining))}`;
+            remainingUnitEl.textContent = "円 (超過)";
+            remainingEl.classList.add("is-over");
+            remainingUnitEl.classList.add("is-over");
+          }
+        }
+        if (percentValEl) {
+          percentValEl.textContent = `${percent}%使用`;
         }
       }
 
       if (totalValEl) {
         totalValEl.textContent = formatYen(budget);
-      }
-
-      if (percentValEl) {
-        percentValEl.textContent = `${percent}%使用`;
       }
 
       if (gaugeFill) {
@@ -1694,12 +1783,15 @@
     const bgColor = state.settings.bgColor || "#ffffff";
     const borderColor = state.settings.borderColor || "#e2e8f0";
     const gaugeColor = state.settings.gaugeColor || "#34d399";
+    const usageColor = state.settings.usageColor || "#0284c7";
 
     document.documentElement.style.setProperty("--theme-color-1", color1);
     document.documentElement.style.setProperty("--theme-color-2", color2);
     document.documentElement.style.setProperty("--bg-color", bgColor);
     document.documentElement.style.setProperty("--border-color", borderColor);
     document.documentElement.style.setProperty("--gauge-color", gaugeColor);
+    document.documentElement.style.setProperty("--usage-color", usageColor);
+    document.documentElement.style.setProperty("--usage-soft", colorWithAlpha(usageColor, 0.15));
 
     const val1 = $("theme-color-1-val");
     const val2 = $("theme-color-2-val");

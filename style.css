@@ -533,7 +533,7 @@ h3 {
 
 .summary-ai-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   padding: 8px 12px;
   border-radius: 12px;
@@ -550,8 +550,9 @@ h3 {
 
 .summary-ai-row .ai-icon {
   font-size: 0.95rem;
-  line-height: 1;
+  line-height: 1.35;
   flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .summary-ai-row .ai-text {
@@ -559,17 +560,18 @@ h3 {
   font-size: 0.78rem;
   font-weight: 750;
   color: var(--accent-dark);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.4;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .summary-ai-row .ai-arrow {
   font-size: 1rem;
   font-weight: 800;
   color: var(--accent-dark);
-  line-height: 1;
+  line-height: 1.35;
   flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .summary-breakdown-wrapper {
@@ -769,8 +771,8 @@ h3 {
 }
 
 .day-amount.usage {
-  background: #e0f2fe;
-  color: #0284c7;
+  background: var(--usage-soft, #e0f2fe);
+  color: var(--usage-color, #0284c7);
 }
 
 .day-amount.card-custom {
@@ -779,12 +781,54 @@ h3 {
 
 .calendar-legend {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 10px 12px 12px;
+  gap: 6px 8px;
+  padding: 6px 6px 2px;
+  margin-top: 4px;
   border-top: 1px solid var(--border);
   color: var(--text-muted);
-  font-size: 0.69rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+.legend-color-preview {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.legend-usage-trigger {
+  cursor: pointer;
+  background: color-mix(in srgb, var(--usage-color, #0284c7) 8%, var(--surface));
+  border-color: color-mix(in srgb, var(--usage-color, #0284c7) 25%, var(--border));
+  color: var(--text);
+  transition: transform 0.12s ease, background 0.15s ease;
+  position: relative;
+}
+
+.legend-usage-trigger:hover {
+  background: color-mix(in srgb, var(--usage-color, #0284c7) 16%, var(--surface));
+  transform: translateY(-1px);
+}
+
+.legend-edit-icon {
+  font-size: 0.72rem;
+  margin-left: 1px;
 }
 
 .calendar-legend span {
