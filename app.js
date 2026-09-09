@@ -710,7 +710,6 @@
     const usagePreview = createElement("span", "legend-color-preview");
     usagePreview.style.backgroundColor = usageColor;
     const usageText = createElement("span", "", "使った金額");
-    const usageEditIcon = createElement("span", "legend-edit-icon", "🎨");
 
     const usageColorInput = createElement("input", "visually-hidden");
     usageColorInput.type = "color";
@@ -726,7 +725,7 @@
       showToast("利用額の表示色を変更しました。");
     });
 
-    usageLabel.append(usagePreview, usageText, usageEditIcon, usageColorInput);
+    usageLabel.append(usagePreview, usageText, usageColorInput);
     nodes.push(usageLabel);
 
     // 登録カード一覧
@@ -951,62 +950,77 @@
 
       if (isPastMonth) {
         // 過去月（例: 8月）
-        if (primaryLabel) primaryLabel.textContent = `${monthNum}月は`;
-        if (remainingEl && remainingUnitEl) {
-          if (remaining >= 0) {
+        if (remaining >= 0) {
+          if (primaryLabel) primaryLabel.textContent = `${monthNum}月は 予算より`;
+          if (remainingEl && remainingUnitEl) {
             remainingEl.textContent = formatNumber(remaining);
-            remainingUnitEl.textContent = "円 浮いた";
+            remainingUnitEl.textContent = "円 少なく収まりました";
             remainingEl.classList.remove("is-over");
             remainingUnitEl.classList.remove("is-over");
-          } else {
-            remainingEl.textContent = formatNumber(Math.abs(remaining));
-            remainingUnitEl.textContent = "円 超過";
+          }
+          if (percentValEl) percentValEl.textContent = `${percent}%使用（予算内）`;
+        } else {
+          const overAmount = Math.abs(remaining);
+          if (primaryLabel) primaryLabel.textContent = `${monthNum}月は 予算を`;
+          if (remainingEl && remainingUnitEl) {
+            remainingEl.textContent = formatNumber(overAmount);
+            remainingUnitEl.textContent = overAmount <= 1000 ? "円 わずかにオーバー" : "円 超過";
             remainingEl.classList.add("is-over");
             remainingUnitEl.classList.add("is-over");
           }
-        }
-        if (percentValEl) {
-          percentValEl.textContent = remaining >= 0
-            ? `${percent}%使用（予算内）`
-            : `${percent}%使用（超過）`;
+          if (percentValEl) {
+            percentValEl.textContent = overAmount <= 1000
+              ? `${percent}%使用（惜しい！）`
+              : `${percent}%使用（超過）`;
+          }
         }
       } else if (isFutureMonth) {
         // 未来月（例: 10月）
-        if (primaryLabel) primaryLabel.textContent = `${monthNum}月あと`;
-        if (remainingEl && remainingUnitEl) {
-          if (remaining >= 0) {
+        if (remaining >= 0) {
+          if (primaryLabel) primaryLabel.textContent = `${monthNum}月あと`;
+          if (remainingEl && remainingUnitEl) {
             remainingEl.textContent = formatNumber(remaining);
-            remainingUnitEl.textContent = isUsage ? "円 使える" : "円 出せる";
+            remainingUnitEl.textContent = "円 使える";
             remainingEl.classList.remove("is-over");
             remainingUnitEl.classList.remove("is-over");
-          } else {
-            remainingEl.textContent = `-${formatNumber(Math.abs(remaining))}`;
-            remainingUnitEl.textContent = "円 (超過)";
+          }
+          if (percentValEl) percentValEl.textContent = `${percent}%使用`;
+        } else {
+          const overAmount = Math.abs(remaining);
+          if (primaryLabel) primaryLabel.textContent = `${monthNum}月は 予算を`;
+          if (remainingEl && remainingUnitEl) {
+            remainingEl.textContent = formatNumber(overAmount);
+            remainingUnitEl.textContent = overAmount <= 1000 ? "円 わずかにオーバー" : "円 超過";
             remainingEl.classList.add("is-over");
             remainingUnitEl.classList.add("is-over");
           }
-        }
-        if (percentValEl) {
-          percentValEl.textContent = `${percent}%使用`;
+          if (percentValEl) percentValEl.textContent = `${percent}%使用（超過）`;
         }
       } else {
-        // 当月（今月）
-        if (primaryLabel) primaryLabel.textContent = isUsage ? "今月あと" : "あと支払える";
-        if (remainingEl && remainingUnitEl) {
-          if (remaining >= 0) {
+        // 当月（今月）: 「あと〜円使える」
+        if (remaining >= 0) {
+          if (primaryLabel) primaryLabel.textContent = "あと";
+          if (remainingEl && remainingUnitEl) {
             remainingEl.textContent = formatNumber(remaining);
-            remainingUnitEl.textContent = "円";
+            remainingUnitEl.textContent = "円 使える";
             remainingEl.classList.remove("is-over");
             remainingUnitEl.classList.remove("is-over");
-          } else {
-            remainingEl.textContent = `-${formatNumber(Math.abs(remaining))}`;
-            remainingUnitEl.textContent = "円 (超過)";
+          }
+          if (percentValEl) percentValEl.textContent = `${percent}%使用`;
+        } else {
+          const overAmount = Math.abs(remaining);
+          if (primaryLabel) primaryLabel.textContent = "今月は 予算を";
+          if (remainingEl && remainingUnitEl) {
+            remainingEl.textContent = formatNumber(overAmount);
+            remainingUnitEl.textContent = overAmount <= 1000 ? "円 わずかにオーバー" : "円 超過";
             remainingEl.classList.add("is-over");
             remainingUnitEl.classList.add("is-over");
           }
-        }
-        if (percentValEl) {
-          percentValEl.textContent = `${percent}%使用`;
+          if (percentValEl) {
+            percentValEl.textContent = overAmount <= 1000
+              ? `${percent}%使用（惜しい！）`
+              : `${percent}%使用（超過）`;
+          }
         }
       }
 
