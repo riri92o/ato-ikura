@@ -2372,14 +2372,16 @@
         const diff = curSpent - prevSpent;
         const pct = Math.abs(Math.round((diff / prevSpent) * 100));
         if (diff <= 0) {
+          const pctText = pct < 1000 ? `（${pct}％）` : "";
           advices.push({
             tag: "🌱 前月比で節約",
-            text: `${prevMonthNum}月と比べて支出が ${formatYen(Math.abs(diff))}（${pct}％）少なく抑えられました。`
+            text: `${prevMonthNum}月と比べて支出が ${formatYen(Math.abs(diff))}${pctText}少なく抑えられました。`
           });
         } else {
+          const pctText = pct < 1000 ? `（${pct}％増）` : "";
           advices.push({
             tag: "📈 前月比の推移",
-            text: `${prevMonthNum}月と比べて支出が +${formatYen(diff)}（${pct}％増）となりました。`
+            text: `${prevMonthNum}月と比べて支出が +${formatYen(diff)}${pctText}となりました。`
           });
         }
       }
@@ -2471,14 +2473,16 @@
         const diff = curSpent - prevSpent;
         const pct = Math.abs(Math.round((diff / prevSpent) * 100));
         if (diff < 0) {
+          const pctText = pct < 1000 ? `（${pct}％）` : "";
           advices.push({
             tag: "🌱 節約順調",
-            text: `先月と比べて支出が ${formatYen(Math.abs(diff))}（${pct}％）抑えられています。とても良いペースです。`
+            text: `先月と比べて支出が ${formatYen(Math.abs(diff))}${pctText}抑えられています。とても良いペースです。`
           });
         } else if (diff > 0 && pct >= 5) {
+          const pctText = pct < 1000 ? `（${pct}％増）` : "";
           advices.push({
             tag: "📈 支出増加に注意",
-            text: `先月と比べて支出が +${formatYen(diff)}（${pct}％増）多めです。大きな買い物の予定がないか確認しておきましょう。`
+            text: `先月と比べて支出が +${formatYen(diff)}${pctText}多めです。大きな買い物の予定がないか確認しておきましょう。`
           });
         }
       }
@@ -2603,10 +2607,17 @@
     diffPill.append(createElement("span", "comparison-stat-label", "前月比"));
     if (prevUsage === 0 && curUsage === 0) {
       diffPill.append(createElement("strong", "", "±0円"));
+    } else if (prevUsage === 0 && curUsage > 0) {
+      diffPill.append(createElement("strong", "is-negative", `+${formatYen(curUsage)}`));
+    } else if (prevUsage > 0 && curUsage === 0) {
+      diffPill.append(createElement("strong", "is-positive", `-${formatYen(prevUsage)} (100％減)`));
     } else if (diff < 0) {
-      diffPill.append(createElement("strong", "is-positive", `-${formatYen(Math.abs(diff))} (${Math.abs(Math.round((diff / (prevUsage || 1)) * 100))}％減)`));
+      const pct = Math.abs(Math.round((diff / prevUsage) * 100));
+      diffPill.append(createElement("strong", "is-positive", `-${formatYen(Math.abs(diff))} (${pct}％減)`));
     } else if (diff > 0) {
-      diffPill.append(createElement("strong", "is-negative", `+${formatYen(diff)} (${Math.round((diff / (prevUsage || 1)) * 100)}％増)`));
+      const pct = Math.round((diff / prevUsage) * 100);
+      const pctText = pct < 1000 ? ` (${pct}％増)` : "";
+      diffPill.append(createElement("strong", "is-negative", `+${formatYen(diff)}${pctText}`));
     } else {
       diffPill.append(createElement("strong", "", "前月と同額"));
     }
