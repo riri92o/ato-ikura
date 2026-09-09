@@ -1218,7 +1218,7 @@
     paymentButton.type = "button";
     paymentButton.addEventListener("click", () => openManualPaymentDialog(card.id));
 
-    const editButton = createElement("button", "small-button", "⚙ 設定を編集");
+    const editButton = createElement("button", "small-button", "設定を編集");
     editButton.type = "button";
     editButton.addEventListener("click", () => openCardDialog(card.id));
 
