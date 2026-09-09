@@ -1791,6 +1791,16 @@
     applyThemeColors();
   }
 
+  function getLuminance(hexColor) {
+    const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hexColor || "");
+    if (!match) return 1;
+    const r = Number.parseInt(match[1], 16) / 255;
+    const g = Number.parseInt(match[2], 16) / 255;
+    const b = Number.parseInt(match[3], 16) / 255;
+    const toLinear = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+    return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+  }
+
   function applyThemeColors() {
     const color1 = state.settings.themeColor1 || "#185a37";
     const color2 = state.settings.themeColor2 || "#388f5f";
@@ -1806,6 +1816,23 @@
     document.documentElement.style.setProperty("--gauge-color", gaugeColor);
     document.documentElement.style.setProperty("--usage-color", usageColor);
     document.documentElement.style.setProperty("--usage-soft", colorWithAlpha(usageColor, 0.15));
+
+    const isDarkBg = getLuminance(bgColor) < 0.45;
+    if (isDarkBg) {
+      document.documentElement.style.setProperty("--text", "#f8fafc");
+      document.documentElement.style.setProperty("--text-muted", "#94a3b8");
+      document.documentElement.style.setProperty("--accent-dark", "color-mix(in srgb, var(--theme-color-2, #34d399) 70%, #ffffff)");
+      document.documentElement.style.setProperty("--surface", "color-mix(in srgb, var(--bg-color) 70%, #1e293b)");
+      document.documentElement.style.setProperty("--surface-muted", "color-mix(in srgb, var(--bg-color) 85%, #334155)");
+      document.documentElement.style.setProperty("--surface-soft", "color-mix(in srgb, var(--bg-color) 90%, #0f172a)");
+    } else {
+      document.documentElement.style.removeProperty("--text");
+      document.documentElement.style.removeProperty("--text-muted");
+      document.documentElement.style.removeProperty("--accent-dark");
+      document.documentElement.style.removeProperty("--surface");
+      document.documentElement.style.removeProperty("--surface-muted");
+      document.documentElement.style.removeProperty("--surface-soft");
+    }
 
     const val1 = $("theme-color-1-val");
     const val2 = $("theme-color-2-val");
@@ -2299,115 +2326,202 @@
     const budget = getEffectiveBudget(monthKey, mode);
 
     const isCurrentMonth = today >= range.startDate && today <= range.endDate;
+    const isPastMonth = range.endDate < today;
+    const monthNum = curDate.getMonth() + 1;
+    const prevMonthNum = prevDate.getMonth() + 1;
     const curCycleExpenses = state.expenses.filter((e) => e.date >= range.startDate && e.date <= range.endDate);
+    const totalDays = Math.max(1, Math.round((new Date(range.endDate) - new Date(range.startDate)) / 86400000) + 1);
 
     const advices = [];
 
-    // 1. 予算設定状況と消化ペース
-    if (budget === null || budget <= 0) {
-      advices.push({
-        tag: "💡 はじめの一歩",
-        text: "月間予算を設定すると、今月あと使える目安や1日の推奨ペースをお知らせします。"
-      });
-    } else {
-      const remaining = budget - curSpent;
-      const totalDays = Math.max(1, Math.round((new Date(range.endDate) - new Date(range.startDate)) / 86400000) + 1);
-      let remainingDays = 1;
-      if (isCurrentMonth) {
-        remainingDays = Math.max(1, Math.round((new Date(range.endDate) - new Date(today)) / 86400000) + 1);
-      } else if (today < range.startDate) {
-        remainingDays = totalDays;
-      } else {
-        remainingDays = 1;
+    if (isPastMonth) {
+      // ===== 過去月の振り返りアドバイス（複数提供） =====
+      // 1. 予算と総支出の振り返り
+      if (budget !== null && budget > 0) {
+        const remaining = budget - curSpent;
+        if (remaining >= 0) {
+          advices.push({
+            tag: "📊 予算の振り返り",
+            text: `${monthNum}月は予算 ${formatYen(budget)} に対し、${formatYen(remaining)} 少なく収まりました。計画的な支出管理です！`
+          });
+        } else {
+          const overAmount = Math.abs(remaining);
+          advices.push({
+            tag: "📊 予算の振り返り",
+            text: `${monthNum}月は予算 ${formatYen(budget)} に対し、${formatYen(overAmount)} 上回りました。`
+          });
+        }
+      } else if (curSpent > 0) {
+        advices.push({
+          tag: "📊 総支出の記録",
+          text: `${monthNum}月の合計支出は ${formatYen(curSpent)} でした。`
+        });
       }
 
-      const dailyAllowance = Math.max(0, Math.floor(remaining / remainingDays));
-
-      if (remaining < 0) {
+      // 2. 1日あたりの平均支出ペース
+      if (curSpent > 0) {
+        const dailyAvg = Math.round(curSpent / totalDays);
         advices.push({
-          tag: "⚠️ 予算超過に注意",
-          text: `今月の予算を ${formatYen(Math.abs(remaining))} 上回っています。固定費以外の買い物を少し控えめにしてみましょう。`
+          tag: "⏱️ 1日の平均支出",
+          text: `${monthNum}月は1日あたり平均 約 ${formatYen(dailyAvg)} のペースで支出していました。`
         });
-      } else if (isCurrentMonth) {
-        const passedDays = Math.max(1, totalDays - remainingDays);
-        const expectedBurn = Math.round((budget / totalDays) * passedDays);
-        if (curSpent > expectedBurn * 1.15 && remainingDays > 3) {
-          const overrun = Math.round(curSpent + (curSpent / passedDays) * remainingDays - budget);
+      }
+
+      // 3. 前月との比較
+      if (prevSpent > 0 && curSpent > 0) {
+        const diff = curSpent - prevSpent;
+        const pct = Math.abs(Math.round((diff / prevSpent) * 100));
+        if (diff <= 0) {
           advices.push({
-            tag: "⚠️ ペース注意",
-            text: `このペースが続くと月末に予算を約 ${formatYen(overrun)} 上回る見込みです。今日の目安は ${formatYen(dailyAllowance)} に控えてみましょう。`
+            tag: "🌱 前月比で節約",
+            text: `${prevMonthNum}月と比べて支出が ${formatYen(Math.abs(diff))}（${pct}％）少なく抑えられました。`
           });
         } else {
           advices.push({
-            tag: "✨ 予算の目安",
-            text: `今月の残り予算は ${formatYen(remaining)} です。月末まで1日あたり約 ${formatYen(dailyAllowance)} 使える計算です。`
+            tag: "📈 前月比の推移",
+            text: `${prevMonthNum}月と比べて支出が +${formatYen(diff)}（${pct}％増）となりました。`
           });
         }
-      } else {
-        advices.push({
-          tag: "📊 月間予算",
-          text: remaining >= 0
-            ? `この月は予算内に ${formatYen(remaining)} 収まりました。素晴らしい管理です。`
-            : `この月は予算を ${formatYen(Math.abs(remaining))} 上回りました。`
-        });
       }
-    }
 
-    // 2. 前月同期比較
-    if (prevSpent > 0 && curSpent > 0) {
-      const diff = curSpent - prevSpent;
-      const pct = Math.abs(Math.round((diff / prevSpent) * 100));
-      if (diff < 0) {
-        advices.push({
-          tag: "🌱 節約順調",
-          text: `先月と比べて支出が ${formatYen(Math.abs(diff))}（${pct}％）抑えられています。とても良いペースです。`
+      // 4. カテゴリ別の傾向
+      if (curCycleExpenses.length > 0) {
+        const catTotals = {};
+        curCycleExpenses.forEach((e) => {
+          catTotals[e.category] = (catTotals[e.category] || 0) + Number(e.amount || 0);
         });
-      } else if (diff > 0 && pct >= 5) {
-        advices.push({
-          tag: "📈 支出増加に注意",
-          text: `先月と比べて支出が +${formatYen(diff)}（${pct}％増）多めです。大きな買い物の予定がないか確認しておきましょう。`
-        });
-      }
-    }
-
-    // 3. カテゴリ別の傾向
-    if (curCycleExpenses.length > 0) {
-      const catTotals = {};
-      curCycleExpenses.forEach((e) => {
-        catTotals[e.category] = (catTotals[e.category] || 0) + Number(e.amount || 0);
-      });
-      const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
-      if (sortedCats.length > 0) {
-        const topCat = sortedCats[0];
-        const topPct = Math.round((topCat[1] / (curSpent || 1)) * 100);
-        if (topPct >= 35 && topCat[1] >= 5000) {
+        const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+        if (sortedCats.length > 0) {
+          const topCat = sortedCats[0];
+          const topPct = Math.round((topCat[1] / (curSpent || 1)) * 100);
           advices.push({
-            tag: "🏷️ カテゴリ分析",
-            text: `今月の支出で最も多いのは『${topCat[0]}』（${formatYen(topCat[1])}・全体の${topPct}％）です。`
+            tag: "🏷️ 最大支出カテゴリ",
+            text: `${monthNum}月に最も使ったのは『${topCat[0]}』（${formatYen(topCat[1])}・全体の${topPct}％）でした。`
+          });
+          if (sortedCats.length > 1) {
+            const secondCat = sortedCats[1];
+            const secondPct = Math.round((secondCat[1] / (curSpent || 1)) * 100);
+            advices.push({
+              tag: "🏷️ 支出内訳（2位）",
+              text: `2番目に多かったのは『${secondCat[0]}』（${formatYen(secondCat[1])}・全体の${secondPct}％）でした。`
+            });
+          }
+        }
+      }
+
+      // 5. 記録件数
+      if (curCycleExpenses.length > 0) {
+        advices.push({
+          tag: "📝 記録の合計",
+          text: `${monthNum}月は合計 ${curCycleExpenses.length} 件の支出が記録されています。`
+        });
+      }
+
+      // 6. カード引き落とし合計
+      if (curSummary.card > 0) {
+        advices.push({
+          tag: "💳 カード引き落とし合計",
+          text: `${monthNum}月のカード引き落とし合計額は ${formatYen(curSummary.card)} でした。`
+        });
+      }
+    } else {
+      // ===== 当月・未来月のアドバイス =====
+      // 1. 予算設定状況と消化ペース
+      if (budget === null || budget <= 0) {
+        advices.push({
+          tag: "💡 はじめの一歩",
+          text: "月間予算を設定すると、今月あと使える目安や1日の推奨ペースをお知らせします。"
+        });
+      } else {
+        const remaining = budget - curSpent;
+        let remainingDays = 1;
+        if (isCurrentMonth) {
+          remainingDays = Math.max(1, Math.round((new Date(range.endDate) - new Date(today)) / 86400000) + 1);
+        } else {
+          remainingDays = totalDays;
+        }
+
+        const dailyAllowance = Math.max(0, Math.floor(remaining / remainingDays));
+
+        if (remaining < 0) {
+          advices.push({
+            tag: "⚠️ 予算超過に注意",
+            text: `今月の予算を ${formatYen(Math.abs(remaining))} 上回っています。固定費以外の買い物を少し控えめにしてみましょう。`
+          });
+        } else if (isCurrentMonth) {
+          const passedDays = Math.max(1, totalDays - remainingDays);
+          const expectedBurn = Math.round((budget / totalDays) * passedDays);
+          if (curSpent > expectedBurn * 1.15 && remainingDays > 3) {
+            const overrun = Math.round(curSpent + (curSpent / passedDays) * remainingDays - budget);
+            advices.push({
+              tag: "⚠️ ペース注意",
+              text: `このペースが続くと月末に予算を約 ${formatYen(overrun)} 上回る見込みです。今日の目安は ${formatYen(dailyAllowance)} に控えてみましょう。`
+            });
+          } else {
+            advices.push({
+              tag: "✨ 予算の目安",
+              text: `今月の残り予算は ${formatYen(remaining)} です。月末まで1日あたり約 ${formatYen(dailyAllowance)} 使える計算です。`
+            });
+          }
+        }
+      }
+
+      // 2. 前月同期比較
+      if (prevSpent > 0 && curSpent > 0) {
+        const diff = curSpent - prevSpent;
+        const pct = Math.abs(Math.round((diff / prevSpent) * 100));
+        if (diff < 0) {
+          advices.push({
+            tag: "🌱 節約順調",
+            text: `先月と比べて支出が ${formatYen(Math.abs(diff))}（${pct}％）抑えられています。とても良いペースです。`
+          });
+        } else if (diff > 0 && pct >= 5) {
+          advices.push({
+            tag: "📈 支出増加に注意",
+            text: `先月と比べて支出が +${formatYen(diff)}（${pct}％増）多めです。大きな買い物の予定がないか確認しておきましょう。`
           });
         }
       }
-    }
 
-    // 4. 直近のカード引き落とし予定（7日以内）
-    if (isCurrentMonth) {
-      const upcoming = (curSummary.cardWithdrawalsList || []).filter((item) => {
-        return item.date >= today && (new Date(item.date) - new Date(today)) <= 7 * 86400000;
-      });
-      if (upcoming.length > 0) {
-        const nextBill = upcoming[0];
-        const dateParts = nextBill.date.split("-");
-        advices.push({
-          tag: "💳 引き落とし予定",
-          text: `${Number(dateParts[1])}月${Number(dateParts[2])}日に『${nextBill.cardName}』から ${formatYen(nextBill.amount)} の引き落とし予定があります。口座残高を確認しておきましょう。`
+      // 3. カテゴリ別の傾向
+      if (curCycleExpenses.length > 0) {
+        const catTotals = {};
+        curCycleExpenses.forEach((e) => {
+          catTotals[e.category] = (catTotals[e.category] || 0) + Number(e.amount || 0);
         });
+        const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+        if (sortedCats.length > 0) {
+          const topCat = sortedCats[0];
+          const topPct = Math.round((topCat[1] / (curSpent || 1)) * 100);
+          if (topPct >= 30 && topCat[1] >= 3000) {
+            advices.push({
+              tag: "🏷️ カテゴリ分析",
+              text: `今月の支出で最も多いのは『${topCat[0]}』（${formatYen(topCat[1])}・全体の${topPct}％）です。`
+            });
+          }
+        }
+      }
+
+      // 4. 直近のカード引き落とし予定（7日以内）
+      if (isCurrentMonth) {
+        const upcoming = (curSummary.cardWithdrawalsList || []).filter((item) => {
+          return item.date >= today && (new Date(item.date) - new Date(today)) <= 7 * 86400000;
+        });
+        if (upcoming.length > 0) {
+          const nextBill = upcoming[0];
+          const dateParts = nextBill.date.split("-");
+          advices.push({
+            tag: "💳 引き落とし予定",
+            text: `${Number(dateParts[1])}月${Number(dateParts[2])}日に『${nextBill.cardName}』から ${formatYen(nextBill.amount)} の引き落とし予定があります。口座残高を確認しておきましょう。`
+          });
+        }
       }
     }
 
     // 5. デフォルト案内
     if (advices.length === 0 || curSpent === 0) {
       advices.push({
-        tag: "💡 今月の見守り",
+        tag: "💡 家計の見守り",
         text: "買い物をしたら右下の「＋」ボタンから記録しましょう。支出の傾向に合わせてアドバイスをお届けします。"
       });
     }
