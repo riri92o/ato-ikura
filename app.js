@@ -857,42 +857,62 @@
     const budgetUnsetContainer = $("summary-budget-unset");
     const primaryLabel = $("budget-primary-label");
     const remainingEl = $("budget-remaining-amount");
+    const remainingUnitEl = $("budget-remaining-unit");
+    const spentLabel = $("budget-spent-label");
+    const spentAmountEl = $("budget-spent-amount");
     const gaugeFill = $("budget-gauge-fill");
     const currentCalcEl = $("budget-current-calc");
     const totalValEl = $("budget-total-val");
     const percentValEl = $("budget-percent-val");
-    const unsetSpentEl = $("budget-unset-current-spent");
+    const gaugeStatusEl = $("budget-gauge-status");
+    const unsetSpentLabel = $("budget-unset-spent-label");
+    const unsetSpentAmountEl = $("budget-unset-spent-amount");
 
-    if (primaryLabel) {
-      primaryLabel.textContent = isUsage ? "今月あと使える金額" : "今月あと支払える金額";
-    }
+    const spentLabelText = isUsage ? "使った額" : "口座から出る額";
+    if (spentLabel) spentLabel.textContent = spentLabelText;
+    if (unsetSpentLabel) unsetSpentLabel.textContent = spentLabelText;
 
     if (budget === null) {
       // 予算未設定時
       if (budgetSetContainer) budgetSetContainer.classList.add("is-hidden");
       if (budgetUnsetContainer) budgetUnsetContainer.classList.remove("is-hidden");
-      if (unsetSpentEl) {
-        unsetSpentEl.textContent = isUsage
-          ? `今月の利用額: ${formatYen(currentAmount)}`
-          : `今月の口座出金額: ${formatYen(currentAmount)}`;
+      if (unsetSpentAmountEl) {
+        unsetSpentAmountEl.textContent = formatYen(currentAmount);
       }
     } else {
       // 予算設定済み
       if (budgetSetContainer) budgetSetContainer.classList.remove("is-hidden");
       if (budgetUnsetContainer) budgetUnsetContainer.classList.add("is-hidden");
 
+      if (spentAmountEl) spentAmountEl.textContent = formatYen(currentAmount);
+      if (primaryLabel) primaryLabel.textContent = "今月あと";
+
       const remaining = budget - currentAmount;
       const percent = budget > 0 ? Math.round((currentAmount / budget) * 100) : 0;
       const ratio = Math.min(100, Math.max(0, percent));
 
-      if (remainingEl) {
+      if (remainingEl && remainingUnitEl) {
         if (remaining >= 0) {
           remainingEl.textContent = formatYen(remaining);
           remainingEl.classList.remove("is-over");
+          remainingUnitEl.textContent = isUsage ? "使える" : "出せる";
+          remainingUnitEl.classList.remove("is-over");
         } else {
-          remainingEl.textContent = `超過 -${formatYen(Math.abs(remaining))}`;
+          remainingEl.textContent = formatYen(Math.abs(remaining));
           remainingEl.classList.add("is-over");
+          remainingUnitEl.textContent = "超過";
+          remainingUnitEl.classList.add("is-over");
         }
+      }
+
+      if (percentValEl) {
+        percentValEl.textContent = remaining >= 0
+          ? `残り ${Math.max(0, 100 - percent)}%`
+          : `予算の ${percent}%`;
+      }
+
+      if (totalValEl) {
+        totalValEl.textContent = isUsage ? `予算: ${formatYen(budget)}` : `出金予算: ${formatYen(budget)}`;
       }
 
       if (gaugeFill) {
@@ -905,9 +925,19 @@
         }
       }
 
-      if (currentCalcEl) currentCalcEl.textContent = isUsage ? `使った額: ${formatYen(currentAmount)}` : `口座から出る額: ${formatYen(currentAmount)}`;
-      if (totalValEl) totalValEl.textContent = isUsage ? `予算: ${formatYen(budget)}` : `出金予算: ${formatYen(budget)}`;
-      if (percentValEl) percentValEl.textContent = `${percent}%`;
+      if (currentCalcEl) currentCalcEl.textContent = `消化: ${percent}%`;
+      if (gaugeStatusEl) {
+        if (currentAmount > budget) {
+          gaugeStatusEl.textContent = "予算を超過しています";
+          gaugeStatusEl.style.color = "#ffdada";
+        } else if (currentAmount >= budget * 0.8) {
+          gaugeStatusEl.textContent = "予算の80%を超過";
+          gaugeStatusEl.style.color = "#fef08a";
+        } else {
+          gaugeStatusEl.textContent = "予算内に収まっています";
+          gaugeStatusEl.style.color = "";
+        }
+      }
     }
 
     // 内訳グリッド

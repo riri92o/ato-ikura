@@ -361,45 +361,72 @@ h3 {
   transform: scale(1.05);
 }
 
-.summary-primary {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+/* 2カラム並列サマリー（使った額・今月あと） */
+.summary-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
 }
 
-.budget-title-row {
+.summary-stat-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100px;
+  padding: 10px 11px;
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.summary-stat-card.stat-spent {
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.summary-stat-card.stat-remaining {
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 4px;
+  margin-bottom: 3px;
 }
 
-.budget-title-row p {
+.stat-card-label {
   display: inline-flex;
   align-items: center;
-  margin: 0;
-  padding: 2px 8px;
+  padding: 1px 7px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: var(--summary-text);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 750;
   letter-spacing: 0.02em;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+}
+
+.stat-remaining .stat-card-label {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 .budget-setting-trigger {
-  min-height: 30px;
-  padding: 2px 10px;
+  min-height: 24px;
+  padding: 1px 8px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 750;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -412,19 +439,73 @@ h3 {
   border-color: rgba(255, 255, 255, 0.6);
 }
 
-.summary-primary strong {
-  display: block;
-  color: var(--summary-text);
-  font-size: clamp(1.8rem, 7.5vw, 2.3rem);
-  font-weight: 800;
-  line-height: 1.12;
-  letter-spacing: -0.04em;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+.stat-value-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 1;
+  margin: 2px 0 3px;
 }
 
-.summary-primary strong.is-over {
+.stat-card-value {
+  display: block;
+  color: var(--summary-text);
+  font-size: clamp(1.15rem, 4.6vw, 1.45rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+  word-break: break-word;
+}
+
+.stat-remaining-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.stat-remaining-box .stat-card-value.highlight {
+  font-size: clamp(1.22rem, 5vw, 1.55rem);
+  color: #ffffff;
+}
+
+.stat-remaining-box .stat-card-value.is-over {
   color: #ffdada;
-  text-shadow: 0 2px 10px rgba(180, 40, 40, 0.35);
+  text-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.stat-unit-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.stat-unit-badge.is-over {
+  background: rgba(239, 68, 68, 0.4);
+  color: #ffdada;
+}
+
+.stat-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-card-sub {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--summary-subtext);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ゲージバーカード */
@@ -471,7 +552,7 @@ h3 {
   justify-content: space-between;
   gap: 8px;
   margin-top: 5px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--summary-subtext);
 }
@@ -481,41 +562,38 @@ h3 {
   color: #ffffff;
 }
 
-/* 予算未設定カード */
-.summary-budget-unset {
-  margin-top: 4px;
+/* 予算未設定 */
+.stat-unset-guide {
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.16);
 }
 
-.budget-unset-box {
+.stat-unset-btn-wrap {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px dashed rgba(255, 255, 255, 0.35);
-  text-align: center;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  width: 100%;
+  margin: 2px 0;
 }
 
-.budget-unset-message {
-  margin: 0;
-  color: #ffffff;
-  font-size: 0.82rem;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-.compact-action-btn {
-  min-height: 36px;
-  padding: 5px 16px;
-  font-size: 0.82rem;
+.budget-unset-cta-btn {
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
   background: #ffffff;
   color: var(--accent-dark);
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.15s ease;
+}
+
+.budget-unset-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .compact-action-btn:hover {

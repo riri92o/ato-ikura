@@ -53,12 +53,34 @@
 
             <!-- 予算設定済みの表示 -->
             <div id="summary-budget-set" class="summary-budget-state">
-              <div class="summary-primary budget-hero">
-                <div class="budget-title-row">
-                  <p id="budget-primary-label">今月あと使える金額</p>
-                  <button id="open-budget-button" class="budget-setting-trigger" type="button">予算を設定</button>
+              <div class="summary-metrics-grid">
+                <!-- 使った額カード -->
+                <div class="summary-stat-card stat-spent">
+                  <div class="stat-card-header">
+                    <span class="stat-card-label" id="budget-spent-label">使った額</span>
+                  </div>
+                  <div class="stat-value-box">
+                    <strong id="budget-spent-amount" class="stat-card-value">0円</strong>
+                  </div>
+                  <div class="stat-card-footer">
+                    <span id="budget-total-val" class="stat-card-sub">予算: 未設定</span>
+                  </div>
                 </div>
-                <strong id="budget-remaining-amount">未設定</strong>
+
+                <!-- 今月あとカード -->
+                <div class="summary-stat-card stat-remaining">
+                  <div class="stat-card-header">
+                    <span class="stat-card-label" id="budget-primary-label">今月あと</span>
+                    <button id="open-budget-button" class="budget-setting-trigger" type="button" aria-label="予算を設定">設定</button>
+                  </div>
+                  <div class="stat-value-box stat-remaining-box">
+                    <strong id="budget-remaining-amount" class="stat-card-value highlight">0円</strong>
+                    <span id="budget-remaining-unit" class="stat-unit-badge">使える</span>
+                  </div>
+                  <div class="stat-card-footer">
+                    <span id="budget-percent-val" class="stat-card-sub">残り 100%</span>
+                  </div>
+                </div>
               </div>
 
               <div class="budget-gauge-card" id="budget-gauge-card">
@@ -66,21 +88,40 @@
                   <div id="budget-gauge-fill" class="budget-gauge-fill" style="width: 0%;"></div>
                 </div>
                 <div class="budget-gauge-info">
-                  <span id="budget-current-calc">集計額: 0円</span>
-                  <span id="budget-total-val">予算: 未設定</span>
-                  <span id="budget-percent-val">0%</span>
+                  <span id="budget-current-calc">消化: 0%</span>
+                  <span id="budget-gauge-status">予算内に収まっています</span>
                 </div>
               </div>
             </div>
 
-            <!-- 予算未設定時の簡潔な案内 -->
+            <!-- 予算未設定時の案内 -->
             <div id="summary-budget-unset" class="summary-budget-unset is-hidden">
-              <div class="budget-unset-box">
-                <p class="budget-unset-message">予算を設定すると、今月あと使える金額が表示されます</p>
-                <button id="open-budget-from-unset-button" class="button button-primary compact-action-btn" type="button">予算を設定</button>
-              </div>
-              <div class="budget-unset-subinfo">
-                <span id="budget-unset-current-spent">今月の支出: 0円</span>
+              <div class="summary-metrics-grid">
+                <!-- 使った額カード -->
+                <div class="summary-stat-card stat-spent">
+                  <div class="stat-card-header">
+                    <span class="stat-card-label" id="budget-unset-spent-label">使った額</span>
+                  </div>
+                  <div class="stat-value-box">
+                    <strong id="budget-unset-spent-amount" class="stat-card-value">0円</strong>
+                  </div>
+                  <div class="stat-card-footer">
+                    <span class="stat-card-sub">予算: 未設定</span>
+                  </div>
+                </div>
+
+                <!-- 今月あとカード（未設定） -->
+                <div class="summary-stat-card stat-remaining stat-unset-guide">
+                  <div class="stat-card-header">
+                    <span class="stat-card-label">今月あと</span>
+                  </div>
+                  <div class="stat-unset-btn-wrap">
+                    <button id="open-budget-from-unset-button" class="budget-unset-cta-btn" type="button">予算を設定 ＋</button>
+                  </div>
+                  <div class="stat-card-footer">
+                    <span class="stat-card-sub">残額の自動計算</span>
+                  </div>
+                </div>
               </div>
             </div>
 
