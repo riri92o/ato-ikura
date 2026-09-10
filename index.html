@@ -619,6 +619,13 @@
               <p>自動計算の支払日：<strong id="calculated-payment-date">—</strong></p>
               <label>この支出だけ支払日を変更<input id="expense-payment-date" type="date" /></label>
             </div>
+            <div id="expense-withdrawal-toggle-row" class="withdrawal-toggle-box full-span is-hidden">
+              <label class="withdrawal-toggle-label">
+                <input id="expense-include-withdrawal" type="checkbox" checked />
+                <span class="withdrawal-toggle-text">引き落とし予定に含める</span>
+              </label>
+              <p class="withdrawal-toggle-hint">※ OFFにすると「使った額」には記録されますが、口座からの引落予定には加算されません（立替・即時精算用）</p>
+            </div>
             <label class="full-span">メモ<textarea id="expense-memo" rows="2" maxlength="200" placeholder="例：ランチ、日用品など"></textarea></label>
             <div class="favorite-save-row full-span">
               <button id="add-to-favorites-btn" class="text-button favorite-save-btn" type="button">

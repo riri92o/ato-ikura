@@ -1321,26 +1321,46 @@ textarea {
   white-space: nowrap;
 }
 
-/* 券面中央行（ナンバーレス・利用数バッジ） */
+/* 券面中央行（今月の利用実績） */
 .card-face-middle {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-  margin: 14px 0 8px;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px 0 10px;
   position: relative;
   z-index: 2;
 }
 
-.card-usage-pill {
-  padding: 4px 11px;
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.76rem;
-  font-weight: 700;
+.card-face-usage-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.card-usage-label {
+  font-size: 0.64rem;
+  font-weight: 750;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.02em;
+}
+
+.card-usage-val {
+  font-size: clamp(1.1rem, 4.5vw, 1.35rem);
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.card-usage-count-badge {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.72rem;
+  font-weight: 750;
   white-space: nowrap;
 }
 
@@ -1419,6 +1439,191 @@ textarea {
   background: var(--surface);
   box-shadow: var(--shadow);
   box-sizing: border-box;
+}
+
+/* 今月の利用明細アコーディオン */
+.card-expense-accordion {
+  border-radius: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.card-expense-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.card-expense-summary::-webkit-details-marker {
+  display: none;
+}
+
+.card-expense-summary:hover {
+  background: var(--surface-muted);
+}
+
+.card-expense-summary-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-accordion-arrow {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.card-expense-accordion[open] .card-accordion-arrow {
+  transform: rotate(180deg);
+}
+
+.card-expense-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+  padding: 4px 6px 6px;
+  gap: 4px;
+  background: var(--surface);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.card-expense-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+  width: 100%;
+}
+
+.card-expense-row:hover {
+  background: var(--surface-muted);
+  border-color: var(--border);
+}
+
+.card-expense-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.card-expense-date {
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.card-expense-cat-icon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.card-expense-memo {
+  font-size: 0.8rem;
+  font-weight: 750;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge-reimburse {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  font-size: 0.65rem;
+  font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.card-expense-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.card-expense-amount {
+  font-size: 0.88rem;
+  font-weight: 850;
+  color: var(--text);
+}
+
+.card-expense-edit-hint {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.card-expense-empty {
+  padding: 12px 14px;
+  text-align: center;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* 引落予定に含めるスイッチ */
+.withdrawal-toggle-box {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  margin: 4px 0 2px;
+}
+
+.withdrawal-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.withdrawal-toggle-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.withdrawal-toggle-text {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.withdrawal-toggle-hint {
+  margin: 4px 0 0 26px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.35;
 }
 
 .card-controls-top {

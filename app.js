@@ -811,7 +811,7 @@
 
   function getCardWithdrawalAmount(cardId, dateKey) {
     const expenseTotal = state.expenses
-      .filter((expense) => expense.paymentMethod === Core.CREDIT_PAYMENT && expense.cardId === cardId)
+      .filter((expense) => expense.paymentMethod === Core.CREDIT_PAYMENT && expense.cardId === cardId && expense.includeInWithdrawal !== false)
       .filter((expense) => Core.getExpensePaymentDate(expense, state.cards) === dateKey)
       .reduce((total, expense) => total + Core.normalizeAmount(expense.amount), 0);
 
@@ -1283,6 +1283,14 @@
     const article = createElement("article", "card-item");
     article.style.setProperty("--card-color", card.color);
 
+    // 集計期間と今月のカード利用実績
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const range = Core.getCycleRange(currentMonth.slice(0, 7), cycleDay);
+    const currentMonthExpenses = state.expenses
+      .filter((e) => e.cardId === card.id && e.date >= range.startDate && e.date <= range.endDate)
+      .sort((a, b) => b.date.localeCompare(a.date));
+    const currentMonthUsage = currentMonthExpenses.reduce((sum, e) => sum + Core.normalizeAmount(e.amount), 0);
+
     // --- 1. クレジットカード券面風UI (Card Face) ---
     const cardFace = createElement("div", "credit-card-face");
 
@@ -1296,10 +1304,15 @@
     const brand = createElement("span", "card-face-brand", card.name);
     faceTop.append(chipGroup, brand);
 
-    // 中央行：利用件数バッジ
+    // 中央行：今月の利用実績
     const faceMiddle = createElement("div", "card-face-middle");
-    const usageCount = createElement("span", "card-usage-pill", `${countCardExpenses(card.id)}件の利用`);
-    faceMiddle.append(usageCount);
+    const usageBlock = createElement("div", "card-face-usage-block");
+    usageBlock.append(
+      createElement("span", "card-usage-label", `今月利用（${range.shortLabel}）`),
+      createElement("strong", "card-usage-val", formatYen(currentMonthUsage))
+    );
+    const countBadge = createElement("span", "card-usage-count-badge", `${currentMonthExpenses.length}件の利用`);
+    faceMiddle.append(usageBlock, countBadge);
 
     // フッター行：締め日・支払日仕様 & 今月の確定額バッジ
     const faceFooter = createElement("div", "card-face-footer");
@@ -1342,6 +1355,48 @@
       controlsPanel.append(createElement("p", "card-memo-text", card.memo));
     }
 
+    // 今月の利用明細アコーディオン
+    const expenseAccordion = createElement("details", "card-expense-accordion");
+    const summary = createElement("summary", "card-expense-summary");
+    summary.append(
+      createElement("span", "card-expense-summary-title", `今月の利用明細（${currentMonthExpenses.length}件・${formatYen(currentMonthUsage)}）`),
+      createElement("span", "card-accordion-arrow", "⌄")
+    );
+    expenseAccordion.append(summary);
+
+    const expenseList = createElement("div", "card-expense-list");
+    if (!currentMonthExpenses.length) {
+      expenseList.append(createElement("p", "card-expense-empty", "今月の利用記録はありません"));
+    } else {
+      currentMonthExpenses.forEach((item) => {
+        const row = createElement("button", "card-expense-row");
+        row.type = "button";
+        row.title = "タップして支出を編集";
+
+        const left = createElement("div", "card-expense-left");
+        const dateEl = createElement("span", "card-expense-date", formatDate(item.date, { month: "numeric", day: "numeric", weekday: "short" }));
+        const catIcon = createElement("span", "card-expense-cat-icon", CATEGORY_ICONS[item.category] || "💳");
+        const memoEl = createElement("span", "card-expense-memo", item.memo || item.category);
+        left.append(dateEl, catIcon, memoEl);
+
+        if (item.includeInWithdrawal === false) {
+          left.append(createElement("span", "badge-reimburse", "立替・精算済"));
+        }
+
+        const right = createElement("div", "card-expense-right");
+        const amtEl = createElement("strong", "card-expense-amount", formatYen(item.amount));
+        const editIcon = createElement("span", "card-expense-edit-hint", "›");
+        right.append(amtEl, editIcon);
+
+        row.append(left, right);
+        row.addEventListener("click", () => openExpenseDialog(item.date, item.id));
+        expenseList.append(row);
+      });
+    }
+    expenseAccordion.append(expenseList);
+    controlsPanel.append(expenseAccordion);
+
+    // アクションボタン（確定額追加・設定編集）
     const actionsGroup = createElement("div", "card-actions-group");
     const paymentButton = createElement("button", "small-button button-primary", "＋ 確定額を追加");
     paymentButton.type = "button";
@@ -1430,6 +1485,10 @@
     refreshExpenseCardOptions(fav.cardId || "");
     updateExpensePaymentFields();
     $("expense-memo").value = fav.memo || fav.title || "";
+    const includeWithdrawalInput = $("expense-include-withdrawal");
+    if (includeWithdrawalInput) {
+      includeWithdrawalInput.checked = fav.includeInWithdrawal !== false;
+    }
     updateCalculatedPaymentDate();
     showToast(`「${fav.title}」を入力しました`);
   }
@@ -1453,6 +1512,7 @@
     const category = $("expense-category").value;
     const paymentMethod = $("expense-payment").value;
     const cardId = paymentMethod === Core.CREDIT_PAYMENT ? $("expense-card").value : "";
+    const includeInWithdrawal = $("expense-include-withdrawal") ? $("expense-include-withdrawal").checked : true;
     const memo = $("expense-memo").value.trim();
 
     const defaultTitle = memo || category;
@@ -1468,6 +1528,7 @@
       category,
       paymentMethod,
       cardId,
+      includeInWithdrawal,
       memo,
     };
 
@@ -1483,8 +1544,30 @@
     $("setting-balance").value = state.settings.currentBalance === null ? "" : formatNumber(state.settings.currentBalance);
     $("setting-reserve").value = state.settings.minimumReserve === null ? "" : formatNumber(state.settings.minimumReserve);
     $("theme-select").value = state.settings.theme;
+    $("theme-color-1").value = state.settings.themeColor1 || "#185a37";
+    $("theme-color-2").value = state.settings.themeColor2 || "#388f5f";
+    $("setting-bg-color").value = state.settings.bgColor || "#ffffff";
+    $("setting-border-color").value = state.settings.borderColor || "#e2e8f0";
+    $("setting-gauge-color").value = state.settings.gaugeColor || "#34d399";
+    $("theme-color-1-val").textContent = (state.settings.themeColor1 || "#185a37").toUpperCase();
+    $("theme-color-2-val").textContent = (state.settings.themeColor2 || "#388f5f").toUpperCase();
+    $("setting-bg-color-val").textContent = (state.settings.bgColor || "#ffffff").toUpperCase();
+    $("setting-border-color-val").textContent = (state.settings.borderColor || "#e2e8f0").toUpperCase();
+    $("setting-gauge-color-val").textContent = (state.settings.gaugeColor || "#34d399").toUpperCase();
+    $("setting-budget-mode").value = state.settings.budgetMode || "usage";
     renderPresetPalette();
+    updatePresetButtons();
     applyThemeColors();
+  }
+
+  function updatePresetButtons() {
+    const c1 = (state.settings.themeColor1 || "").toLowerCase();
+    const c2 = (state.settings.themeColor2 || "").toLowerCase();
+    document.querySelectorAll(".theme-swatch").forEach((btn) => {
+      const p1 = (btn.dataset.color1 || "").toLowerCase();
+      const p2 = (btn.dataset.color2 || "").toLowerCase();
+      btn.classList.toggle("is-active", c1 === p1 && c2 === p2);
+    });
   }
 
   function updateCyclePreview() {
@@ -1508,9 +1591,6 @@
 
   function openExpenseDialog(dateKey, expenseId = "") {
     const expense = expenseId ? state.expenses.find((item) => item.id === expenseId) : null;
-    isFavoritesDeleteMode = false;
-    renderFavoriteChips();
-    $("expense-form").reset();
     $("expense-id").value = expense ? expense.id : "";
     $("expense-dialog-title").textContent = expense ? "支出を編集" : "支出を追加";
     $("expense-amount").value = expense ? formatNumber(expense.amount) : "";
@@ -1519,6 +1599,10 @@
     $("expense-payment").value = expense ? expense.paymentMethod : "現金";
     $("expense-memo").value = expense ? expense.memo : "";
     $("expense-payment-date").value = expense ? expense.paymentDateOverride || "" : "";
+    const includeWithdrawalInput = $("expense-include-withdrawal");
+    if (includeWithdrawalInput) {
+      includeWithdrawalInput.checked = expense ? (expense.includeInWithdrawal !== false) : true;
+    }
     $("expense-amount-error").textContent = "";
     $("delete-expense-button").classList.toggle("is-hidden", !expense);
     refreshExpenseCardOptions(expense ? expense.cardId : "");
@@ -1545,6 +1629,8 @@
     const credit = $("expense-payment").value === Core.CREDIT_PAYMENT;
     $("expense-card-field").classList.toggle("is-hidden", !credit);
     $("payment-date-section").classList.toggle("is-hidden", !credit);
+    const toggleRow = $("expense-withdrawal-toggle-row");
+    if (toggleRow) toggleRow.classList.toggle("is-hidden", !credit);
     updateCalculatedPaymentDate();
   }
 
@@ -1604,6 +1690,8 @@
       showToast("手動支払日が正しくありません。");
       return;
     }
+
+    const includeInWithdrawal = $("expense-include-withdrawal") ? $("expense-include-withdrawal").checked : true;
 
     const id = $("expense-id").value;
     const existing = state.expenses.find((item) => item.id === id);

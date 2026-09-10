@@ -264,7 +264,8 @@
       if (isDirectPayment(expense)) {
         usageDay.direct += amount;
         usageDay.outflow += amount;
-      } else {
+      } else if (expense.includeInWithdrawal !== false) {
+        // クレジットカード決済（引落予定に含める場合のみ引落日へ加算）
         const paymentDate = getExpensePaymentDate(expense, cards);
         if (paymentDate) {
           const paymentDay = ensure(paymentDate);
