@@ -27,6 +27,16 @@
         <div class="splash-pulse-line"></div>
       </div>
     </div>
+    <script>
+      (function(){
+        var s = document.getElementById("app-splash-screen");
+        if(s){
+          var hide = function(){ s.classList.add("is-hidden"); setTimeout(function(){ s.style.display="none"; }, 400); };
+          setTimeout(hide, 1200);
+          s.addEventListener("click", hide, {once:true});
+        }
+      })();
+    </script>
 
     <div class="app-shell">
       <main id="main-content">

@@ -49,6 +49,7 @@
   document.addEventListener("DOMContentLoaded", initialize);
 
   function initialize() {
+    initSplashScreen();
     document.title = APP.name;
     const titleEl = $("app-title");
     if (titleEl) titleEl.textContent = APP.name;
@@ -59,7 +60,6 @@
     $("history-month").value = currentMonth.slice(0, 7);
     renderAll();
     registerServiceWorker();
-    initSplashScreen();
     checkFirstTimeOnboarding();
   }
 
@@ -1554,20 +1554,11 @@
     $("setting-bg-color-val").textContent = (state.settings.bgColor || "#ffffff").toUpperCase();
     $("setting-border-color-val").textContent = (state.settings.borderColor || "#e2e8f0").toUpperCase();
     $("setting-gauge-color-val").textContent = (state.settings.gaugeColor || "#34d399").toUpperCase();
-    $("setting-budget-mode").value = state.settings.budgetMode || "usage";
+    const budgetModeEl = $("setting-budget-mode");
+    if (budgetModeEl) budgetModeEl.value = state.settings.budgetMode || "usage";
     renderPresetPalette();
     updatePresetButtons();
     applyThemeColors();
-  }
-
-  function updatePresetButtons() {
-    const c1 = (state.settings.themeColor1 || "").toLowerCase();
-    const c2 = (state.settings.themeColor2 || "").toLowerCase();
-    document.querySelectorAll(".theme-swatch").forEach((btn) => {
-      const p1 = (btn.dataset.color1 || "").toLowerCase();
-      const p2 = (btn.dataset.color2 || "").toLowerCase();
-      btn.classList.toggle("is-active", c1 === p1 && c2 === p2);
-    });
   }
 
   function updateCyclePreview() {
