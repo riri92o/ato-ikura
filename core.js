@@ -540,6 +540,7 @@
     isValidStateShape,
     monthKeyFromDateKey,
     normalizeAmount,
+    pad2,
     parseDateKey,
     summarizeMonth,
     toDateKey,

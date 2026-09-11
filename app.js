@@ -744,6 +744,7 @@
     });
 
     setupSwipeNavigation();
+    setupBottomNavSlide();
 
     $("back-to-cards-btn").addEventListener("click", () => switchCardSubView("main"));
 
@@ -951,6 +952,49 @@
     }, { passive: true });
   }
 
+  function setupBottomNavSlide() {
+    const nav = document.querySelector(".bottom-nav");
+    if (!nav) return;
+    const viewsOrder = ["calendar", "history", "report", "cards", "settings"];
+    let isNavSliding = false;
+    let lastSwitchedView = "";
+
+    const handleNavTouch = (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const navRect = nav.getBoundingClientRect();
+
+      const relativeX = Math.max(0, Math.min(navRect.width, touch.clientX - navRect.left));
+      const sectionWidth = navRect.width / viewsOrder.length;
+      const targetIndex = Math.min(viewsOrder.length - 1, Math.floor(relativeX / sectionWidth));
+      const targetView = viewsOrder[targetIndex];
+
+      if (targetView && targetView !== lastSwitchedView && targetView !== currentView) {
+        lastSwitchedView = targetView;
+        switchView(targetView);
+      }
+    };
+
+    nav.addEventListener("touchstart", (e) => {
+      isNavSliding = true;
+      lastSwitchedView = currentView;
+      handleNavTouch(e);
+    }, { passive: true });
+
+    nav.addEventListener("touchmove", (e) => {
+      if (!isNavSliding) return;
+      handleNavTouch(e);
+    }, { passive: true });
+
+    nav.addEventListener("touchend", () => {
+      isNavSliding = false;
+    }, { passive: true });
+
+    nav.addEventListener("touchcancel", () => {
+      isNavSliding = false;
+    }, { passive: true });
+  }
+
   function switchPaymentsSubview(subview) {
     if (!["cards", "subscriptions"].includes(subview)) return;
     currentPaymentsSubview = subview;
@@ -1153,7 +1197,7 @@
 
       for (let offset = -2; offset <= 1; offset++) {
         const target = Core.addMonths(y, m - 1, offset);
-        const mK = `${target.year}-${Core.pad2(target.monthIndex + 1)}`;
+        const mK = `${target.year}-${String(target.monthIndex + 1).padStart(2, "0")}`;
         const usageDate = Core.getSubscriptionUsageDate(sub, mK);
         if (usageDate) {
           const fakeExp = { paymentMethod: Core.CREDIT_PAYMENT, cardId: sub.cardId, date: usageDate };
