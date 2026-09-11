@@ -178,12 +178,38 @@ const octWithdrawal = dailyWithManual.get("2026-10-27")?.cardWithdrawal;
 if (octWithdrawal !== 50000) throw new Error("Double-counting prevention failed! Expected 50000, got " + octWithdrawal);
 print("Double-counting prevention verified! Oct withdrawal:", octWithdrawal);
 
-// Test paused subscription visibility
-const pausedSub = { ...sampleSubCard, id: "sub_paused", isActive: false };
-const pausedDateNormal = AtoIkuraCore.getSubscriptionUsageDate(pausedSub, "2026-09", false);
-if (pausedDateNormal !== "") throw new Error("Expected empty string for active-only call on paused sub, got " + pausedDateNormal);
-const pausedDateIgnoreActive = AtoIkuraCore.getSubscriptionUsageDate(pausedSub, "2026-09", true);
-if (pausedDateIgnoreActive !== "2026-09-20") throw new Error("Expected 2026-09-20 for ignoreActive call on paused sub, got " + pausedDateIgnoreActive);
-print("Paused subscription visibility test passed!");
+// Outflow (口座から出る額) Calculation Test:
+// 1. Direct subscription in Sep (Rent 80,000 on Sep 25) -> direct = 80,000, outflow = 80,000
+// 2. Card subscription in Aug (Netflix 890 on Aug 20 -> billed on Sep 27) -> cardWithdrawal = 890, outflow in Sep = 890
+// Total Sep Outflow should be 80,890
+const sepSummary = AtoIkuraCore.summarizeMonth("2026-09", [], [sampleCard1], [], 1, [sampleSubMonthly, sampleSubCard]);
+if (sepSummary.outflow !== 80890) throw new Error("Expected Sep outflow 80890, got " + sepSummary.outflow);
+if (sepSummary.cardWithdrawal !== 890) throw new Error("Expected Sep cardWithdrawal 890, got " + sepSummary.cardWithdrawal);
+print("Outflow (口座から出る額) verification passed! Sep outflow:", sepSummary.outflow);
+
+// Calendar deduplication test:
+// On Sep 20 (Netflix billing date): usage should be 0 in dailyTotals because it's paid by credit card
+// On Sep 25 (Rent debit date): usage = 80000, outflow = 80000
+// On Sep 27 (Card payment date): cardWithdrawal = 890, outflow = 890, usage = 0
+const dailySep = AtoIkuraCore.buildDailyTotals([], [sampleCard1], [], [sampleSubMonthly, sampleSubCard], ["2026-09"]);
+const sep20Totals = dailySep.get("2026-09-20") || { usage: 0, cardWithdrawal: 0, outflow: 0 };
+if (sep20Totals.usage !== 0) throw new Error("Calendar duplicate badge bug! Expected usage 0 on credit card subscription billing day, got " + sep20Totals.usage);
+const sep25Totals = dailySep.get("2026-09-25") || { usage: 0, cardWithdrawal: 0, outflow: 0 };
+if (sep25Totals.usage !== 80000 || sep25Totals.outflow !== 80000) throw new Error("Expected direct subscription on Sep 25 to have 80000 usage/outflow, got " + JSON.stringify(sep25Totals));
+const sep27Totals = dailySep.get("2026-09-27") || { usage: 0, cardWithdrawal: 0, outflow: 0 };
+if (sep27Totals.cardWithdrawal !== 890 || sep27Totals.outflow !== 890 || sep27Totals.usage !== 0) throw new Error("Expected card withdrawal on Sep 27 to have 890 cardWithdrawal/outflow and 0 usage, got " + JSON.stringify(sep27Totals));
+print("Calendar marker deduplication verified successfully!");
+
+// Test paused subscription exclusion in summarizeMonth and buildDailyTotals
+const pausedRent = { ...sampleSubMonthly, isActive: false };
+const pausedSummary = AtoIkuraCore.summarizeMonth("2026-09", [], [sampleCard1], [], 1, [pausedRent, sampleSubCard]);
+if (pausedSummary.usage !== 890) throw new Error("Paused subscription should be excluded from usage! Expected 890, got " + pausedSummary.usage);
+if (pausedSummary.outflow !== 890) throw new Error("Paused subscription should be excluded from outflow! Expected 890, got " + pausedSummary.outflow);
+print("Paused subscription exclusion verified! Usage:", pausedSummary.usage, "Outflow:", pausedSummary.outflow);
+
+// Test deleted subscription (empty array or filtered)
+const emptySummary = AtoIkuraCore.summarizeMonth("2026-09", [], [sampleCard1], [], 1, []);
+if (emptySummary.usage !== 0 || emptySummary.outflow !== 0) throw new Error("Deleted subscriptions should result in 0 usage and 0 outflow");
+print("Deleted subscription exclusion verified!");
 
 print("All view, dialog, and subscription integration tests passed successfully!");

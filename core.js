@@ -308,16 +308,19 @@
     });
 
     // 2. 固定費・サブスク（対象月の展開）
-    const monthsToProcess = new Set(baseMonthKeys || []);
-    if (!monthsToProcess.size) {
-      // 指定がなければ過去6ヶ月〜未来6ヶ月を自動展開
-      const nowKey = todayKey().slice(0, 7);
-      const [nowY, nowM] = nowKey.split("-").map(Number);
-      for (let offset = -6; offset <= 6; offset++) {
-        const target = addMonths(nowY, nowM - 1, offset);
+    const monthsToProcess = new Set();
+    const baseList = (baseMonthKeys && baseMonthKeys.length > 0) ? baseMonthKeys : [todayKey().slice(0, 7)];
+    baseList.forEach((mKey) => {
+      const parsed = parseDateKey(`${mKey}-01`);
+      if (!parsed) return;
+      const y = parsed.getFullYear();
+      const m = parsed.getMonth();
+      // 締め日・引き落とし日のズレ（最大2〜3ヶ月）や集計サイクルを考慮し前後3ヶ月を展開
+      for (let offset = -3; offset <= 3; offset++) {
+        const target = addMonths(y, m, offset);
         monthsToProcess.add(`${target.year}-${pad2(target.monthIndex + 1)}`);
       }
-    }
+    });
 
     (subscriptions || []).forEach((sub) => {
       if (!sub || sub.isActive === false) return;
@@ -328,13 +331,16 @@
         const usageDate = getSubscriptionUsageDate(sub, mKey);
         if (!usageDate) return;
 
-        const usageDay = ensure(usageDate);
-        usageDay.usage += amount;
-
         if (isDirectPayment(sub)) {
+          // 口座引き落とし等の直接支払い：発生日に利用額・口座出金として計上
+          const usageDay = ensure(usageDate);
+          usageDay.usage += amount;
           usageDay.direct += amount;
           usageDay.outflow += amount;
         } else if (sub.includeInWithdrawal !== false) {
+          // クレジットカード決済：カレンダー上の二重表示を防ぐため、
+          // カード引き落とし日にのみ出金・カード引き落とし予定として計上
+          // （月次全体の利用額 summarizeMonth.usage には別途確実に合算されます）
           const fakeExpense = { paymentMethod: CREDIT_PAYMENT, cardId: sub.cardId, date: usageDate };
           const paymentDate = getExpensePaymentDate(fakeExpense, cards);
           if (paymentDate) {

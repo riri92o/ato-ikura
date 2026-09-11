@@ -864,6 +864,14 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  let suppressClickUntil = 0;
+  window.addEventListener("click", (e) => {
+    if (Date.now() < suppressClickUntil) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  }, true);
+
   function setupSwipeNavigation() {
     const viewsOrder = ["calendar", "history", "report", "cards", "settings"];
     let touchStartX = 0;
@@ -876,10 +884,12 @@
     window.addEventListener("touchstart", (e) => {
       if (e.touches.length !== 1) return;
       const target = e.target;
+      // 開いているモーダル内、入力フォーム、横スクロールUI上では画面スワイプを無効化
+      // ※ボタンやリンク上でのタッチも追跡開始し、横ドラッグされた場合のみスワイプに移行
       if (
         target.closest("dialog[open]") ||
-        target.closest("input, textarea, select, canvas, button, a") ||
-        target.closest(".filter-chip-group, .summary-filter-row, .palette-row, .month-toolbar")
+        target.closest("input, textarea, select, canvas") ||
+        target.closest(".filter-chip-group, .summary-filter-row, .palette-row, .month-toolbar, .horizontal-scroll")
       ) {
         isTracking = false;
         return;
@@ -912,7 +922,7 @@
         const currentIndex = viewsOrder.indexOf(currentView);
         const atStart = currentIndex === 0 && deltaX > 0;
         const atEnd = currentIndex === viewsOrder.length - 1 && deltaX < 0;
-        const damping = atStart || atEnd ? 0.15 : 0.4;
+        const damping = atStart || atEnd ? 0.15 : 0.38;
         activeViewEl.style.transition = "none";
         activeViewEl.style.transform = `translateX(${deltaX * damping}px)`;
       }
@@ -938,11 +948,16 @@
       const currentIndex = viewsOrder.indexOf(currentView);
 
       if (activeViewEl) {
-        activeViewEl.style.transition = "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)";
+        activeViewEl.style.transition = "transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)";
         activeViewEl.style.transform = "";
       }
 
-      if (isHorizontalSwipe && elapsedTime < 600 && Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      if (isHorizontalSwipe && Math.abs(deltaX) > 15) {
+        // 横スワイプ操作時は直後のクリック誤発火を抑止
+        suppressClickUntil = Date.now() + 350;
+      }
+
+      if (isHorizontalSwipe && elapsedTime < 600 && Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
         if (deltaX < 0 && currentIndex < viewsOrder.length - 1) {
           switchView(viewsOrder[currentIndex + 1], "next");
         } else if (deltaX > 0 && currentIndex > 0) {
@@ -957,27 +972,37 @@
     if (!nav) return;
     const viewsOrder = ["calendar", "history", "report", "cards", "settings"];
     let isNavSliding = false;
-    let lastSwitchedView = "";
+    let lastSwitchTime = 0;
 
     const handleNavTouch = (e) => {
       if (e.touches.length !== 1) return;
+      const now = Date.now();
+      if (now - lastSwitchTime < 160) return; // 緩やかに切り替わるようスロットリング
+
       const touch = e.touches[0];
       const navRect = nav.getBoundingClientRect();
-
       const relativeX = Math.max(0, Math.min(navRect.width, touch.clientX - navRect.left));
       const sectionWidth = navRect.width / viewsOrder.length;
-      const targetIndex = Math.min(viewsOrder.length - 1, Math.floor(relativeX / sectionWidth));
-      const targetView = viewsOrder[targetIndex];
+      
+      const rawIndex = relativeX / sectionWidth;
+      const targetIndex = Math.min(viewsOrder.length - 1, Math.max(0, Math.floor(rawIndex)));
+      const offsetWithinSection = rawIndex - targetIndex;
 
-      if (targetView && targetView !== lastSwitchedView && targetView !== currentView) {
-        lastSwitchedView = targetView;
-        switchView(targetView);
+      // 境界付近（端15%以内）での過敏なチラつきを防ぐヒステリシス
+      const currentIndex = viewsOrder.indexOf(currentView);
+      if (targetIndex !== currentIndex) {
+        if (targetIndex > currentIndex && offsetWithinSection < 0.15) return;
+        if (targetIndex < currentIndex && offsetWithinSection > 0.85) return;
+        
+        lastSwitchTime = now;
+        const direction = targetIndex > currentIndex ? "next" : "prev";
+        switchView(viewsOrder[targetIndex], direction);
       }
     };
 
     nav.addEventListener("touchstart", (e) => {
       isNavSliding = true;
-      lastSwitchedView = currentView;
+      lastSwitchTime = Date.now();
       handleNavTouch(e);
     }, { passive: true });
 
@@ -1277,7 +1302,7 @@
     const isFutureMonth = monthKey > todayMonthKey;
 
     const cycleDay = state.settings.cycleStartDay || 1;
-    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
     const mode = state.settings.budgetMode || "usage";
     const isUsage = mode === "usage";
 
@@ -1434,7 +1459,7 @@
     $("summary-direct").textContent = formatYen(summary.direct);
     $("summary-card").textContent = formatYen(summary.cardWithdrawal);
     $("summary-outflow").textContent = formatYen(summary.outflow);
-    const next = Core.getNextCardWithdrawal(Core.todayKey(), state.expenses, state.cards, state.manualPayments);
+    const next = Core.getNextCardWithdrawal(Core.todayKey(), state.expenses, state.cards, state.manualPayments, state.subscriptions);
     $("summary-next-card").textContent = next ? `${formatShortDate(next.date)}・${formatYen(next.amount)}` : "予定なし";
   }
 
@@ -1503,14 +1528,28 @@
   function renderBalance() {
     const current = state.settings.currentBalance;
     const reserve = state.settings.minimumReserve;
-    const upcoming = Core.getUpcomingCardTotal(Core.todayKey(), 30, state.expenses, state.cards, state.manualPayments);
+    const upcoming = Core.getUpcomingCardTotal(Core.todayKey(), 30, state.expenses, state.cards, state.manualPayments, state.subscriptions);
     
     // 今月/直近30日の固定費予定
     const today = Core.todayKey();
     const next30 = Core.addDays(today, 30);
-    const fixedTotal = state.expenses
+    let fixedTotal = state.expenses
       .filter((e) => e.category === "固定費" && e.date >= today && e.date <= next30)
       .reduce((sum, e) => sum + Core.normalizeAmount(e.amount), 0);
+
+    const nowY = Number(today.slice(0, 4));
+    const nowM = Number(today.slice(5, 7));
+    (state.subscriptions || []).forEach((sub) => {
+      if (!sub || sub.isActive === false) return;
+      for (let offset = 0; offset <= 1; offset++) {
+        const target = Core.addMonths(nowY, nowM - 1, offset);
+        const mKey = `${target.year}-${String(target.monthIndex + 1).padStart(2, "0")}`;
+        const usageDate = Core.getSubscriptionUsageDate(sub, mKey);
+        if (usageDate && usageDate >= today && usageDate <= next30) {
+          fixedTotal += Core.normalizeAmount(sub.amount);
+        }
+      }
+    });
 
     const balanceCurrentEl = $("balance-current");
     const balanceUpcomingEl = $("balance-upcoming");
@@ -1536,7 +1575,7 @@
     if (!container) return;
     const monthKey = reportMonth.slice(0, 7);
     const cycleDay = state.settings.cycleStartDay || 1;
-    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
     const entries = Object.entries(summary.categories).sort((a, b) => b[1] - a[1]);
     if (!entries.length) {
       container.replaceChildren(createElement("p", "empty-inline", "この月の支出はまだありません。"));
@@ -3570,8 +3609,8 @@
     const prevDate = new Date(curDate.getFullYear(), curDate.getMonth() - 1, 1, 12);
     const prevMonthKey = Core.toDateKey(prevDate).slice(0, 7);
 
-    const curSummary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
-    const prevSummary = Core.summarizeMonth(prevMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
+    const curSummary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
+    const prevSummary = Core.summarizeMonth(prevMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
 
     const mode = state.settings.budgetMode || "usage";
     const curSpent = mode === "usage" ? curSummary.usage : curSummary.outflow;
@@ -3843,8 +3882,8 @@
     const prevMonthKey = Core.toDateKey(prevDate).slice(0, 7);
     const cycleDay = state.settings.cycleStartDay || 1;
 
-    const curSum = Core.summarizeMonth(curMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
-    const prevSum = Core.summarizeMonth(prevMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
+    const curSum = Core.summarizeMonth(curMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
+    const prevSum = Core.summarizeMonth(prevMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
 
     const curUsage = curSum.usage;
     const prevUsage = prevSum.usage;
@@ -3891,16 +3930,20 @@
       return e.date >= range.startDate && e.date <= range.endDate;
     });
 
-    if (!monthlyExpenses.length) {
-      container.replaceChildren(emptyState("この月の支出データはありません", ""));
-      return;
-    }
-
     const payTotals = {};
     PAYMENT_METHODS.forEach((pm) => { payTotals[pm] = 0; });
     monthlyExpenses.forEach((e) => {
       const pm = PAYMENT_METHODS.includes(e.paymentMethod) ? e.paymentMethod : "その他";
       payTotals[pm] = (payTotals[pm] || 0) + Core.normalizeAmount(e.amount);
+    });
+
+    (state.subscriptions || []).forEach((sub) => {
+      if (!sub || sub.isActive === false) return;
+      const usageDate = Core.getSubscriptionUsageDate(sub, monthKey);
+      if (usageDate && usageDate >= range.startDate && usageDate <= range.endDate) {
+        const pm = PAYMENT_METHODS.includes(sub.paymentMethod) ? sub.paymentMethod : "その他";
+        payTotals[pm] = (payTotals[pm] || 0) + Core.normalizeAmount(sub.amount);
+      }
     });
 
     const entries = Object.entries(payTotals).filter(([, amt]) => amt > 0).sort((a, b) => b[1] - a[1]);
@@ -3939,11 +3982,6 @@
       return e.date >= range.startDate && e.date <= range.endDate;
     });
 
-    if (!monthlyExpenses.length) {
-      container.replaceChildren(emptyState("この月の支出データはありません", ""));
-      return;
-    }
-
     let fixedSum = 0;
     let otherSum = 0;
     monthlyExpenses.forEach((e) => {
@@ -3952,7 +3990,20 @@
       else otherSum += amt;
     });
 
+    (state.subscriptions || []).forEach((sub) => {
+      if (!sub || sub.isActive === false) return;
+      const usageDate = Core.getSubscriptionUsageDate(sub, monthKey);
+      if (usageDate && usageDate >= range.startDate && usageDate <= range.endDate) {
+        fixedSum += Core.normalizeAmount(sub.amount);
+      }
+    });
+
     const total = fixedSum + otherSum || 1;
+    if (total <= 1 && fixedSum === 0 && otherSum === 0) {
+      container.replaceChildren(emptyState("この月の支出データはありません", ""));
+      return;
+    }
+
     const entries = [
       { label: "固定費", amount: fixedSum, color: "var(--card)" },
       { label: "変動費・その他", amount: otherSum, color: "var(--accent)" },
@@ -3977,7 +4028,7 @@
   function renderCategoryDoughnutChart(textColor, textMutedColor) {
     const monthKey = reportMonth.slice(0, 7);
     const cycleDay = state.settings.cycleStartDay || 1;
-    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
     const entries = Object.entries(summary.categories).sort((a, b) => b[1] - a[1]);
     const legendContainer = $("category-chart-legend");
     const chartCanvas = $("category-chart");
@@ -4063,7 +4114,7 @@
     const outflowData = [];
 
     months.forEach((monthKey) => {
-      const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay);
+      const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
       usageData.push(summary.usage);
       outflowData.push(summary.outflow);
     });
