@@ -718,8 +718,9 @@ h3 {
 .calendar-day {
   position: relative;
   min-width: 0;
-  min-height: 48px;
-  padding: 2px 2px 4px;
+  min-height: 56px;
+  box-sizing: border-box;
+  padding: 2px 1px 3px;
   border: 0;
   background: var(--surface);
   text-align: center;
@@ -727,9 +728,10 @@ h3 {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 2px;
+  gap: 1.5px;
   cursor: pointer;
   transition: background 0.12s ease;
+  overflow: hidden;
 }
 
 .calendar-day:hover {
@@ -750,15 +752,17 @@ h3 {
 }
 
 .day-number {
-  display: inline-grid;
-  width: 22px;
-  height: 22px;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 750;
   color: var(--text);
   line-height: 1;
+  margin-bottom: 1px;
 }
 
 .calendar-day.is-today .day-number {
@@ -769,15 +773,19 @@ h3 {
 }
 
 .day-amount {
-  display: inline-block;
+  display: block;
+  width: calc(100% - 2px);
+  margin: 0 auto;
   min-width: 0;
   max-width: 100%;
-  padding: 1px 4px;
+  box-sizing: border-box;
+  padding: 1px 2px;
   overflow: hidden;
-  border-radius: 4px;
-  font-size: 0.64rem;
+  border-radius: 3px;
+  font-size: clamp(0.52rem, 1.7vw, 0.68rem);
   font-weight: 750;
   line-height: 1.2;
+  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -789,6 +797,8 @@ h3 {
 
 .day-amount.card-custom {
   border-left: 2px solid currentColor;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .calendar-legend {
@@ -2081,25 +2091,33 @@ textarea {
   z-index: 35;
   right: max(16px, calc((100vw - 760px) / 2 + 16px));
   bottom: calc(var(--bottom-nav-height) + 14px + env(safe-area-inset-bottom));
-  display: grid;
-  width: 48px;
-  height: 48px;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  padding: 0;
   border: 0;
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
   color: #ffffff;
-  font-size: 1.6rem;
-  font-weight: 400;
-  line-height: 1;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fab svg {
+  display: block;
+  margin: auto;
 }
 
 .fab:hover {
   transform: scale(1.06);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.fab:active {
+  transform: scale(0.95);
 }
 
 dialog {
@@ -3287,12 +3305,12 @@ dialog {
 }
 
 .calendar-day {
-  min-height: clamp(60px, 12.5vw, 92px);
-  padding: 4px 3px;
+  min-height: clamp(56px, 12vw, 84px);
+  padding: 2px 1px 3px;
 }
 
 .day-amount {
-  font-size: clamp(0.55rem, 1.8vw, 0.72rem);
+  font-size: clamp(0.52rem, 1.7vw, 0.68rem);
   line-height: 1.15;
   overflow: hidden;
   text-overflow: ellipsis;

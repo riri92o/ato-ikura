@@ -502,10 +502,18 @@
                       <span id="setting-gauge-color-val" class="color-hex">#34D399</span>
                     </div>
                   </label>
+
+                  <label class="color-picker-item" for="setting-usage-color">
+                    <span class="color-label">使った金額</span>
+                    <div class="color-input-wrapper">
+                      <input id="setting-usage-color" type="color" value="#0284c7" />
+                      <span id="setting-usage-color-val" class="color-hex">#0284C7</span>
+                    </div>
+                  </label>
                 </div>
 
                 <div style="margin-top: 10px;">
-                  <button id="reset-colors-button" class="button button-ghost full-width" type="button">背景・枠線・ゲージを初期値に戻す</button>
+                  <button id="reset-colors-button" class="button button-ghost full-width" type="button">テーマ・カラーを初期値に戻す</button>
                 </div>
               </div>
             </section>
@@ -605,7 +613,9 @@
         </section>
       </main>
 
-      <button id="quick-add-button" class="fab" type="button" aria-label="支出を追加">＋</button>
+      <button id="quick-add-button" class="fab" type="button" aria-label="支出を追加">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
 
       <nav class="bottom-nav" aria-label="メインメニュー">
         <button class="nav-item is-active" type="button" data-view="calendar" aria-current="page">

@@ -719,14 +719,31 @@
       showToast("ゲージ色を保存しました。");
     });
 
+    const settingUsageColor = $("setting-usage-color");
+    if (settingUsageColor) {
+      settingUsageColor.addEventListener("input", (e) => {
+        state.settings.usageColor = e.target.value;
+        applyThemeColors();
+        renderCalendar();
+      });
+      settingUsageColor.addEventListener("change", () => {
+        saveState();
+        showToast("使った金額の表示色を保存しました。");
+      });
+    }
+
     $("reset-colors-button").addEventListener("click", () => {
       state.settings.bgColor = "#ffffff";
       state.settings.borderColor = "#e2e8f0";
       state.settings.gaugeColor = "#34d399";
+      state.settings.usageColor = "#0284c7";
       saveState();
       applyThemeColors();
-      showToast("背景・枠線・ゲージの色を初期値に戻しました。");
+      renderCalendar();
+      showToast("テーマ・カラーを初期値に戻しました。");
     });
+
+    setupSwipeNavigation();
 
     $("back-to-cards-btn").addEventListener("click", () => switchCardSubView("main"));
 
@@ -826,6 +843,54 @@
       renderSettings();
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function setupSwipeNavigation() {
+    const viewsOrder = ["calendar", "history", "report", "cards", "settings"];
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let isTouchActive = false;
+
+    window.addEventListener("touchstart", (e) => {
+      if (e.touches.length !== 1) return;
+      const target = e.target;
+      if (
+        target.closest("dialog[open]") ||
+        target.closest("input, textarea, select, canvas, button") ||
+        target.closest(".filter-chip-group, .summary-filter-row, .palette-row")
+      ) {
+        isTouchActive = false;
+        return;
+      }
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchStartTime = Date.now();
+      isTouchActive = true;
+    }, { passive: true });
+
+    window.addEventListener("touchend", (e) => {
+      if (!isTouchActive || e.changedTouches.length !== 1) return;
+      isTouchActive = false;
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      const elapsedTime = Date.now() - touchStartTime;
+
+      if (elapsedTime > 550) return;
+      if (Math.abs(deltaX) < 55) return;
+      if (Math.abs(deltaX) < Math.abs(deltaY) * 1.3) return;
+
+      const currentIndex = viewsOrder.indexOf(currentView);
+      if (currentIndex === -1) return;
+
+      if (deltaX < 0 && currentIndex < viewsOrder.length - 1) {
+        switchView(viewsOrder[currentIndex + 1]);
+      } else if (deltaX > 0 && currentIndex > 0) {
+        switchView(viewsOrder[currentIndex - 1]);
+      }
+    }, { passive: true });
   }
 
   function switchPaymentsSubview(subview) {
@@ -989,11 +1054,20 @@
       const amount = getCardWithdrawalAmount(card.id, dateKey);
       if (scheduledDate !== dateKey && amount <= 0) return;
 
-      const marker = createElement("span", "day-amount card card-custom", formatCalendarAmount(amount));
+      let labelText = "";
+      if (amount > 0) {
+        labelText = formatCalendarAmount(amount);
+      } else if (scheduledDate === dateKey) {
+        labelText = "引落日";
+      }
+      if (!labelText) return;
+
+      const marker = createElement("span", "day-amount card card-custom", labelText);
       marker.style.color = card.color;
-      marker.style.backgroundColor = colorWithAlpha(card.color, 0.15);
-      marker.title = `${card.name}の引き落とし`;
-      marker.setAttribute("aria-label", `${card.name}の引き落とし ${formatYen(amount)}`);
+      marker.style.backgroundColor = colorWithAlpha(card.color, 0.18);
+      marker.style.borderColor = card.color;
+      marker.title = `${card.name}の引き落とし ${amount > 0 ? formatYen(amount) : ""}`;
+      marker.setAttribute("aria-label", `${card.name}の引き落とし ${amount > 0 ? formatYen(amount) : ""}`);
       dayButton.append(marker);
     });
   }
@@ -2171,7 +2245,7 @@
     const sub = state.subscriptions.find((item) => item.id === subId);
     if (!sub) return;
 
-    sub.isActive = !(sub.isActive !== false);
+    sub.isActive = (sub.isActive === false);
     saveState();
     closeDialog($("subscription-detail-dialog"));
     renderAll();
@@ -2324,11 +2398,16 @@
     $("setting-bg-color").value = state.settings.bgColor || "#ffffff";
     $("setting-border-color").value = state.settings.borderColor || "#e2e8f0";
     $("setting-gauge-color").value = state.settings.gaugeColor || "#34d399";
+    const usageColor = state.settings.usageColor || "#0284c7";
+    const usageColorEl = $("setting-usage-color");
+    if (usageColorEl) usageColorEl.value = usageColor;
     $("theme-color-1-val").textContent = (state.settings.themeColor1 || "#185a37").toUpperCase();
     $("theme-color-2-val").textContent = (state.settings.themeColor2 || "#388f5f").toUpperCase();
     $("setting-bg-color-val").textContent = (state.settings.bgColor || "#ffffff").toUpperCase();
     $("setting-border-color-val").textContent = (state.settings.borderColor || "#e2e8f0").toUpperCase();
     $("setting-gauge-color-val").textContent = (state.settings.gaugeColor || "#34d399").toUpperCase();
+    const usageColorValEl = $("setting-usage-color-val");
+    if (usageColorValEl) usageColorValEl.textContent = usageColor.toUpperCase();
     const budgetModeEl = $("setting-budget-mode");
     if (budgetModeEl) budgetModeEl.value = state.settings.budgetMode || "usage";
     renderPresetPalette();
@@ -2839,6 +2918,11 @@
     const gaugeVal = $("setting-gauge-color-val");
     if (gaugeInput && gaugeInput.value.toLowerCase() !== gaugeColor.toLowerCase()) gaugeInput.value = gaugeColor;
     if (gaugeVal) gaugeVal.textContent = gaugeColor.toUpperCase();
+
+    const usageInput = $("setting-usage-color");
+    const usageVal = $("setting-usage-color-val");
+    if (usageInput && usageInput.value.toLowerCase() !== usageColor.toLowerCase()) usageInput.value = usageColor;
+    if (usageVal) usageVal.textContent = usageColor.toUpperCase();
 
     const preview = $("theme-preview-bar");
     if (preview) {
