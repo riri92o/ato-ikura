@@ -922,15 +922,17 @@
         <input id="sub-icon-val" type="hidden" value="other" />
         <div class="form-grid">
           <!-- サービス名 ＆ アイコン選択 -->
-          <label class="sub-name-field">サービス名<span class="required">必須</span>
-            <input id="sub-name-input" type="text" maxlength="60" placeholder="例：家賃、Netflix、Spotify、電気代" required />
-          </label>
-          <div class="sub-icon-field">
-            <span class="field-label">アイコン</span>
-            <button id="sub-icon-picker-btn" class="sub-icon-preview-btn" type="button">
-              <span id="sub-icon-preview-box" class="sub-icon-preview-box"></span>
-              <span class="sub-icon-preview-label">選択</span>
-            </button>
+          <div class="sub-header-row full-span">
+            <label class="sub-name-label">サービス名<span class="required">必須</span>
+              <input id="sub-name-input" type="text" maxlength="60" placeholder="例：家賃、Netflix、Spotify、電気代" required />
+            </label>
+            <div class="sub-icon-picker-group">
+              <span class="field-label">アイコン</span>
+              <button id="sub-icon-picker-btn" class="sub-icon-picker-btn" type="button" aria-label="アイコンを変更">
+                <span id="sub-icon-preview-box" class="sub-icon-preview-box"></span>
+                <span class="sub-icon-picker-text">変更</span>
+              </button>
+            </div>
           </div>
 
           <!-- 種類（固定費 / サブスク） -->
@@ -966,6 +968,7 @@
           <!-- 支払い日（1〜31日 / 月末） -->
           <label id="sub-day-field">支払い日（発生日）
             <select id="sub-day-select"></select>
+            <span id="sub-day-hint" class="field-hint"></span>
           </label>
 
           <!-- 支払い月（年払い時のみ） -->

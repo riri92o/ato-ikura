@@ -247,8 +247,8 @@
     return expense && expense.paymentMethod !== CREDIT_PAYMENT;
   }
 
-  function getSubscriptionUsageDate(sub, monthKey) {
-    if (!sub || sub.isActive === false) return "";
+  function getSubscriptionUsageDate(sub, monthKey, ignoreActive = false) {
+    if (!sub || (!ignoreActive && sub.isActive === false)) return "";
     const parsed = parseDateKey(`${monthKey}-01`);
     if (!parsed) return "";
 

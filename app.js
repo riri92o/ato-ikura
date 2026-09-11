@@ -490,7 +490,16 @@
     const subAmtInput = $("sub-amount-input");
     if (subAmtInput) subAmtInput.addEventListener("blur", formatMoneyInput);
     const subPayMethod = $("sub-payment-method");
-    if (subPayMethod) subPayMethod.addEventListener("change", updateSubscriptionFormVisibility);
+    if (subPayMethod) {
+      subPayMethod.addEventListener("change", () => {
+        if (subPayMethod.value === Core.CREDIT_PAYMENT) {
+          onSubscriptionCardChange();
+        }
+        updateSubscriptionFormVisibility();
+      });
+    }
+    const subCardSelect = $("sub-card-select");
+    if (subCardSelect) subCardSelect.addEventListener("change", onSubscriptionCardChange);
     const subInterval = $("sub-interval-select");
     if (subInterval) subInterval.addEventListener("change", updateSubscriptionFormVisibility);
     const subIconPickerBtn = $("sub-icon-picker-btn");
@@ -941,7 +950,7 @@
     const cycleDay = state.settings.cycleStartDay || 1;
     const cycleRange = Core.getCycleRange(monthKey, cycleDay);
     const start = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1 - monthDate.getDay(), 12);
-    const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments);
+    const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments, state.subscriptions);
     const today = Core.todayKey();
     const nodes = [];
 
@@ -990,16 +999,48 @@
   }
 
   function getCardWithdrawalAmount(cardId, dateKey) {
-    const expenseTotal = state.expenses
+    const card = (state.cards || []).find((c) => c.id === cardId);
+    if (!card) return 0;
+
+    const manualTotal = (state.manualPayments || [])
+      .filter((payment) => payment.cardId === cardId && payment.date === dateKey)
+      .reduce((total, payment) => total + Core.normalizeAmount(payment.amount), 0);
+
+    // 手動確定額がある場合は確定額を優先（二重計上防止）
+    if (manualTotal > 0) {
+      return manualTotal;
+    }
+
+    const expenseTotal = (state.expenses || [])
       .filter((expense) => expense.paymentMethod === Core.CREDIT_PAYMENT && expense.cardId === cardId && expense.includeInWithdrawal !== false)
       .filter((expense) => Core.getExpensePaymentDate(expense, state.cards) === dateKey)
       .reduce((total, expense) => total + Core.normalizeAmount(expense.amount), 0);
 
-    const manualTotal = state.manualPayments
-      .filter((payment) => payment.cardId === cardId && payment.date === dateKey)
-      .reduce((total, payment) => total + Core.normalizeAmount(payment.amount), 0);
+    let subscriptionTotal = 0;
+    const monthKey = dateKey.slice(0, 7);
+    const [y, m] = monthKey.split("-").map(Number);
 
-    return expenseTotal + manualTotal;
+    (state.subscriptions || []).forEach((sub) => {
+      if (!sub || sub.isActive === false || sub.paymentMethod !== Core.CREDIT_PAYMENT || sub.cardId !== cardId || sub.includeInWithdrawal === false) return;
+      const amt = Core.normalizeAmount(sub.amount);
+      if (amt <= 0) return;
+
+      for (let offset = -2; offset <= 1; offset++) {
+        const target = Core.addMonths(y, m - 1, offset);
+        const mK = `${target.year}-${Core.pad2(target.monthIndex + 1)}`;
+        const usageDate = Core.getSubscriptionUsageDate(sub, mK);
+        if (usageDate) {
+          const fakeExp = { paymentMethod: Core.CREDIT_PAYMENT, cardId: sub.cardId, date: usageDate };
+          const paymentDate = Core.getExpensePaymentDate(fakeExp, state.cards);
+          if (paymentDate === dateKey) {
+            subscriptionTotal += amt;
+            break;
+          }
+        }
+      }
+    });
+
+    return expenseTotal + subscriptionTotal;
   }
 
   function colorWithAlpha(hexColor, alpha) {
@@ -1463,13 +1504,44 @@
     const article = createElement("article", "card-item");
     article.style.setProperty("--card-color", card.color);
 
-    // 集計期間と今月のカード利用実績
+    // 集計期間と今月のカード利用実績（個別支出 ＋ 固定費・サブスク）
     const cycleDay = state.settings.cycleStartDay || 1;
-    const range = Core.getCycleRange(currentMonth.slice(0, 7), cycleDay);
-    const currentMonthExpenses = state.expenses
+    const monthKey = currentMonth.slice(0, 7);
+    const range = Core.getCycleRange(monthKey, cycleDay);
+
+    const cardExpenses = (state.expenses || [])
       .filter((e) => e.cardId === card.id && e.date >= range.startDate && e.date <= range.endDate)
-      .sort((a, b) => b.date.localeCompare(a.date));
-    const currentMonthUsage = currentMonthExpenses.reduce((sum, e) => sum + Core.normalizeAmount(e.amount), 0);
+      .map((e) => ({
+        isSubscription: false,
+        id: e.id,
+        date: e.date,
+        name: e.memo || e.category,
+        category: e.category,
+        amount: Core.normalizeAmount(e.amount),
+        includeInWithdrawal: e.includeInWithdrawal !== false,
+      }));
+
+    const cardSubscriptions = [];
+    (state.subscriptions || []).forEach((sub) => {
+      if (!sub || sub.isActive === false || sub.paymentMethod !== Core.CREDIT_PAYMENT || sub.cardId !== card.id) return;
+      const usageDate = Core.getSubscriptionUsageDate(sub, monthKey);
+      if (usageDate && usageDate >= range.startDate && usageDate <= range.endDate) {
+        cardSubscriptions.push({
+          isSubscription: true,
+          id: sub.id,
+          date: usageDate,
+          name: sub.name,
+          category: sub.category || "固定費",
+          icon: sub.icon,
+          type: sub.type,
+          amount: Core.normalizeAmount(sub.amount),
+          includeInWithdrawal: sub.includeInWithdrawal !== false,
+        });
+      }
+    });
+
+    const allCardItems = [...cardExpenses, ...cardSubscriptions].sort((a, b) => b.date.localeCompare(a.date));
+    const currentMonthUsage = allCardItems.reduce((sum, e) => sum + e.amount, 0);
 
     // --- 1. クレジットカード券面風UI (Card Face) ---
     const cardFace = createElement("div", "credit-card-face");
@@ -1491,7 +1563,7 @@
       createElement("span", "card-usage-label", `今月利用（${range.shortLabel}）`),
       createElement("strong", "card-usage-val", formatYen(currentMonthUsage))
     );
-    const countBadge = createElement("span", "card-usage-count-badge", `${currentMonthExpenses.length}件の利用`);
+    const countBadge = createElement("span", "card-usage-count-badge", `${allCardItems.length}件の利用`);
     faceMiddle.append(usageBlock, countBadge);
 
     // フッター行：締め日・支払日仕様 & 今月の確定額バッジ
@@ -1506,7 +1578,6 @@
     );
 
     // 今月の引き落とし確定額
-    const monthKey = currentMonth.slice(0, 7);
     const currentMonthPayments = state.manualPayments
       .filter((item) => item.cardId === card.id && item.date.startsWith(monthKey))
       .sort((a, b) => b.date.localeCompare(a.date));
@@ -1539,25 +1610,40 @@
     const expenseAccordion = createElement("details", "card-expense-accordion");
     const summary = createElement("summary", "card-expense-summary");
     summary.append(
-      createElement("span", "card-expense-summary-title", `今月の利用明細（${currentMonthExpenses.length}件・${formatYen(currentMonthUsage)}）`),
+      createElement("span", "card-expense-summary-title", `今月の利用明細（${allCardItems.length}件・${formatYen(currentMonthUsage)}）`),
       createElement("span", "card-accordion-arrow", "⌄")
     );
     expenseAccordion.append(summary);
 
     const expenseList = createElement("div", "card-expense-list");
-    if (!currentMonthExpenses.length) {
+    if (!allCardItems.length) {
       expenseList.append(createElement("p", "card-expense-empty", "今月の利用記録はありません"));
     } else {
-      currentMonthExpenses.forEach((item) => {
+      allCardItems.forEach((item) => {
         const row = createElement("button", "card-expense-row");
         row.type = "button";
-        row.title = "タップして支出を編集";
 
         const left = createElement("div", "card-expense-left");
         const dateEl = createElement("span", "card-expense-date", formatDate(item.date, { month: "numeric", day: "numeric", weekday: "short" }));
-        const catIcon = createElement("span", "card-expense-cat-icon", CATEGORY_ICONS[item.category] || "💳");
-        const memoEl = createElement("span", "card-expense-memo", item.memo || item.category);
-        left.append(dateEl, catIcon, memoEl);
+        left.append(dateEl);
+
+        if (item.isSubscription) {
+          const iconDef = SUBSCRIPTION_ICONS[item.icon] || SUBSCRIPTION_ICONS.other;
+          const iconSpan = createElement("span", "card-expense-cat-icon");
+          iconSpan.innerHTML = iconDef.svg;
+          const nameEl = createElement("span", "card-expense-memo", item.name);
+          const badgeType = item.type === "subscription" ? "サブスク" : "固定費";
+          const subBadge = createElement("span", "badge-card-subscription", badgeType);
+          left.append(iconSpan, nameEl, subBadge);
+          row.title = `タップして${badgeType}「${item.name}」の詳細を表示`;
+          row.addEventListener("click", () => openSubscriptionDetailDialog(item.id));
+        } else {
+          const catIcon = createElement("span", "card-expense-cat-icon", CATEGORY_ICONS[item.category] || "💳");
+          const memoEl = createElement("span", "card-expense-memo", item.name);
+          left.append(catIcon, memoEl);
+          row.title = "タップして支出を編集";
+          row.addEventListener("click", () => openExpenseDialog(item.date, item.id));
+        }
 
         if (item.includeInWithdrawal === false) {
           left.append(createElement("span", "badge-reimburse", "立替・精算済"));
@@ -1569,7 +1655,6 @@
         right.append(amtEl, editIcon);
 
         row.append(left, right);
-        row.addEventListener("click", () => openExpenseDialog(item.date, item.id));
         expenseList.append(row);
       });
     }
@@ -1693,11 +1778,11 @@
 
     (state.subscriptions || []).forEach((item) => {
       if (!item) return;
-      const usageDate = Core.getSubscriptionUsageDate(item, monthKey);
+      const usageDate = Core.getSubscriptionUsageDate(item, monthKey, true);
 
       if (isMonthScope) {
-        // 今月スコープ：当月に対象かつ有効なもの
-        if (!usageDate || item.isActive === false) return;
+        // 今月スコープ：当月に対象のもの（停止中も一覧に表示）
+        if (!usageDate) return;
         itemsToDisplay.push({ item, usageDate });
       } else {
         // 登録一覧スコープ：すべて
@@ -1869,6 +1954,38 @@
     if (dayField) dayField.classList.toggle("is-hidden", interval === "once");
     if (monthField) monthField.classList.toggle("is-hidden", interval !== "yearly");
     if (onetimeField) onetimeField.classList.toggle("is-hidden", interval !== "once");
+
+    updateSubscriptionDayHint();
+  }
+
+  function updateSubscriptionDayHint() {
+    const paymentMethod = $("sub-payment-method").value;
+    const isCredit = paymentMethod === Core.CREDIT_PAYMENT;
+    const hintEl = $("sub-day-hint");
+    if (!hintEl) return;
+
+    if (isCredit) {
+      const cardId = $("sub-card-select").value;
+      const card = state.cards.find((c) => c.id === cardId);
+      if (card) {
+        const dayLabel = card.paymentDay === "end" ? "月末" : `${card.paymentDay}日`;
+        hintEl.textContent = `※ ${card.name}の引き落とし日（${dayLabel}）`;
+        return;
+      }
+    }
+    hintEl.textContent = "";
+  }
+
+  function onSubscriptionCardChange() {
+    const isCredit = $("sub-payment-method").value === Core.CREDIT_PAYMENT;
+    if (isCredit) {
+      const cardId = $("sub-card-select").value;
+      const card = state.cards.find((c) => c.id === cardId);
+      if (card && $("sub-day-select")) {
+        $("sub-day-select").value = String(card.paymentDay);
+      }
+    }
+    updateSubscriptionDayHint();
   }
 
   function openSubscriptionDialog(subId = "") {
@@ -1887,16 +2004,25 @@
     $("sub-amount-type").value = sub ? sub.amountType : "fixed";
     $("sub-interval-select").value = sub ? sub.interval : "monthly";
 
-    const dayVal = sub ? String(sub.paymentDay) : "1";
+    const initialPayMethod = sub ? sub.paymentMethod : (state.cards.length ? Core.CREDIT_PAYMENT : "口座引き落とし");
+    $("sub-payment-method").value = initialPayMethod;
+
+    refreshSubscriptionCardOptions(sub ? sub.cardId : "");
+
+    let dayVal = "1";
+    if (sub) {
+      dayVal = String(sub.paymentDay);
+    } else if (initialPayMethod === Core.CREDIT_PAYMENT && state.cards.length) {
+      const selectedCardId = $("sub-card-select").value || state.cards[0].id;
+      const selectedCard = state.cards.find((c) => c.id === selectedCardId) || state.cards[0];
+      dayVal = String(selectedCard.paymentDay);
+    }
     $("sub-day-select").value = dayVal;
 
     const monthVal = sub ? String(sub.paymentMonth || 1) : "1";
     $("sub-month-select").value = monthVal;
 
     $("sub-onetime-input").value = sub ? (sub.oneTimeDate || "") : Core.todayKey();
-    $("sub-payment-method").value = sub ? sub.paymentMethod : (state.cards.length ? Core.CREDIT_PAYMENT : "口座引き落とし");
-
-    refreshSubscriptionCardOptions(sub ? sub.cardId : "");
     $("sub-include-withdrawal").checked = sub ? sub.includeInWithdrawal !== false : true;
     $("sub-category-select").value = sub ? sub.category : "固定費";
     $("sub-memo-input").value = sub ? sub.memo : "";
@@ -2285,23 +2411,118 @@
   function renderDayRecords(dateKey) {
     const section = $("day-records-section");
     const list = $("day-records-list");
-    const items = state.expenses
-      .filter((expense) => expense.date === dateKey)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    section.classList.toggle("is-hidden", !Core.parseDateKey(dateKey));
-    if (!items.length) {
-      list.replaceChildren(createElement("p", "empty-inline", "この日の支出はまだありません。"));
+    if (!section || !list) return;
+
+    if (!Core.parseDateKey(dateKey)) {
+      section.classList.add("is-hidden");
       return;
     }
-    list.replaceChildren(...items.map((expense) => {
-      const button = createElement("button", "compact-record");
-      button.type = "button";
-      const main = createElement("span", "");
-      main.append(createElement("strong", "", expense.memo || expense.category), createElement("small", "", `${expense.category}・${expense.paymentMethod}`));
-      button.append(main, createElement("strong", "", formatYen(expense.amount)));
-      button.addEventListener("click", () => openExpenseDialog(expense.date, expense.id));
-      return button;
-    }));
+    section.classList.remove("is-hidden");
+
+    const monthKey = dateKey.slice(0, 7);
+    const dayRecords = [];
+
+    // 1. 個別支出
+    const expenseItems = (state.expenses || [])
+      .filter((expense) => expense.date === dateKey)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+    expenseItems.forEach((expense) => {
+      dayRecords.push({
+        type: "expense",
+        title: expense.memo || expense.category,
+        subTitle: `${expense.category}・${expense.paymentMethod}`,
+        amount: Core.normalizeAmount(expense.amount),
+        onClick: () => openExpenseDialog(expense.date, expense.id),
+      });
+    });
+
+    // 2. 固定費・サブスク（当日の発生/決済）
+    (state.subscriptions || []).forEach((sub) => {
+      if (!sub || sub.isActive === false) return;
+      const usageDate = Core.getSubscriptionUsageDate(sub, monthKey);
+      if (usageDate === dateKey) {
+        dayRecords.push({
+          type: "subscription",
+          title: sub.name,
+          subTitle: `${sub.type === "subscription" ? "サブスク" : "固定費"}・${sub.paymentMethod}`,
+          amount: Core.normalizeAmount(sub.amount),
+          badge: sub.type === "subscription" ? "サブスク" : "固定費",
+          onClick: () => {
+            closeDialog($("expense-dialog"));
+            openSubscriptionDetailDialog(sub.id);
+          },
+        });
+      }
+    });
+
+    // 3. カード引き落とし日（確定額または引落予定）
+    (state.cards || []).forEach((card) => {
+      const scheduledDate = Core.calculateScheduledPaymentDate(dateKey, card);
+      const isCardPaymentDay = scheduledDate === dateKey;
+
+      const manual = (state.manualPayments || []).find(
+        (m) => m.cardId === card.id && m.date === dateKey
+      );
+
+      if (manual) {
+        dayRecords.push({
+          type: "card-payment",
+          title: `${card.name} 引落確定額`,
+          subTitle: "カード口座振替（確定）",
+          amount: Core.normalizeAmount(manual.amount),
+          badge: "引落確定",
+          cardColor: card.color,
+          onClick: () => {
+            closeDialog($("expense-dialog"));
+            openManualPaymentDialog(card.id, manual.id);
+          },
+        });
+      } else if (isCardPaymentDay) {
+        const withdrawalAmt = getCardWithdrawalAmount(card.id, dateKey);
+        if (withdrawalAmt > 0) {
+          dayRecords.push({
+            type: "card-scheduled",
+            title: `${card.name} 引落予定`,
+            subTitle: "カード口座振替（予定）",
+            amount: withdrawalAmt,
+            badge: "引落予定",
+            cardColor: card.color,
+            onClick: () => {
+              closeDialog($("expense-dialog"));
+              switchView("cards");
+            },
+          });
+        }
+      }
+    });
+
+    if (!dayRecords.length) {
+      list.replaceChildren(createElement("p", "empty-inline", "この日の支出・支払予定はありません。"));
+      return;
+    }
+
+    list.replaceChildren(
+      ...dayRecords.map((item) => {
+        const button = createElement("button", "compact-record");
+        button.type = "button";
+        const main = createElement("span", "");
+        const titleRow = createElement("div", "record-title-row");
+        titleRow.append(createElement("strong", "", item.title));
+        if (item.badge) {
+          const badgeEl = createElement("span", "record-badge", item.badge);
+          if (item.cardColor) {
+            badgeEl.style.backgroundColor = colorWithAlpha(item.cardColor, 0.15);
+            badgeEl.style.color = item.cardColor;
+          }
+          titleRow.append(badgeEl);
+        }
+        main.append(titleRow, createElement("small", "", item.subTitle));
+        button.append(main, createElement("strong", "record-amount-val", formatYen(item.amount)));
+        if (item.onClick) button.addEventListener("click", item.onClick);
+        return button;
+      })
+    );
   }
 
   function saveExpenseFromForm(event) {
