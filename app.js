@@ -812,10 +812,28 @@
     return `${dateKey.slice(0, 7)}-01`;
   }
 
-  function switchView(view) {
+  function switchView(view, direction = null) {
     if (!["calendar", "history", "report", "cards", "settings"].includes(view)) return;
+    const viewsOrder = ["calendar", "history", "report", "cards", "settings"];
+    const prevIndex = viewsOrder.indexOf(currentView);
+    const nextIndex = viewsOrder.indexOf(view);
+
+    if (!direction && prevIndex !== -1 && nextIndex !== -1 && prevIndex !== nextIndex) {
+      direction = nextIndex > prevIndex ? "next" : "prev";
+    }
+
     currentView = view;
-    document.querySelectorAll(".view").forEach((section) => section.classList.toggle("is-active", section.id === `view-${view}`));
+    document.querySelectorAll(".view").forEach((section) => {
+      const isTarget = section.id === `view-${view}`;
+      section.classList.remove("slide-next", "slide-prev");
+      section.style.transform = "";
+      section.style.transition = "";
+      section.classList.toggle("is-active", isTarget);
+      if (isTarget && direction) {
+        section.classList.add(direction === "next" ? "slide-next" : "slide-prev");
+      }
+    });
+
     document.querySelectorAll(".nav-item").forEach((button) => {
       const active = button.dataset.view === view;
       button.classList.toggle("is-active", active);
@@ -850,45 +868,85 @@
     let touchStartX = 0;
     let touchStartY = 0;
     let touchStartTime = 0;
-    let isTouchActive = false;
+    let isTracking = false;
+    let isHorizontalSwipe = false;
+    let activeViewEl = null;
 
     window.addEventListener("touchstart", (e) => {
       if (e.touches.length !== 1) return;
       const target = e.target;
       if (
         target.closest("dialog[open]") ||
-        target.closest("input, textarea, select, canvas, button") ||
-        target.closest(".filter-chip-group, .summary-filter-row, .palette-row")
+        target.closest("input, textarea, select, canvas, button, a") ||
+        target.closest(".filter-chip-group, .summary-filter-row, .palette-row, .month-toolbar")
       ) {
-        isTouchActive = false;
+        isTracking = false;
         return;
       }
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       touchStartTime = Date.now();
-      isTouchActive = true;
+      isTracking = true;
+      isHorizontalSwipe = false;
+      activeViewEl = document.querySelector(".view.is-active");
+    }, { passive: true });
+
+    window.addEventListener("touchmove", (e) => {
+      if (!isTracking || e.touches.length !== 1 || !activeViewEl) return;
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+      const deltaX = currentX - touchStartX;
+      const deltaY = currentY - touchStartY;
+
+      if (!isHorizontalSwipe) {
+        if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+          isHorizontalSwipe = true;
+        } else if (Math.abs(deltaY) > 10) {
+          isTracking = false;
+          return;
+        }
+      }
+
+      if (isHorizontalSwipe) {
+        const currentIndex = viewsOrder.indexOf(currentView);
+        const atStart = currentIndex === 0 && deltaX > 0;
+        const atEnd = currentIndex === viewsOrder.length - 1 && deltaX < 0;
+        const damping = atStart || atEnd ? 0.15 : 0.4;
+        activeViewEl.style.transition = "none";
+        activeViewEl.style.transform = `translateX(${deltaX * damping}px)`;
+      }
     }, { passive: true });
 
     window.addEventListener("touchend", (e) => {
-      if (!isTouchActive || e.changedTouches.length !== 1) return;
-      isTouchActive = false;
+      if (!isTracking || e.changedTouches.length !== 1) {
+        if (activeViewEl) {
+          activeViewEl.style.transform = "";
+          activeViewEl.style.transition = "";
+        }
+        isTracking = false;
+        return;
+      }
+      isTracking = false;
+
       const touchEndX = e.changedTouches[0].clientX;
       const touchEndY = e.changedTouches[0].clientY;
       const deltaX = touchEndX - touchStartX;
       const deltaY = touchEndY - touchStartY;
       const elapsedTime = Date.now() - touchStartTime;
 
-      if (elapsedTime > 550) return;
-      if (Math.abs(deltaX) < 55) return;
-      if (Math.abs(deltaX) < Math.abs(deltaY) * 1.3) return;
-
       const currentIndex = viewsOrder.indexOf(currentView);
-      if (currentIndex === -1) return;
 
-      if (deltaX < 0 && currentIndex < viewsOrder.length - 1) {
-        switchView(viewsOrder[currentIndex + 1]);
-      } else if (deltaX > 0 && currentIndex > 0) {
-        switchView(viewsOrder[currentIndex - 1]);
+      if (activeViewEl) {
+        activeViewEl.style.transition = "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)";
+        activeViewEl.style.transform = "";
+      }
+
+      if (isHorizontalSwipe && elapsedTime < 600 && Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+        if (deltaX < 0 && currentIndex < viewsOrder.length - 1) {
+          switchView(viewsOrder[currentIndex + 1], "next");
+        } else if (deltaX > 0 && currentIndex > 0) {
+          switchView(viewsOrder[currentIndex - 1], "prev");
+        }
       }
     }, { passive: true });
   }
@@ -1050,24 +1108,18 @@
 
   function appendCardPaymentMarkers(dayButton, dateKey) {
     state.cards.forEach((card) => {
-      const scheduledDate = Core.calculateScheduledPaymentDate(dateKey, card);
       const amount = getCardWithdrawalAmount(card.id, dateKey);
-      if (scheduledDate !== dateKey && amount <= 0) return;
+      if (amount <= 0) return;
 
-      let labelText = "";
-      if (amount > 0) {
-        labelText = formatCalendarAmount(amount);
-      } else if (scheduledDate === dateKey) {
-        labelText = "引落日";
-      }
+      const labelText = formatCalendarAmount(amount);
       if (!labelText) return;
 
       const marker = createElement("span", "day-amount card card-custom", labelText);
       marker.style.color = card.color;
       marker.style.backgroundColor = colorWithAlpha(card.color, 0.18);
       marker.style.borderColor = card.color;
-      marker.title = `${card.name}の引き落とし ${amount > 0 ? formatYen(amount) : ""}`;
-      marker.setAttribute("aria-label", `${card.name}の引き落とし ${amount > 0 ? formatYen(amount) : ""}`);
+      marker.title = `${card.name}の引き落とし ${formatYen(amount)}`;
+      marker.setAttribute("aria-label", `${card.name}の引き落とし ${formatYen(amount)}`);
       dayButton.append(marker);
     });
   }

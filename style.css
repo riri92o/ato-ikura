@@ -130,13 +130,50 @@ h3 {
   font-size: 0.95rem;
 }
 
+.app-main {
+  position: relative;
+  overflow-x: hidden;
+  width: 100%;
+}
+
 .view {
   display: none;
   min-width: 0;
+  width: 100%;
 }
 
 .view.is-active {
   display: block;
+}
+
+.view.is-active.slide-next {
+  animation: viewSlideInNext 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.view.is-active.slide-prev {
+  animation: viewSlideInPrev 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes viewSlideInNext {
+  from {
+    opacity: 0.7;
+    transform: translateX(38px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes viewSlideInPrev {
+  from {
+    opacity: 0.7;
+    transform: translateX(-38px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .month-toolbar {
