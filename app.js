@@ -1802,91 +1802,39 @@
     $("manual-payment-id").value = payment ? payment.id : "";
     $("manual-payment-card-id").value = cardId;
     $("manual-payment-amount").value = payment ? formatNumber(payment.amount) : "";
-    $("manual-payment-memo").value = payment ? payment.memo : "";
-    $("delete-manual-payment-button").classList.toggle("is-hidden", !payment);
 
-    const kickerEl = $("manual-payment-dialog-kicker");
-    const titleEl = $("manual-payment-dialog-title");
-    if (kickerEl) kickerEl.textContent = payment ? "確定額の編集" : "カード引き落とし予定";
-    if (titleEl) titleEl.textContent = payment ? "確定済みの引落を編集" : "確定済みの引落を追加";
-
-    // カードバナーの表示
-    const banner = $("manual-payment-card-banner");
-    if (banner) {
-      banner.replaceChildren();
-      if (card) {
-        const closingLabel = card.closingDay === "end" ? "月末締め" : `${card.closingDay}日締め`;
-        const monthLabel = Number(card.paymentMonth) === 0 ? "当月" : "翌月";
-        const weekendLabel = { none: "", previous: "(前平日に繰上)", next: "(翌平日に繰越)" }[card.weekendAdjustment || "none"];
-        
-        const left = createElement("div", "card-banner-left");
-        const dot = createElement("span", "card-banner-color-dot");
-        dot.style.background = card.color || "var(--accent)";
-        const nameEl = createElement("strong", "card-banner-name", card.name);
-        left.append(dot, nameEl);
-
-        const specEl = createElement("span", "card-banner-spec", `${closingLabel} → ${monthLabel}${card.paymentDay}日払い${weekendLabel ? " " + weekendLabel : ""}`);
-        banner.append(left, specEl);
-        banner.classList.remove("is-hidden");
-      } else {
-        banner.classList.add("is-hidden");
+    // 引落日をカード設定（支払日・休日調整）から自動計算して初期セット
+    let defaultDate = Core.todayKey();
+    if (payment) {
+      defaultDate = payment.date;
+    } else if (card) {
+      const scheduledDate = Core.calculateScheduledPaymentDate(currentMonth, card);
+      if (scheduledDate) {
+        defaultDate = scheduledDate;
       }
     }
-
-    // 引落日をカード設定から自動計算
-    const curMonthKey = currentMonth.slice(0, 7);
-    const curMonthDate = Core.parseDateKey(`${curMonthKey}-01`) || new Date();
-    
-    // 表示月（今月）の引落日
-    const thisMonthScheduled = card ? Core.calculateScheduledPaymentDate(`${curMonthKey}-01`, card) : "";
-    
-    // 翌月の引落日
-    const nextMonthObj = new Date(curMonthDate.getFullYear(), curMonthDate.getMonth() + 1, 1);
-    const nextMonthKey = Core.toDateKey(nextMonthObj).slice(0, 7);
-    const nextMonthScheduled = card ? Core.calculateScheduledPaymentDate(`${nextMonthKey}-01`, card) : "";
-
-    // 前月の引落日
-    const prevMonthObj = new Date(curMonthDate.getFullYear(), curMonthDate.getMonth() - 1, 1);
-    const prevMonthKey = Core.toDateKey(prevMonthObj).slice(0, 7);
-    const prevMonthScheduled = card ? Core.calculateScheduledPaymentDate(`${prevMonthKey}-01`, card) : "";
-
-    const defaultDate = payment ? payment.date : (thisMonthScheduled || Core.todayKey());
     $("manual-payment-date").value = defaultDate;
+    $("manual-payment-memo").value = payment ? payment.memo : "";
 
-    // クイック日付切替ボタン
-    const chipsContainer = $("manual-payment-quick-chips");
-    if (chipsContainer) {
-      chipsContainer.replaceChildren();
+    const kickerEl = $("manual-payment-card-kicker");
+    if (kickerEl) {
+      kickerEl.textContent = card ? `対象カード: ${card.name}` : "初回の確定額にも使えます";
+    }
+    const titleEl = $("manual-payment-dialog-title");
+    if (titleEl) {
+      titleEl.textContent = payment ? "確定済みの引落を編集" : "確定済みの引落を追加";
+    }
+    const hintEl = $("manual-payment-date-hint");
+    if (hintEl) {
       if (card) {
-        const dateOptions = [
-          { label: `今月分 (${formatDate(thisMonthScheduled, { month: "numeric", day: "numeric", weekday: "short" })})`, date: thisMonthScheduled },
-          { label: `来月分 (${formatDate(nextMonthScheduled, { month: "numeric", day: "numeric", weekday: "short" })})`, date: nextMonthScheduled },
-          { label: `前月分 (${formatDate(prevMonthScheduled, { month: "numeric", day: "numeric", weekday: "short" })})`, date: prevMonthScheduled },
-        ].filter((opt) => opt.date);
-
-        dateOptions.forEach((opt) => {
-          const btn = createElement("button", "quick-date-chip", opt.label);
-          btn.type = "button";
-          btn.classList.toggle("is-active", $("manual-payment-date").value === opt.date);
-          btn.addEventListener("click", () => {
-            $("manual-payment-date").value = opt.date;
-            chipsContainer.querySelectorAll(".quick-date-chip").forEach((b) => b.classList.toggle("is-active", b === btn));
-          });
-          chipsContainer.append(btn);
-        });
+        const weekendAdj = { none: "", previous: "（前営業日調整）", next: "（翌営業日調整）" }[card.weekendAdjustment] || "";
+        hintEl.textContent = `※ ${card.name}の設定（${card.paymentDay}日引落${weekendAdj}）から自動セットしています。手動変更も可能です。`;
+      } else {
+        hintEl.textContent = "※ 必要に応じて引落日を変更できます。";
       }
     }
 
-    const dateInput = $("manual-payment-date");
-    if (dateInput && chipsContainer) {
-      dateInput.onchange = () => {
-        const val = dateInput.value;
-        chipsContainer.querySelectorAll(".quick-date-chip").forEach((b) => {
-          b.classList.toggle("is-active", b.dataset.date === val);
-        });
-      };
-    }
-
+    $("delete-manual-payment-button").classList.toggle("is-hidden", !payment);
     showDialog($("manual-payment-dialog"));
   }
 

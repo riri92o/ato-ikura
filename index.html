@@ -780,23 +780,18 @@
       <form id="manual-payment-form" method="dialog" novalidate>
         <div class="dialog-sheet-handle" aria-hidden="true"></div>
         <div class="dialog-header">
-          <div><p class="section-kicker" id="manual-payment-dialog-kicker">カード引き落とし予定</p><h2 id="manual-payment-dialog-title">確定済みの引落を追加</h2></div>
+          <div><p id="manual-payment-card-kicker" class="section-kicker">初回の確定額にも使えます</p><h2 id="manual-payment-dialog-title">確定済みの引落を追加</h2></div>
           <button class="dialog-close icon-button" type="button" data-close-dialog="manual-payment-dialog" aria-label="閉じる">×</button>
         </div>
         <input id="manual-payment-id" type="hidden" />
         <input id="manual-payment-card-id" type="hidden" />
-        
-        <div id="manual-payment-card-banner" class="manual-payment-card-banner"></div>
-
         <div class="form-grid">
-          <label class="field-large">確定した引き落とし金額<span class="required">必須</span><div class="money-input"><span>¥</span><input id="manual-payment-amount" type="text" inputmode="numeric" placeholder="0" required /></div></label>
-          <div class="manual-payment-date-wrap full-span">
-            <label for="manual-payment-date">引落日<span class="required">必須</span></label>
-            <div id="manual-payment-quick-chips" class="manual-payment-chips-row"></div>
+          <label class="field-large">金額<span class="required">必須</span><div class="money-input"><span>¥</span><input id="manual-payment-amount" type="text" inputmode="numeric" placeholder="0" required /></div></label>
+          <label>引落日<span class="required">必須</span>
             <input id="manual-payment-date" type="date" required />
-            <small class="field-hint" id="manual-payment-date-hint">※ カード設定の支払日・休業日調整に基づき自動セットされています</small>
-          </div>
-          <label class="full-span">メモ<textarea id="manual-payment-memo" rows="2" maxlength="200" placeholder="例：9月度確定分、初期移行分など"></textarea></label>
+            <small id="manual-payment-date-hint" class="field-hint">※ カード設定（締め・支払日・休日調整）から自動計算された日です</small>
+          </label>
+          <label class="full-span">メモ<textarea id="manual-payment-memo" rows="2" maxlength="200" placeholder="例：移行前の利用分"></textarea></label>
         </div>
         <div class="dialog-actions">
           <button id="delete-manual-payment-button" class="button button-danger is-hidden" type="button">削除</button>
