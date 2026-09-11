@@ -247,7 +247,32 @@
     return expense && expense.paymentMethod !== CREDIT_PAYMENT;
   }
 
-  function buildDailyTotals(expenses, cards, manualPayments) {
+  function getSubscriptionUsageDate(sub, monthKey) {
+    if (!sub || sub.isActive === false) return "";
+    const parsed = parseDateKey(`${monthKey}-01`);
+    if (!parsed) return "";
+
+    const year = parsed.getFullYear();
+    const monthIndex = parsed.getMonth();
+
+    if (sub.interval === "yearly") {
+      const targetMonth = Number(sub.paymentMonth) || 1;
+      if (monthIndex + 1 !== targetMonth) return "";
+    } else if (sub.interval === "once") {
+      if (!sub.oneTimeDate || !sub.oneTimeDate.startsWith(monthKey)) return "";
+      return sub.oneTimeDate;
+    }
+
+    if (sub.paymentDay === "end") {
+      const day = daysInMonth(year, monthIndex);
+      return `${year}-${pad2(monthIndex + 1)}-${pad2(day)}`;
+    }
+
+    const day = clampDay(year, monthIndex, Number(sub.paymentDay) || 1);
+    return `${year}-${pad2(monthIndex + 1)}-${pad2(day)}`;
+  }
+
+  function buildDailyTotals(expenses, cards, manualPayments, subscriptions, baseMonthKeys) {
     const totals = new Map();
     const ensure = (dateKey) => {
       if (!totals.has(dateKey)) {
@@ -256,6 +281,7 @@
       return totals.get(dateKey);
     };
 
+    // 1. 通常の個別支出
     (expenses || []).forEach((expense) => {
       if (!parseDateKey(expense.date)) return;
       const amount = normalizeAmount(expense.amount);
@@ -265,16 +291,68 @@
         usageDay.direct += amount;
         usageDay.outflow += amount;
       } else if (expense.includeInWithdrawal !== false) {
-        // クレジットカード決済（引落予定に含める場合のみ引落日へ加算）
+        // クレジットカード決済（手動確定額がある月は二重計上防止のため加算しない）
         const paymentDate = getExpensePaymentDate(expense, cards);
         if (paymentDate) {
-          const paymentDay = ensure(paymentDate);
-          paymentDay.cardWithdrawal += amount;
-          paymentDay.outflow += amount;
+          const paymentMonth = paymentDate.slice(0, 7);
+          const hasManual = (manualPayments || []).some(
+            (m) => m.cardId === expense.cardId && m.date.startsWith(paymentMonth)
+          );
+          if (!hasManual) {
+            const paymentDay = ensure(paymentDate);
+            paymentDay.cardWithdrawal += amount;
+            paymentDay.outflow += amount;
+          }
         }
       }
     });
 
+    // 2. 固定費・サブスク（対象月の展開）
+    const monthsToProcess = new Set(baseMonthKeys || []);
+    if (!monthsToProcess.size) {
+      // 指定がなければ過去6ヶ月〜未来6ヶ月を自動展開
+      const nowKey = todayKey().slice(0, 7);
+      const [nowY, nowM] = nowKey.split("-").map(Number);
+      for (let offset = -6; offset <= 6; offset++) {
+        const target = addMonths(nowY, nowM - 1, offset);
+        monthsToProcess.add(`${target.year}-${pad2(target.monthIndex + 1)}`);
+      }
+    }
+
+    (subscriptions || []).forEach((sub) => {
+      if (!sub || sub.isActive === false) return;
+      const amount = normalizeAmount(sub.amount);
+      if (amount <= 0) return;
+
+      monthsToProcess.forEach((mKey) => {
+        const usageDate = getSubscriptionUsageDate(sub, mKey);
+        if (!usageDate) return;
+
+        const usageDay = ensure(usageDate);
+        usageDay.usage += amount;
+
+        if (isDirectPayment(sub)) {
+          usageDay.direct += amount;
+          usageDay.outflow += amount;
+        } else if (sub.includeInWithdrawal !== false) {
+          const fakeExpense = { paymentMethod: CREDIT_PAYMENT, cardId: sub.cardId, date: usageDate };
+          const paymentDate = getExpensePaymentDate(fakeExpense, cards);
+          if (paymentDate) {
+            const paymentMonth = paymentDate.slice(0, 7);
+            const hasManual = (manualPayments || []).some(
+              (m) => m.cardId === sub.cardId && m.date.startsWith(paymentMonth)
+            );
+            if (!hasManual) {
+              const paymentDay = ensure(paymentDate);
+              paymentDay.cardWithdrawal += amount;
+              paymentDay.outflow += amount;
+            }
+          }
+        }
+      });
+    });
+
+    // 3. クレジットカード引き落とし確定額（手動登録）
     (manualPayments || []).forEach((payment) => {
       if (!parseDateKey(payment.date)) return;
       const amount = normalizeAmount(payment.amount);
@@ -362,9 +440,9 @@
     }
   }
 
-  function summarizeMonth(monthKey, expenses, cards, manualPayments, cycleStartDay = 1) {
+  function summarizeMonth(monthKey, expenses, cards, manualPayments, cycleStartDay = 1, subscriptions = []) {
     const range = getCycleRange(monthKey, cycleStartDay);
-    const daily = buildDailyTotals(expenses, cards, manualPayments);
+    const daily = buildDailyTotals(expenses, cards, manualPayments, subscriptions, [monthKey]);
     const summary = {
       usage: 0,
       direct: 0,
@@ -386,6 +464,17 @@
       }
     });
 
+    (subscriptions || []).forEach((sub) => {
+      if (!sub || sub.isActive === false) return;
+      const usageDate = getSubscriptionUsageDate(sub, monthKey);
+      if (usageDate && usageDate >= range.startDate && usageDate <= range.endDate) {
+        const amount = normalizeAmount(sub.amount);
+        summary.usage += amount;
+        const cat = sub.category || (sub.type === "subscription" ? "娯楽" : "固定費");
+        summary.categories[cat] = (summary.categories[cat] || 0) + amount;
+      }
+    });
+
     daily.forEach((value, dateKey) => {
       if (dateKey >= range.startDate && dateKey <= range.endDate) {
         summary.direct += value.direct;
@@ -396,10 +485,10 @@
     return summary;
   }
 
-  function getUpcomingCardTotal(startDateKey, days, expenses, cards, manualPayments) {
+  function getUpcomingCardTotal(startDateKey, days, expenses, cards, manualPayments, subscriptions) {
     const endDateKey = addDays(startDateKey, days);
     if (!endDateKey) return 0;
-    const daily = buildDailyTotals(expenses, cards, manualPayments);
+    const daily = buildDailyTotals(expenses, cards, manualPayments, subscriptions);
     let total = 0;
     daily.forEach((value, dateKey) => {
       if (dateKey >= startDateKey && dateKey <= endDateKey) total += value.cardWithdrawal;
@@ -407,8 +496,8 @@
     return total;
   }
 
-  function getNextCardWithdrawal(startDateKey, expenses, cards, manualPayments) {
-    const daily = buildDailyTotals(expenses, cards, manualPayments);
+  function getNextCardWithdrawal(startDateKey, expenses, cards, manualPayments, subscriptions) {
+    const daily = buildDailyTotals(expenses, cards, manualPayments, subscriptions);
     const candidates = [];
     daily.forEach((value, dateKey) => {
       if (dateKey >= startDateKey && value.cardWithdrawal > 0) {
@@ -421,7 +510,14 @@
 
   function isValidStateShape(data) {
     if (!data || typeof data !== "object") return false;
-    return Array.isArray(data.expenses) && Array.isArray(data.cards) && Array.isArray(data.manualPayments) && data.settings && typeof data.settings === "object";
+    return (
+      Array.isArray(data.expenses) &&
+      Array.isArray(data.cards) &&
+      Array.isArray(data.manualPayments) &&
+      (!data.subscriptions || Array.isArray(data.subscriptions)) &&
+      data.settings &&
+      typeof data.settings === "object"
+    );
   }
 
   const api = {
@@ -436,6 +532,7 @@
     getDateCycleMonthKey,
     getExpensePaymentDate,
     getNextCardWithdrawal,
+    getSubscriptionUsageDate,
     getUpcomingCardTotal,
     isDirectPayment,
     isJapaneseHoliday,

@@ -3927,3 +3927,668 @@ dialog {
     flex: 1;
   }
 }
+
+/* ==========================================================================
+   支払い・固定費・サブスク（サービス一覧型UI）スタイル
+   ========================================================================== */
+
+/* 支払いトップのセグメント切り替えタブ */
+.payments-segment-wrapper {
+  margin: 0 0 14px;
+}
+
+.payments-segment-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--surface-soft);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  gap: 4px;
+}
+
+.payments-segment-tab {
+  padding: 9px 12px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+  font-family: inherit;
+}
+
+.payments-segment-tab.is-active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-weight: 850;
+}
+
+/* 支払いサブビュー表示制御 */
+.payments-subview {
+  display: none;
+}
+
+.payments-subview.is-active {
+  display: block;
+}
+
+/* 固定費・サブスク ヘッダーツールバー */
+.sub-header-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sub-month-toolbar {
+  flex: 1;
+  margin: 0;
+}
+
+.sub-add-btn {
+  white-space: nowrap;
+  padding: 8px 16px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+/* 固定費サマリーカード（画像デザイン再現） */
+.sub-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  border: 1.5px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  margin-bottom: 14px;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.sub-summary-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sub-summary-kicker {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.sub-summary-amount-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.sub-summary-total {
+  font-size: clamp(1.65rem, 6.5vw, 2.15rem);
+  font-weight: 900;
+  color: var(--accent);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.sub-summary-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  padding-left: 16px;
+  flex-shrink: 0;
+}
+
+.sub-summary-stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sub-stat-label {
+  font-size: 0.68rem;
+  font-weight: 750;
+  color: var(--text-muted);
+}
+
+.sub-stat-value {
+  font-size: 0.96rem;
+  font-weight: 850;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+/* 表示範囲タブ（今月 / 登録一覧） */
+.sub-scope-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--surface-soft);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.sub-scope-tab {
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: center;
+  font-family: inherit;
+}
+
+.sub-scope-tab.is-active {
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 850;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* 絞り込みフィルター */
+.sub-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sub-filter-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 6px;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sub-filter-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.sub-filter-chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.sub-filter-chip:hover {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+
+.sub-filter-chip.is-active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  font-weight: 850;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.sub-type-chip {
+  padding: 5px 12px;
+  font-size: 0.74rem;
+}
+
+/* サービス一覧カードリスト */
+.subscription-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+/* 個別サービスカード（画像デザイン忠実再現） */
+.sub-card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  color: inherit;
+}
+
+.sub-card-item:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.sub-card-item.is-paused {
+  opacity: 0.6;
+  background: var(--surface-soft);
+}
+
+/* 左側：円形アイコン */
+.sub-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-soft));
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+}
+
+.sub-icon-circle svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* 中央：サービス情報 */
+.sub-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.sub-card-title {
+  font-size: 0.94rem;
+  font-weight: 850;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-card-amount-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sub-card-amount {
+  font-size: 1.08rem;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.sub-badge-interval {
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  font-size: 0.68rem;
+  font-weight: 750;
+  color: var(--text-muted);
+}
+
+/* バッジ行 */
+.sub-card-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 1px;
+}
+
+.sub-badge {
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sub-badge-type-fixed {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.sub-badge-type-sub {
+  background: #f0fdfa;
+  color: #115e59;
+  border: 1px solid #99f6e4;
+}
+
+.sub-badge-pay-direct {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.sub-badge-pay-card {
+  background: color-mix(in srgb, var(--badge-card-color, #a83260) 12%, var(--surface));
+  color: var(--badge-card-color, #a83260);
+  border: 1px solid color-mix(in srgb, var(--badge-card-color, #a83260) 30%, var(--border));
+}
+
+.sub-badge-pay-other {
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.sub-withdrawal-indicator {
+  font-size: 0.68rem;
+  font-weight: 750;
+  color: var(--text-muted);
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.sub-paused-badge {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* 右側：矢印 */
+.sub-card-arrow {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding-left: 4px;
+  flex-shrink: 0;
+}
+
+/* 未登録・空状態カード */
+.sub-empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 20px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1.5px dashed var(--border);
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.sub-empty-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.sub-empty-card h3 {
+  font-size: 1.05rem;
+  font-weight: 850;
+  color: var(--text);
+  margin: 0;
+}
+
+.sub-empty-card p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.sub-empty-card button {
+  margin-top: 6px;
+}
+
+/* アイコン選択モーダル内のグリッド */
+.sub-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 4px 0 12px;
+}
+
+.sub-icon-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.sub-icon-btn:hover {
+  background: var(--surface-muted);
+  border-color: var(--accent);
+}
+
+.sub-icon-btn.is-selected {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 850;
+}
+
+.sub-icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sub-icon-btn span {
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+/* 登録フォーム内のアイコンプレビューボタン */
+.sub-name-field {
+  grid-column: span 1;
+}
+
+.sub-icon-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sub-icon-preview-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  height: 44px;
+  font-family: inherit;
+}
+
+.sub-icon-preview-box {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.sub-icon-preview-box svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sub-icon-preview-label {
+  font-size: 0.8rem;
+  font-weight: 750;
+  color: var(--text-muted);
+}
+
+.sub-active-toggle-row {
+  margin-top: 4px;
+}
+
+/* 詳細モーダル */
+.sub-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 8px 0 16px;
+}
+
+.sub-detail-top-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+}
+
+.sub-detail-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
+}
+
+.sub-detail-icon-wrap svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sub-detail-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sub-detail-name {
+  font-size: 1.05rem;
+  font-weight: 850;
+  color: var(--text);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-detail-amount-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sub-detail-amount {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.sub-status-pill {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sub-status-pill.is-active {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.sub-status-pill.is-paused {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.sub-detail-info-list {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.sub-detail-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.84rem;
+}
+
+.sub-detail-info-row:last-child {
+  border-bottom: none;
+}
+
+.sub-detail-info-label {
+  color: var(--text-muted);
+  font-weight: 750;
+}
+
+.sub-detail-info-val {
+  color: var(--text);
+  font-weight: 800;
+  text-align: right;
+}
+
+.sub-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sub-danger-btn {
+  color: #dc2626 !important;
+  border-color: color-mix(in srgb, #dc2626 30%, var(--border)) !important;
+}
+
+.sub-danger-btn:hover {
+  background: #fef2f2 !important;
+}
+

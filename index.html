@@ -264,25 +264,104 @@
         </section>
 
         <section id="view-cards" class="view" aria-labelledby="cards-title">
-          <div id="cards-main-subview" class="card-subview is-active">
-            <div class="page-heading-row">
-              <div class="page-heading"><p class="section-kicker">引き落とし日を自動計算</p><h2 id="cards-title">クレジットカード</h2></div>
-              <button id="add-card-button" class="button button-primary" type="button">カード追加</button>
+          <!-- 支払い画面トップのタブ切り替え: ［カード］［固定費・サブスク］ -->
+          <div class="payments-segment-wrapper">
+            <div class="payments-segment-tabs" role="tablist" aria-label="支払い項目切り替え">
+              <button id="payments-tab-cards" class="payments-segment-tab is-active" type="button" role="tab" aria-selected="true" data-payments-subview="cards">カード</button>
+              <button id="payments-tab-subscriptions" class="payments-segment-tab" type="button" role="tab" aria-selected="false" data-payments-subview="subscriptions">固定費・サブスク</button>
             </div>
-            <div id="cards-list" class="cards-list"></div>
-            <article class="info-card">
-              <h3>支払日の計算について</h3>
-              <p>カード利用日と締め日の設定から支払日を自動計算します。土日や日本の祝日・振替休日は、設定に応じて自動で前後の平日に調整されます。</p>
-            </article>
           </div>
 
-          <div id="cards-history-subview" class="card-subview">
-            <button id="back-to-cards-btn" class="back-link-btn" type="button">‹ カード一覧に戻る</button>
-            <div class="page-heading">
-              <p class="section-kicker">引き落とし確定額の記録</p>
-              <h2 id="card-history-heading">確定額の履歴</h2>
+          <!-- サブビュー1: クレジットカード管理 -->
+          <div id="cards-payment-subview" class="payments-subview is-active">
+            <div id="cards-main-subview" class="card-subview is-active">
+              <div class="page-heading-row">
+                <div class="page-heading"><p class="section-kicker">引き落とし日を自動計算</p><h2 id="cards-title">クレジットカード</h2></div>
+                <button id="add-card-button" class="button button-primary" type="button">＋ カード追加</button>
+              </div>
+              <div id="cards-list" class="cards-list"></div>
+              <article class="info-card">
+                <h3>支払日の計算について</h3>
+                <p>カード利用日と締め日の設定から支払日を自動計算します。土日や日本の祝日・振替休日は、設定に応じて自動で前後の平日に調整されます。</p>
+              </article>
             </div>
-            <div id="card-history-list" class="record-list"></div>
+
+            <div id="cards-history-subview" class="card-subview">
+              <button id="back-to-cards-btn" class="back-link-btn" type="button">‹ カード一覧に戻る</button>
+              <div class="page-heading">
+                <p class="section-kicker">引き落とし確定額の記録</p>
+                <h2 id="card-history-heading">確定額の履歴</h2>
+              </div>
+              <div id="card-history-list" class="record-list"></div>
+            </div>
+          </div>
+
+          <!-- サブビュー2: 固定費・サブスク管理（サービス一覧型UI） -->
+          <div id="subscriptions-payment-subview" class="payments-subview">
+            <div class="sub-header-toolbar">
+              <div class="month-toolbar sub-month-toolbar">
+                <button id="sub-prev-month" class="month-nav-btn" type="button" aria-label="前の月">‹</button>
+                <button id="sub-month-picker-button" class="month-heading" type="button" aria-label="表示する月を選ぶ">
+                  <span id="sub-month-title">2026年9月</span>
+                  <span class="month-heading-arrow" aria-hidden="true">⌄</span>
+                </button>
+                <input id="sub-month-picker" class="visually-hidden" type="month" aria-label="表示する月" />
+                <button id="sub-next-month" class="month-nav-btn" type="button" aria-label="次の月">›</button>
+              </div>
+              <button id="add-subscription-button" class="button button-primary sub-add-btn" type="button">＋ 追加</button>
+            </div>
+
+            <!-- サマリーカード（画像デザイン再現） -->
+            <div class="sub-summary-card">
+              <div class="sub-summary-left">
+                <span class="sub-summary-kicker">今月の固定費</span>
+                <div class="sub-summary-amount-row">
+                  <strong id="sub-summary-total" class="sub-summary-total">0円</strong>
+                </div>
+              </div>
+              <div class="sub-summary-right">
+                <div class="sub-summary-stat-row">
+                  <span class="sub-stat-label">固定費</span>
+                  <strong id="sub-stat-fixed" class="sub-stat-value">0円</strong>
+                </div>
+                <div class="sub-summary-stat-row">
+                  <span class="sub-stat-label">サブスク</span>
+                  <strong id="sub-stat-sub" class="sub-stat-value">0円</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- 表示範囲タブ（今月 / 登録一覧） -->
+            <div class="sub-scope-tabs" role="tablist" aria-label="固定費の表示範囲">
+              <button id="sub-scope-month" class="sub-scope-tab is-active" type="button" role="tab" aria-selected="true" data-scope="month">今月</button>
+              <button id="sub-scope-all" class="sub-scope-tab" type="button" role="tab" aria-selected="false" data-scope="all">登録一覧</button>
+            </div>
+
+            <!-- 絞り込みフィルター（支払い方法・種別） -->
+            <div class="sub-filter-bar">
+              <div class="sub-filter-chips sub-filter-pay-group" role="group" aria-label="支払い方法で絞り込み">
+                <button class="sub-filter-chip is-active" type="button" data-filter-pay="all">すべて</button>
+                <button class="sub-filter-chip" type="button" data-filter-pay="card">カード</button>
+                <button class="sub-filter-chip" type="button" data-filter-pay="direct">口座振替</button>
+                <button class="sub-filter-chip" type="button" data-filter-pay="other">現金・他</button>
+              </div>
+              <div class="sub-filter-chips sub-filter-types" role="group" aria-label="種別で絞り込み">
+                <button class="sub-filter-chip sub-type-chip is-active" type="button" data-filter-type="all">全種別</button>
+                <button class="sub-filter-chip sub-type-chip" type="button" data-filter-type="fixed">固定費</button>
+                <button class="sub-filter-chip sub-type-chip" type="button" data-filter-type="subscription">サブスク</button>
+              </div>
+            </div>
+
+            <!-- サービス一覧コンテナ -->
+            <div id="subscription-list" class="subscription-card-list"></div>
+
+            <!-- 未登録・空状態 -->
+            <div id="subscription-empty-state" class="sub-empty-card is-hidden">
+              <div class="sub-empty-icon">📱</div>
+              <h3>毎月の支払いをまとめて管理</h3>
+              <p>家賃やサブスクを登録すると、<br>今月の固定費と支払い方法を確認できます。</p>
+              <button id="sub-empty-add-btn" class="button button-primary" type="button">固定費・サブスクを登録</button>
+            </div>
           </div>
         </section>
 
@@ -565,14 +644,15 @@
           </span>
           <small>レポート</small>
         </button>
-        <button class="nav-item" type="button" data-view="cards">
+        <button class="nav-item" type="button" data-view="cards" aria-label="支払い">
           <span aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2" y="5" width="20" height="14" rx="2"></rect>
               <line x1="2" y1="10" x2="22" y2="10"></line>
+              <rect x="6" y="14" width="4" height="2" rx="0.5" fill="currentColor"></rect>
             </svg>
           </span>
-          <small>カード</small>
+          <small>支払い</small>
         </button>
         <button class="nav-item" type="button" data-view="settings">
           <span aria-hidden="true">
@@ -828,6 +908,200 @@
           <button class="button button-primary" type="submit">保存する</button>
         </div>
       </form>
+    </dialog>
+
+    <!-- 固定費・サブスク登録・編集ダイアログ -->
+    <dialog id="subscription-dialog" class="app-dialog app-dialog-medium bottom-sheet-dialog">
+      <form id="subscription-form" method="dialog" novalidate>
+        <div class="dialog-sheet-handle" aria-hidden="true"></div>
+        <div class="dialog-header">
+          <div><p class="section-kicker">毎月の固定支払い・定期課金</p><h2 id="subscription-dialog-title">固定費・サブスクを追加</h2></div>
+          <button class="dialog-close icon-button" type="button" data-close-dialog="subscription-dialog" aria-label="閉じる">×</button>
+        </div>
+        <input id="sub-id" type="hidden" />
+        <input id="sub-icon-val" type="hidden" value="other" />
+        <div class="form-grid">
+          <!-- サービス名 ＆ アイコン選択 -->
+          <label class="sub-name-field">サービス名<span class="required">必須</span>
+            <input id="sub-name-input" type="text" maxlength="60" placeholder="例：家賃、Netflix、Spotify、電気代" required />
+          </label>
+          <div class="sub-icon-field">
+            <span class="field-label">アイコン</span>
+            <button id="sub-icon-picker-btn" class="sub-icon-preview-btn" type="button">
+              <span id="sub-icon-preview-box" class="sub-icon-preview-box"></span>
+              <span class="sub-icon-preview-label">選択</span>
+            </button>
+          </div>
+
+          <!-- 種類（固定費 / サブスク） -->
+          <label>種類
+            <select id="sub-type-select">
+              <option value="fixed">固定費（家賃・光熱費・保険等）</option>
+              <option value="subscription">サブスク（定期サービス・娯楽等）</option>
+            </select>
+          </label>
+
+          <!-- 金額 -->
+          <label class="field-large">金額<span class="required">必須</span>
+            <div class="money-input"><span>¥</span><input id="sub-amount-input" type="text" inputmode="numeric" placeholder="0" required /></div>
+          </label>
+
+          <!-- 金額形式（固定 / 変動） -->
+          <label>金額形式
+            <select id="sub-amount-type">
+              <option value="fixed">毎月同じ（固定額）</option>
+              <option value="variable">月ごとに変更（変動・目安額）</option>
+            </select>
+          </label>
+
+          <!-- 支払い間隔（毎月 / 毎年 / 一回のみ） -->
+          <label>支払い間隔
+            <select id="sub-interval-select">
+              <option value="monthly">毎月</option>
+              <option value="yearly">毎年（年払い）</option>
+              <option value="once">一回のみ（指定月）</option>
+            </select>
+          </label>
+
+          <!-- 支払い日（1〜31日 / 月末） -->
+          <label id="sub-day-field">支払い日（発生日）
+            <select id="sub-day-select"></select>
+          </label>
+
+          <!-- 支払い月（年払い時のみ） -->
+          <label id="sub-month-field" class="is-hidden">支払い月（年払い）
+            <select id="sub-month-select">
+              <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+              <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+              <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+              <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+            </select>
+          </label>
+
+          <!-- 支払い年月日（一回のみ時） -->
+          <label id="sub-onetime-field" class="is-hidden">支払い日（年月日）
+            <input id="sub-onetime-input" type="date" />
+          </label>
+
+          <!-- 支払い方法 -->
+          <label>支払い方法
+            <select id="sub-payment-method">
+              <option value="クレジットカード">クレジットカード</option>
+              <option value="口座引き落とし">口座引き落とし（口座振替）</option>
+              <option value="現金">現金</option>
+              <option value="QR・電子マネー">QR・電子マネー</option>
+              <option value="その他">その他</option>
+            </select>
+          </label>
+
+          <!-- 使用するカード（クレカ時） -->
+          <label id="sub-card-field">使用するカード
+            <select id="sub-card-select"></select>
+          </label>
+
+          <!-- カード引き落とし予定に含めるスイッチ -->
+          <div id="sub-withdrawal-toggle-row" class="withdrawal-toggle-box full-span">
+            <label class="withdrawal-toggle-label">
+              <input id="sub-include-withdrawal" type="checkbox" checked />
+              <span class="withdrawal-toggle-text">カードの引き落とし予定に含める</span>
+            </label>
+            <p class="withdrawal-toggle-hint">※ ONにするとカードの締め・支払日に合わせて口座引落予定に自動計算されます（確定額がある月は確定額が優先されます）</p>
+          </div>
+
+          <!-- カテゴリ -->
+          <label>カテゴリ
+            <select id="sub-category-select"></select>
+          </label>
+
+          <!-- メモ -->
+          <label class="full-span">メモ<textarea id="sub-memo-input" rows="2" maxlength="200" placeholder="例：ファミリープラン、更新月など"></textarea></label>
+
+          <!-- 有効/停止中 -->
+          <div class="full-span sub-active-toggle-row">
+            <label class="withdrawal-toggle-label">
+              <input id="sub-is-active" type="checkbox" checked />
+              <span class="withdrawal-toggle-text">現在有効（集計に含める）</span>
+            </label>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button id="delete-subscription-btn" class="button button-danger is-hidden" type="button">削除</button>
+          <span class="action-spacer"></span>
+          <button class="button button-secondary" type="button" data-close-dialog="subscription-dialog">キャンセル</button>
+          <button class="button button-primary" type="submit">保存する</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- アイコン選択モーダル -->
+    <dialog id="subscription-icon-dialog" class="app-dialog app-dialog-small bottom-sheet-dialog">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header">
+        <div><p class="section-kicker">アイコン設定</p><h2>アイコンを選択</h2></div>
+        <button class="dialog-close icon-button" type="button" data-close-dialog="subscription-icon-dialog" aria-label="閉じる">×</button>
+      </div>
+      <div id="sub-icon-grid" class="sub-icon-grid"></div>
+      <div class="dialog-actions">
+        <button class="button button-secondary full-width" type="button" data-close-dialog="subscription-icon-dialog">閉じる</button>
+      </div>
+    </dialog>
+
+    <!-- 固定費・サブスク詳細モーダル -->
+    <dialog id="subscription-detail-dialog" class="app-dialog app-dialog-medium bottom-sheet-dialog">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header">
+        <div><p class="section-kicker">サービス詳細</p><h2 id="sub-detail-title">サービス詳細</h2></div>
+        <button class="dialog-close icon-button" type="button" data-close-dialog="subscription-detail-dialog" aria-label="閉じる">×</button>
+      </div>
+      <div class="sub-detail-content">
+        <div class="sub-detail-top-card">
+          <div id="sub-detail-icon-wrap" class="sub-detail-icon-wrap"></div>
+          <div class="sub-detail-hero-info">
+            <h3 id="sub-detail-name" class="sub-detail-name">—</h3>
+            <div class="sub-detail-amount-row">
+              <strong id="sub-detail-amount" class="sub-detail-amount">0円</strong>
+              <span id="sub-detail-interval-badge" class="sub-badge-interval">毎月</span>
+            </div>
+          </div>
+          <span id="sub-detail-status-pill" class="sub-status-pill is-active">有効</span>
+        </div>
+
+        <div class="sub-detail-info-list">
+          <div class="sub-detail-info-row">
+            <span class="sub-detail-info-label">種類</span>
+            <span id="sub-detail-type" class="sub-detail-info-val">固定費</span>
+          </div>
+          <div class="sub-detail-info-row">
+            <span class="sub-detail-info-label">次回支払い予定</span>
+            <strong id="sub-detail-next-date" class="sub-detail-info-val">—</strong>
+          </div>
+          <div class="sub-detail-info-row">
+            <span class="sub-detail-info-label">支払い方法</span>
+            <span id="sub-detail-payment-method" class="sub-detail-info-val">—</span>
+          </div>
+          <div id="sub-detail-card-row" class="sub-detail-info-row is-hidden">
+            <span class="sub-detail-info-label">連携カード</span>
+            <span id="sub-detail-card-name" class="sub-detail-info-val">—</span>
+          </div>
+          <div id="sub-detail-withdrawal-row" class="sub-detail-info-row is-hidden">
+            <span class="sub-detail-info-label">引落予定</span>
+            <span id="sub-detail-withdrawal-status" class="sub-detail-info-val">含む</span>
+          </div>
+          <div class="sub-detail-info-row">
+            <span class="sub-detail-info-label">カテゴリ</span>
+            <span id="sub-detail-category" class="sub-detail-info-val">固定費</span>
+          </div>
+          <div id="sub-detail-memo-row" class="sub-detail-info-row is-hidden">
+            <span class="sub-detail-info-label">メモ</span>
+            <span id="sub-detail-memo" class="sub-detail-info-val"></span>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-actions sub-detail-actions">
+        <button id="sub-detail-toggle-active-btn" class="button button-secondary" type="button">一時停止</button>
+        <button id="sub-detail-edit-btn" class="button button-primary" type="button">編集する</button>
+        <button id="sub-detail-delete-btn" class="button button-ghost sub-danger-btn" type="button">削除</button>
+      </div>
     </dialog>
 
     <!-- 確認ダイアログ -->

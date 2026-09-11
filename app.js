@@ -34,10 +34,38 @@
     その他: "他",
   };
 
+  const SUBSCRIPTION_ICONS = {
+    home: { name: "家", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>` },
+    phone: { name: "スマホ", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>` },
+    wifi: { name: "通信/Wi-Fi", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>` },
+    tv: { name: "動画", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>` },
+    music: { name: "音楽", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>` },
+    game: { name: "ゲーム", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="4"></rect></svg>` },
+    cloud: { name: "クラウド", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>` },
+    bolt: { name: "電気", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>` },
+    flame: { name: "ガス", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>` },
+    droplet: { name: "水道", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>` },
+    shield: { name: "保険", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>` },
+    train: { name: "交通/定期", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="16" rx="2"></rect><path d="M4 11h16"></path><path d="M12 3v8"></path><path d="M8 19l-3 3"></path><path d="M16 19l3 3"></path><circle cx="8" cy="15" r="1"></circle><circle cx="16" cy="15" r="1"></circle></svg>` },
+    car: { name: "車/ガソリン", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>` },
+    dumbbell: { name: "ジム", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path></svg>` },
+    sparkles: { name: "美容", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.885L19.798 10.8 13.912 12.715 12 18.6 10.088 12.715 4.202 10.8l5.886-1.915L12 3z"></path></svg>` },
+    book: { name: "教育/本", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>` },
+    users: { name: "家族/生活", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>` },
+    shopping: { name: "買い物", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>` },
+    other: { name: "その他", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>` },
+  };
+
   let state = loadState();
   let currentMonth = firstOfMonth(Core.todayKey());
   let reportMonth = currentMonth;
+  let subscriptionMonth = currentMonth;
   let currentView = "calendar";
+  let currentPaymentsSubview = "cards";
+  let subscriptionScope = "month";
+  let subscriptionFilterPay = "all";
+  let subscriptionFilterType = "all";
+  let selectedDetailSubId = "";
   let reportSubTab = "outlook";
   let isSummaryBreakdownOpen = false;
   let categoryChartInstance = null;
@@ -102,6 +130,7 @@
       expenses: [],
       cards: [],
       manualPayments: [],
+      subscriptions: [],
       favorites: defaultFavorites(),
       budgets: {},
       settings: {
@@ -142,7 +171,7 @@
     const clean = defaultState();
     if (!Core.isValidStateShape(input)) return clean;
 
-    clean.expenses = input.expenses
+    clean.expenses = (input.expenses || [])
       .filter((item) => item && Core.parseDateKey(item.date) && Core.normalizeAmount(item.amount) > 0)
       .map((item) => ({
         id: String(item.id || uid("exp")),
@@ -151,6 +180,7 @@
         category: CATEGORIES.includes(item.category) ? item.category : "その他",
         paymentMethod: PAYMENT_METHODS.includes(item.paymentMethod) ? item.paymentMethod : "その他",
         cardId: typeof item.cardId === "string" ? item.cardId : "",
+        includeInWithdrawal: item.includeInWithdrawal !== false,
         paymentDateOverride: Core.parseDateKey(item.paymentDateOverride) ? item.paymentDateOverride : "",
         calculatedPaymentDate: Core.parseDateKey(item.calculatedPaymentDate) ? item.calculatedPaymentDate : "",
         memo: String(item.memo || "").slice(0, 200),
@@ -159,7 +189,7 @@
         isSample: Boolean(item.isSample),
       }));
 
-    clean.cards = input.cards
+    clean.cards = (input.cards || [])
       .filter((item) => item && String(item.name || "").trim())
       .map((item) => ({
         id: String(item.id || uid("card")),
@@ -173,6 +203,33 @@
         createdAt: String(item.createdAt || new Date().toISOString()),
         isSample: Boolean(item.isSample),
       }));
+
+    if (Array.isArray(input.subscriptions)) {
+      clean.subscriptions = input.subscriptions
+        .filter((item) => item && typeof item === "object" && String(item.name || "").trim())
+        .map((item) => ({
+          id: String(item.id || uid("sub")),
+          name: String(item.name).trim().slice(0, 60),
+          icon: SUBSCRIPTION_ICONS[item.icon] ? item.icon : "other",
+          type: ["fixed", "subscription"].includes(item.type) ? item.type : "fixed",
+          amount: Core.normalizeAmount(item.amount),
+          amountType: ["fixed", "variable"].includes(item.amountType) ? item.amountType : "fixed",
+          interval: ["monthly", "yearly", "once"].includes(item.interval) ? item.interval : "monthly",
+          paymentDay: item.paymentDay === "end" ? "end" : Math.min(31, Math.max(1, Number(item.paymentDay) || 1)),
+          paymentMonth: Math.min(12, Math.max(1, Number(item.paymentMonth) || 1)),
+          oneTimeDate: Core.parseDateKey(item.oneTimeDate) ? item.oneTimeDate : "",
+          paymentMethod: PAYMENT_METHODS.includes(item.paymentMethod) ? item.paymentMethod : "口座引き落とし",
+          cardId: typeof item.cardId === "string" ? item.cardId : "",
+          includeInWithdrawal: item.includeInWithdrawal !== false,
+          category: CATEGORIES.includes(item.category) ? item.category : "固定費",
+          memo: String(item.memo || "").slice(0, 200),
+          isActive: item.isActive !== false,
+          createdAt: String(item.createdAt || new Date().toISOString()),
+          isSample: Boolean(item.isSample),
+        }));
+    } else {
+      clean.subscriptions = [];
+    }
 
     if (Array.isArray(input.favorites)) {
       clean.favorites = input.favorites
@@ -298,6 +355,18 @@
     });
     cycleOptions.push({ value: "end", label: "毎月末日（月末〜翌月末日前日）" });
     fillSelect($("setting-cycle-start-day"), cycleOptions);
+
+    // 固定費・サブスク用セレクト
+    const subDayOptions = [];
+    for (let day = 1; day <= 31; day += 1) {
+      subDayOptions.push({ value: String(day), label: `毎月${day}日` });
+    }
+    subDayOptions.push({ value: "end", label: "毎月末日" });
+    const subDayEl = $("sub-day-select");
+    if (subDayEl) fillSelect(subDayEl, subDayOptions);
+
+    const subCategoryEl = $("sub-category-select");
+    if (subCategoryEl) fillSelect(subCategoryEl, CATEGORIES.map((value) => ({ value, label: value })));
   }
 
   function fillSelect(select, options) {
@@ -365,6 +434,81 @@
       switchView("settings");
       switchSettingsSubView("balance");
     });
+
+    // 支払い画面（カード / 固定費・サブスク）切り替え
+    const payTabCards = $("payments-tab-cards");
+    if (payTabCards) payTabCards.addEventListener("click", () => switchPaymentsSubview("cards"));
+    const payTabSubs = $("payments-tab-subscriptions");
+    if (payTabSubs) payTabSubs.addEventListener("click", () => switchPaymentsSubview("subscriptions"));
+
+    // 固定費・サブスク ツールバー＆フィルター
+    const subPrev = $("sub-prev-month");
+    if (subPrev) subPrev.addEventListener("click", () => moveSubscriptionMonth(-1));
+    const subNext = $("sub-next-month");
+    if (subNext) subNext.addEventListener("click", () => moveSubscriptionMonth(1));
+    const subPickerBtn = $("sub-month-picker-button");
+    if (subPickerBtn) {
+      subPickerBtn.addEventListener("click", () => {
+        const picker = $("sub-month-picker");
+        picker.value = subscriptionMonth.slice(0, 7);
+        if (typeof picker.showPicker === "function") picker.showPicker();
+        else picker.click();
+      });
+    }
+    const subPicker = $("sub-month-picker");
+    if (subPicker) {
+      subPicker.addEventListener("change", (event) => {
+        if (/^\d{4}-\d{2}$/.test(event.target.value)) {
+          subscriptionMonth = `${event.target.value}-01`;
+          renderSubscriptionsView();
+        }
+      });
+    }
+
+    const addSubBtn = $("add-subscription-button");
+    if (addSubBtn) addSubBtn.addEventListener("click", () => openSubscriptionDialog());
+    const emptyAddSubBtn = $("sub-empty-add-btn");
+    if (emptyAddSubBtn) emptyAddSubBtn.addEventListener("click", () => openSubscriptionDialog());
+
+    const scopeMonth = $("sub-scope-month");
+    if (scopeMonth) scopeMonth.addEventListener("click", () => switchSubscriptionScope("month"));
+    const scopeAll = $("sub-scope-all");
+    if (scopeAll) scopeAll.addEventListener("click", () => switchSubscriptionScope("all"));
+
+    document.querySelectorAll("[data-filter-pay]").forEach((btn) => {
+      btn.addEventListener("click", () => setSubscriptionFilterPay(btn.dataset.filterPay));
+    });
+    document.querySelectorAll("[data-filter-type]").forEach((btn) => {
+      btn.addEventListener("click", () => setSubscriptionFilterType(btn.dataset.filterType));
+    });
+
+    // 固定費・サブスク フォーム制御
+    const subForm = $("subscription-form");
+    if (subForm) subForm.addEventListener("submit", saveSubscriptionFromForm);
+    const deleteSubBtn = $("delete-subscription-btn");
+    if (deleteSubBtn) deleteSubBtn.addEventListener("click", deleteCurrentSubscription);
+    const subAmtInput = $("sub-amount-input");
+    if (subAmtInput) subAmtInput.addEventListener("blur", formatMoneyInput);
+    const subPayMethod = $("sub-payment-method");
+    if (subPayMethod) subPayMethod.addEventListener("change", updateSubscriptionFormVisibility);
+    const subInterval = $("sub-interval-select");
+    if (subInterval) subInterval.addEventListener("change", updateSubscriptionFormVisibility);
+    const subIconPickerBtn = $("sub-icon-picker-btn");
+    if (subIconPickerBtn) subIconPickerBtn.addEventListener("click", openSubscriptionIconDialog);
+
+    // 固定費・サブスク 詳細モーダル
+    const subDetailToggleBtn = $("sub-detail-toggle-active-btn");
+    if (subDetailToggleBtn) subDetailToggleBtn.addEventListener("click", () => toggleSubscriptionActive(selectedDetailSubId));
+    const subDetailEditBtn = $("sub-detail-edit-btn");
+    if (subDetailEditBtn) {
+      subDetailEditBtn.addEventListener("click", () => {
+        const id = selectedDetailSubId;
+        closeDialog($("subscription-detail-dialog"));
+        openSubscriptionDialog(id);
+      });
+    }
+    const subDetailDelBtn = $("sub-detail-delete-btn");
+    if (subDetailDelBtn) subDetailDelBtn.addEventListener("click", () => deleteSubscription(selectedDetailSubId));
 
     document.querySelectorAll("[data-close-dialog]").forEach((button) => {
       button.addEventListener("click", () => closeDialog($(button.dataset.closeDialog)));
@@ -652,13 +796,21 @@
       if (active) button.setAttribute("aria-current", "page");
       else button.removeAttribute("aria-current");
     });
+
+    // FAB（＋ボタン）の表示制御（カレンダーのみ表示）
+    const quickAddBtn = $("quick-add-button");
+    if (quickAddBtn) {
+      quickAddBtn.style.display = view === "calendar" ? "inline-flex" : "none";
+      quickAddBtn.classList.toggle("is-hidden", view !== "calendar");
+    }
+
     const todayBtn = $("today-button");
     if (todayBtn) todayBtn.classList.toggle("is-hidden", view !== "calendar");
+
     if (view === "history") renderHistory();
     if (view === "report") renderReport();
     if (view === "cards") {
-      switchCardSubView("main");
-      renderCards();
+      switchPaymentsSubview(currentPaymentsSubview || "cards");
     }
     if (view === "settings") {
       switchSettingsSubView("menu");
@@ -667,11 +819,39 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function switchPaymentsSubview(subview) {
+    if (!["cards", "subscriptions"].includes(subview)) return;
+    currentPaymentsSubview = subview;
+    const cardsTab = $("payments-tab-cards");
+    const subTab = $("payments-tab-subscriptions");
+    const cardsView = $("cards-payment-subview");
+    const subView = $("subscriptions-payment-subview");
+
+    if (cardsTab) {
+      cardsTab.classList.toggle("is-active", subview === "cards");
+      cardsTab.setAttribute("aria-selected", subview === "cards" ? "true" : "false");
+    }
+    if (subTab) {
+      subTab.classList.toggle("is-active", subview === "subscriptions");
+      subTab.setAttribute("aria-selected", subview === "subscriptions" ? "true" : "false");
+    }
+    if (cardsView) cardsView.classList.toggle("is-active", subview === "cards");
+    if (subView) subView.classList.toggle("is-active", subview === "subscriptions");
+
+    if (subview === "cards") {
+      switchCardSubView("main");
+      renderCards();
+    } else {
+      renderSubscriptionsView();
+    }
+  }
+
   function renderAll() {
     renderCalendarView();
     renderHistory();
     renderReport();
     renderCards();
+    renderSubscriptionsView();
     renderSettings();
   }
 
@@ -1427,6 +1607,475 @@
     return state.expenses.filter((expense) => expense.cardId === cardId).length;
   }
 
+  /* ==========================================================================
+     固定費・サブスク（サービス一覧型UI）ロジック
+     ========================================================================== */
+
+  function moveSubscriptionMonth(amount) {
+    const date = Core.parseDateKey(subscriptionMonth);
+    if (!date) return;
+    date.setMonth(date.getMonth() + amount, 1);
+    subscriptionMonth = Core.toDateKey(date);
+    renderSubscriptionsView();
+  }
+
+  function switchSubscriptionScope(scope) {
+    subscriptionScope = scope;
+    const scopeMonth = $("sub-scope-month");
+    const scopeAll = $("sub-scope-all");
+    if (scopeMonth) {
+      scopeMonth.classList.toggle("is-active", scope === "month");
+      scopeMonth.setAttribute("aria-selected", scope === "month" ? "true" : "false");
+    }
+    if (scopeAll) {
+      scopeAll.classList.toggle("is-active", scope === "all");
+      scopeAll.setAttribute("aria-selected", scope === "all" ? "true" : "false");
+    }
+    renderSubscriptionsView();
+  }
+
+  function setSubscriptionFilterPay(pay) {
+    subscriptionFilterPay = pay;
+    document.querySelectorAll("[data-filter-pay]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.filterPay === pay);
+    });
+    renderSubscriptionsView();
+  }
+
+  function setSubscriptionFilterType(type) {
+    subscriptionFilterType = type;
+    document.querySelectorAll("[data-filter-type]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.filterType === type);
+    });
+    renderSubscriptionsView();
+  }
+
+  function renderSubscriptionsView() {
+    const parsedDate = Core.parseDateKey(subscriptionMonth);
+    const monthKey = subscriptionMonth.slice(0, 7);
+
+    const titleEl = $("sub-month-title");
+    if (titleEl && parsedDate) {
+      titleEl.textContent = `${parsedDate.getFullYear()}年${parsedDate.getMonth() + 1}月`;
+    }
+    const picker = $("sub-month-picker");
+    if (picker) picker.value = monthKey;
+
+    // 1. 今月の固定費サマリー（合計・内訳計算）
+    let totalMonthAmount = 0;
+    let fixedSubtotal = 0;
+    let subSubtotal = 0;
+
+    (state.subscriptions || []).forEach((item) => {
+      if (!item || item.isActive === false) return;
+      const usageDate = Core.getSubscriptionUsageDate(item, monthKey);
+      if (usageDate) {
+        const amt = Core.normalizeAmount(item.amount);
+        totalMonthAmount += amt;
+        if (item.type === "subscription") {
+          subSubtotal += amt;
+        } else {
+          fixedSubtotal += amt;
+        }
+      }
+    });
+
+    const totalEl = $("sub-summary-total");
+    if (totalEl) totalEl.textContent = formatYen(totalMonthAmount);
+    const statFixedEl = $("sub-stat-fixed");
+    if (statFixedEl) statFixedEl.textContent = formatYen(fixedSubtotal);
+    const statSubEl = $("sub-stat-sub");
+    if (statSubEl) statSubEl.textContent = formatYen(subSubtotal);
+
+    // 2. 表示リストのフィルタリングとソート
+    let itemsToDisplay = [];
+    const isMonthScope = subscriptionScope === "month";
+
+    (state.subscriptions || []).forEach((item) => {
+      if (!item) return;
+      const usageDate = Core.getSubscriptionUsageDate(item, monthKey);
+
+      if (isMonthScope) {
+        // 今月スコープ：当月に対象かつ有効なもの
+        if (!usageDate || item.isActive === false) return;
+        itemsToDisplay.push({ item, usageDate });
+      } else {
+        // 登録一覧スコープ：すべて
+        itemsToDisplay.push({ item, usageDate: usageDate || "" });
+      }
+    });
+
+    // フィルター適用（支払い方法・種別）
+    if (subscriptionFilterPay !== "all") {
+      itemsToDisplay = itemsToDisplay.filter(({ item }) => {
+        if (subscriptionFilterPay === "card") return item.paymentMethod === Core.CREDIT_PAYMENT;
+        if (subscriptionFilterPay === "direct") return item.paymentMethod === "口座引き落とし";
+        if (subscriptionFilterPay === "other") return item.paymentMethod !== Core.CREDIT_PAYMENT && item.paymentMethod !== "口座引き落とし";
+        return true;
+      });
+    }
+
+    if (subscriptionFilterType !== "all") {
+      itemsToDisplay = itemsToDisplay.filter(({ item }) => item.type === subscriptionFilterType);
+    }
+
+    // ソート（日付順 → 名称順）
+    itemsToDisplay.sort((a, b) => {
+      if (isMonthScope && a.usageDate && b.usageDate) {
+        return a.usageDate.localeCompare(b.usageDate);
+      }
+      const dayA = a.item.paymentDay === "end" ? 99 : Number(a.item.paymentDay) || 1;
+      const dayB = b.item.paymentDay === "end" ? 99 : Number(b.item.paymentDay) || 1;
+      if (dayA !== dayB) return dayA - dayB;
+      return a.item.name.localeCompare(b.item.name);
+    });
+
+    const container = $("subscription-list");
+    const emptyCard = $("subscription-empty-state");
+
+    if (!container) return;
+
+    if (!itemsToDisplay.length) {
+      container.replaceChildren();
+      if (emptyCard) emptyCard.classList.remove("is-hidden");
+      return;
+    }
+
+    if (emptyCard) emptyCard.classList.add("is-hidden");
+
+    const cards = itemsToDisplay.map(({ item, usageDate }) => {
+      const cardEl = createElement("button", `sub-card-item${item.isActive === false ? " is-paused" : ""}`);
+      cardEl.type = "button";
+      cardEl.setAttribute("aria-label", `${item.name}（${formatYen(item.amount)}）の詳細`);
+
+      // 左側：円形アイコン
+      const iconWrap = createElement("div", "sub-icon-circle");
+      const iconDef = SUBSCRIPTION_ICONS[item.icon] || SUBSCRIPTION_ICONS.other;
+      iconWrap.innerHTML = iconDef.svg;
+
+      // 中央：サービス情報
+      const body = createElement("div", "sub-card-body");
+
+      // サービス名
+      const title = createElement("span", "sub-card-title", item.name);
+
+      // 金額 ＆ 間隔バッジ
+      const amtRow = createElement("div", "sub-card-amount-line");
+      const amtEl = createElement("strong", "sub-card-amount", formatYen(item.amount));
+      const intervalLabel = { monthly: "毎月", yearly: "毎年", once: "一回のみ" }[item.interval] || "毎月";
+      const intervalBadge = createElement("span", "sub-badge-interval", intervalLabel);
+      amtRow.append(amtEl, intervalBadge);
+
+      // バッジ行（固定費/サブスク、支払い方法、カード名・登録色）
+      const badgesRow = createElement("div", "sub-card-badges");
+
+      // 種別バッジ
+      const typeLabel = item.type === "subscription" ? "サブスク" : "固定費";
+      const typeClass = item.type === "subscription" ? "sub-badge-type-sub" : "sub-badge-type-fixed";
+      badgesRow.append(createElement("span", `sub-badge ${typeClass}`, typeLabel));
+
+      // 支払い方法バッジ
+      if (item.paymentMethod === Core.CREDIT_PAYMENT) {
+        const card = state.cards.find((c) => c.id === item.cardId);
+        const cardBadge = createElement("span", "sub-badge sub-badge-pay-card", card ? card.name : "クレジットカード");
+        if (card && card.color) {
+          cardBadge.style.setProperty("--badge-card-color", card.color);
+        }
+        badgesRow.append(cardBadge);
+      } else if (item.paymentMethod === "口座引き落とし") {
+        badgesRow.append(createElement("span", "sub-badge sub-badge-pay-direct", "口座振替"));
+      } else {
+        badgesRow.append(createElement("span", "sub-badge sub-badge-pay-other", item.paymentMethod));
+      }
+
+      if (item.isActive === false) {
+        badgesRow.append(createElement("span", "sub-badge sub-paused-badge", "停止中"));
+      }
+
+      body.append(title, amtRow, badgesRow);
+
+      // カードで引落予定に含む場合のガイド表示
+      if (item.paymentMethod === Core.CREDIT_PAYMENT && item.includeInWithdrawal !== false) {
+        body.append(createElement("span", "sub-withdrawal-indicator", "引落予定に含む"));
+      }
+
+      // 右側：矢印
+      const arrow = createElement("span", "sub-card-arrow", "›");
+
+      cardEl.append(iconWrap, body, arrow);
+      cardEl.addEventListener("click", () => openSubscriptionDetailDialog(item.id));
+      return cardEl;
+    });
+
+    container.replaceChildren(...cards);
+  }
+
+  function refreshSubscriptionCardOptions(selectedCardId = "") {
+    const select = $("sub-card-select");
+    if (!select) return;
+    const options = state.cards.map((c) => ({ value: c.id, label: c.name }));
+    fillSelect(select, options.length ? options : [{ value: "", label: "登録カードなし" }]);
+    if (selectedCardId && state.cards.some((c) => c.id === selectedCardId)) {
+      select.value = selectedCardId;
+    }
+  }
+
+  function setSubscriptionIconInForm(iconId) {
+    const iconKey = SUBSCRIPTION_ICONS[iconId] ? iconId : "other";
+    const hidden = $("sub-icon-val");
+    if (hidden) hidden.value = iconKey;
+
+    const preview = $("sub-icon-preview-box");
+    if (preview) {
+      const def = SUBSCRIPTION_ICONS[iconKey] || SUBSCRIPTION_ICONS.other;
+      preview.innerHTML = def.svg;
+    }
+  }
+
+  function openSubscriptionIconDialog() {
+    const grid = $("sub-icon-grid");
+    if (!grid) return;
+
+    const currentIcon = $("sub-icon-val")?.value || "other";
+    const buttons = Object.entries(SUBSCRIPTION_ICONS).map(([key, def]) => {
+      const btn = createElement("button", `sub-icon-btn${key === currentIcon ? " is-selected" : ""}`);
+      btn.type = "button";
+      btn.innerHTML = `${def.svg}<span>${def.name}</span>`;
+      btn.addEventListener("click", () => {
+        setSubscriptionIconInForm(key);
+        closeDialog($("subscription-icon-dialog"));
+      });
+      return btn;
+    });
+
+    grid.replaceChildren(...buttons);
+    showDialog($("subscription-icon-dialog"));
+  }
+
+  function updateSubscriptionFormVisibility() {
+    const paymentMethod = $("sub-payment-method").value;
+    const isCredit = paymentMethod === Core.CREDIT_PAYMENT;
+    const cardField = $("sub-card-field");
+    const withdrawalRow = $("sub-withdrawal-toggle-row");
+
+    if (cardField) cardField.classList.toggle("is-hidden", !isCredit);
+    if (withdrawalRow) withdrawalRow.classList.toggle("is-hidden", !isCredit);
+
+    const interval = $("sub-interval-select").value;
+    const dayField = $("sub-day-field");
+    const monthField = $("sub-month-field");
+    const onetimeField = $("sub-onetime-field");
+
+    if (dayField) dayField.classList.toggle("is-hidden", interval === "once");
+    if (monthField) monthField.classList.toggle("is-hidden", interval !== "yearly");
+    if (onetimeField) onetimeField.classList.toggle("is-hidden", interval !== "once");
+  }
+
+  function openSubscriptionDialog(subId = "") {
+    const sub = subId ? state.subscriptions.find((item) => item.id === subId) : null;
+    const form = $("subscription-form");
+    if (form) form.reset();
+
+    const titleEl = $("subscription-dialog-title");
+    if (titleEl) titleEl.textContent = sub ? "固定費・サブスクを編集" : "固定費・サブスクを追加";
+
+    $("sub-id").value = sub ? sub.id : "";
+    $("sub-name-input").value = sub ? sub.name : "";
+    setSubscriptionIconInForm(sub ? sub.icon : "other");
+    $("sub-type-select").value = sub ? sub.type : "fixed";
+    $("sub-amount-input").value = sub ? formatNumber(sub.amount) : "";
+    $("sub-amount-type").value = sub ? sub.amountType : "fixed";
+    $("sub-interval-select").value = sub ? sub.interval : "monthly";
+
+    const dayVal = sub ? String(sub.paymentDay) : "1";
+    $("sub-day-select").value = dayVal;
+
+    const monthVal = sub ? String(sub.paymentMonth || 1) : "1";
+    $("sub-month-select").value = monthVal;
+
+    $("sub-onetime-input").value = sub ? (sub.oneTimeDate || "") : Core.todayKey();
+    $("sub-payment-method").value = sub ? sub.paymentMethod : (state.cards.length ? Core.CREDIT_PAYMENT : "口座引き落とし");
+
+    refreshSubscriptionCardOptions(sub ? sub.cardId : "");
+    $("sub-include-withdrawal").checked = sub ? sub.includeInWithdrawal !== false : true;
+    $("sub-category-select").value = sub ? sub.category : "固定費";
+    $("sub-memo-input").value = sub ? sub.memo : "";
+    $("sub-is-active").checked = sub ? sub.isActive !== false : true;
+
+    updateSubscriptionFormVisibility();
+
+    const delBtn = $("delete-subscription-btn");
+    if (delBtn) delBtn.classList.toggle("is-hidden", !sub);
+
+    showDialog($("subscription-dialog"));
+  }
+
+  function saveSubscriptionFromForm(event) {
+    event.preventDefault();
+    const name = $("sub-name-input").value.trim();
+    const amount = Core.normalizeAmount($("sub-amount-input").value);
+    if (!name || amount <= 0) {
+      showToast("サービス名と金額を入力してください。");
+      return;
+    }
+
+    const id = $("sub-id").value;
+    const existing = state.subscriptions.find((item) => item.id === id);
+
+    const paymentMethod = $("sub-payment-method").value;
+    const cardId = paymentMethod === Core.CREDIT_PAYMENT ? $("sub-card-select").value : "";
+    const interval = $("sub-interval-select").value;
+
+    const record = {
+      id: existing ? existing.id : uid("sub"),
+      name,
+      icon: $("sub-icon-val").value || "other",
+      type: $("sub-type-select").value,
+      amount,
+      amountType: $("sub-amount-type").value,
+      interval,
+      paymentDay: interval === "once" ? 1 : ($("sub-day-select").value === "end" ? "end" : Number($("sub-day-select").value) || 1),
+      paymentMonth: interval === "yearly" ? Number($("sub-month-select").value) || 1 : null,
+      oneTimeDate: interval === "once" ? $("sub-onetime-input").value : "",
+      paymentMethod,
+      cardId,
+      includeInWithdrawal: $("sub-include-withdrawal").checked,
+      category: $("sub-category-select").value,
+      memo: $("sub-memo-input").value.trim().slice(0, 200),
+      isActive: $("sub-is-active").checked,
+      createdAt: existing ? existing.createdAt : new Date().toISOString(),
+      isSample: existing ? existing.isSample : false,
+    };
+
+    if (existing) {
+      Object.assign(existing, record);
+    } else {
+      state.subscriptions.push(record);
+    }
+
+    saveState();
+    closeDialog($("subscription-dialog"));
+    renderAll();
+    showToast(existing ? `「${name}」を更新しました。` : `「${name}」を登録しました。`);
+  }
+
+  function openSubscriptionDetailDialog(subId) {
+    const sub = state.subscriptions.find((item) => item.id === subId);
+    if (!sub) return;
+
+    selectedDetailSubId = subId;
+
+    const nameEl = $("sub-detail-name");
+    if (nameEl) nameEl.textContent = sub.name;
+
+    const amtEl = $("sub-detail-amount");
+    if (amtEl) amtEl.textContent = formatYen(sub.amount);
+
+    const iconWrap = $("sub-detail-icon-wrap");
+    if (iconWrap) {
+      const iconDef = SUBSCRIPTION_ICONS[sub.icon] || SUBSCRIPTION_ICONS.other;
+      iconWrap.innerHTML = iconDef.svg;
+    }
+
+    const intervalBadge = $("sub-detail-interval-badge");
+    if (intervalBadge) {
+      intervalBadge.textContent = { monthly: "毎月", yearly: "毎年", once: "一回のみ" }[sub.interval] || "毎月";
+    }
+
+    const statusPill = $("sub-detail-status-pill");
+    if (statusPill) {
+      const active = sub.isActive !== false;
+      statusPill.textContent = active ? "有効" : "停止中";
+      statusPill.classList.toggle("is-active", active);
+      statusPill.classList.toggle("is-paused", !active);
+    }
+
+    const typeEl = $("sub-detail-type");
+    if (typeEl) typeEl.textContent = sub.type === "subscription" ? "サブスク（定期サービス）" : "固定費";
+
+    // 次回支払日計算
+    const nowKey = Core.todayKey().slice(0, 7);
+    let nextDate = Core.getSubscriptionUsageDate(sub, nowKey);
+    if (!nextDate || nextDate < Core.todayKey()) {
+      const nextMonthObj = Core.addMonths(Number(nowKey.slice(0, 4)), Number(nowKey.slice(5, 7)) - 1, 1);
+      const nextMKey = `${nextMonthObj.year}-${String(nextMonthObj.monthIndex + 1).padStart(2, "0")}`;
+      nextDate = Core.getSubscriptionUsageDate(sub, nextMKey) || nextDate;
+    }
+    const nextDateEl = $("sub-detail-next-date");
+    if (nextDateEl) {
+      nextDateEl.textContent = nextDate ? formatDate(nextDate) : "—";
+    }
+
+    const payEl = $("sub-detail-payment-method");
+    if (payEl) payEl.textContent = sub.paymentMethod;
+
+    const cardRow = $("sub-detail-card-row");
+    const cardNameEl = $("sub-detail-card-name");
+    const isCredit = sub.paymentMethod === Core.CREDIT_PAYMENT;
+    if (cardRow) cardRow.classList.toggle("is-hidden", !isCredit);
+    if (cardNameEl && isCredit) {
+      const card = state.cards.find((c) => c.id === sub.cardId);
+      cardNameEl.textContent = card ? card.name : "未選択";
+    }
+
+    const withdrawalRow = $("sub-detail-withdrawal-row");
+    const withdrawalStatusEl = $("sub-detail-withdrawal-status");
+    if (withdrawalRow) withdrawalRow.classList.toggle("is-hidden", !isCredit);
+    if (withdrawalStatusEl && isCredit) {
+      withdrawalStatusEl.textContent = sub.includeInWithdrawal !== false ? "引き落とし予定に含む" : "含まない（対象外）";
+    }
+
+    const catEl = $("sub-detail-category");
+    if (catEl) catEl.textContent = sub.category;
+
+    const memoRow = $("sub-detail-memo-row");
+    const memoEl = $("sub-detail-memo");
+    if (memoRow) memoRow.classList.toggle("is-hidden", !sub.memo);
+    if (memoEl) memoEl.textContent = sub.memo || "";
+
+    const toggleBtn = $("sub-detail-toggle-active-btn");
+    if (toggleBtn) {
+      toggleBtn.textContent = sub.isActive !== false ? "一時停止する" : "再開する";
+    }
+
+    showDialog($("subscription-detail-dialog"));
+  }
+
+  function toggleSubscriptionActive(subId) {
+    const sub = state.subscriptions.find((item) => item.id === subId);
+    if (!sub) return;
+
+    sub.isActive = !(sub.isActive !== false);
+    saveState();
+    closeDialog($("subscription-detail-dialog"));
+    renderAll();
+    showToast(`「${sub.name}」を${sub.isActive ? "再開" : "一時停止"}しました。`);
+  }
+
+  async function deleteSubscription(subId) {
+    const sub = state.subscriptions.find((item) => item.id === subId);
+    if (!sub) return;
+
+    const confirmed = await confirmAction(
+      `「${sub.name}」を削除しますか？`,
+      "削除すると、毎月の集計および引き落とし予定から除外されます。",
+      "削除する"
+    );
+    if (!confirmed) return;
+
+    state.subscriptions = state.subscriptions.filter((item) => item.id !== subId);
+    saveState();
+    closeDialog($("subscription-detail-dialog"));
+    closeDialog($("subscription-dialog"));
+    renderAll();
+    showToast(`「${sub.name}」を削除しました。`);
+  }
+
+  function deleteCurrentSubscription() {
+    const id = $("sub-id").value;
+    if (id) deleteSubscription(id);
+  }
+
   let isFavoritesDeleteMode = false;
 
   function renderFavoriteChips() {
@@ -2131,6 +2780,91 @@
       createdAt: new Date().toISOString(),
       isSample: true,
     });
+
+    const sampleSubscriptions = [
+      {
+        id: uid("sub"),
+        name: "家賃",
+        icon: "home",
+        type: "fixed",
+        amount: 80000,
+        amountType: "fixed",
+        interval: "monthly",
+        paymentDay: 25,
+        paymentMonth: null,
+        oneTimeDate: "",
+        paymentMethod: "口座引き落とし",
+        cardId: "",
+        includeInWithdrawal: false,
+        category: "固定費",
+        memo: "毎月25日振替",
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+      {
+        id: uid("sub"),
+        name: "スマホ料金",
+        icon: "phone",
+        type: "fixed",
+        amount: 7090,
+        amountType: "variable",
+        interval: "monthly",
+        paymentDay: "end",
+        paymentMonth: null,
+        oneTimeDate: "",
+        paymentMethod: Core.CREDIT_PAYMENT,
+        cardId: mainCardId,
+        includeInWithdrawal: true,
+        category: "固定費",
+        memo: "通信費",
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+      {
+        id: uid("sub"),
+        name: "Spotify",
+        icon: "music",
+        type: "subscription",
+        amount: 980,
+        amountType: "fixed",
+        interval: "monthly",
+        paymentDay: 15,
+        paymentMonth: null,
+        oneTimeDate: "",
+        paymentMethod: Core.CREDIT_PAYMENT,
+        cardId: mainCardId,
+        includeInWithdrawal: true,
+        category: "娯楽",
+        memo: "音楽ストリーミング",
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+      {
+        id: uid("sub"),
+        name: "Netflix",
+        icon: "tv",
+        type: "subscription",
+        amount: 890,
+        amountType: "fixed",
+        interval: "monthly",
+        paymentDay: 20,
+        paymentMonth: null,
+        oneTimeDate: "",
+        paymentMethod: Core.CREDIT_PAYMENT,
+        cardId: mainCardId,
+        includeInWithdrawal: true,
+        category: "娯楽",
+        memo: "動画配信",
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+    ];
+    state.subscriptions.push(...sampleSubscriptions);
+
     saveState();
     currentMonth = firstOfMonth(today);
     renderAll();
@@ -2146,6 +2880,7 @@
       category,
       paymentMethod,
       cardId,
+      includeInWithdrawal: true,
       paymentDateOverride: "",
       calculatedPaymentDate: paymentMethod === Core.CREDIT_PAYMENT
         ? Core.calculatePaymentDate(date, state.cards.find((card) => card.id === cardId))
@@ -2158,7 +2893,12 @@
   }
 
   function hasSampleData() {
-    return state.expenses.some((item) => item.isSample) || state.cards.some((item) => item.isSample) || state.manualPayments.some((item) => item.isSample);
+    return (
+      state.expenses.some((item) => item.isSample) ||
+      state.cards.some((item) => item.isSample) ||
+      state.manualPayments.some((item) => item.isSample) ||
+      state.subscriptions.some((item) => item.isSample)
+    );
   }
 
   async function removeSampleData() {
@@ -2171,6 +2911,7 @@
     state.expenses = state.expenses.filter((item) => !item.isSample);
     state.cards = state.cards.filter((item) => !item.isSample);
     state.manualPayments = state.manualPayments.filter((item) => !item.isSample);
+    state.subscriptions = state.subscriptions.filter((item) => !item.isSample);
     saveState();
     renderAll();
     showToast("サンプルデータだけ削除しました。");
