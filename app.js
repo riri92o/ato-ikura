@@ -14,9 +14,10 @@
       id: "teal",
       name: "ティール",
       themeColor1: "#007a78",
+      themeColor2: "#26a69a",
       bgColor: "#f2f9f9",
-      borderColor: "#e0f2f1",
-      gaugeColor: "#26a69a",
+      borderColor: "#d1ecea",
+      gaugeColor: "#007a78",
       usageColor: "#007a78",
       theme: "light",
     },
@@ -24,9 +25,10 @@
       id: "blue",
       name: "ブルー",
       themeColor1: "#0284c7",
+      themeColor2: "#38bdf8",
       bgColor: "#f0f9ff",
-      borderColor: "#e0f2fe",
-      gaugeColor: "#38bdf8",
+      borderColor: "#bae6fd",
+      gaugeColor: "#0284c7",
       usageColor: "#0284c7",
       theme: "light",
     },
@@ -34,9 +36,10 @@
       id: "lavender",
       name: "ラベンダー",
       themeColor1: "#8b5cf6",
+      themeColor2: "#c084fc",
       bgColor: "#faf5ff",
-      borderColor: "#f3e8ff",
-      gaugeColor: "#c084fc",
+      borderColor: "#eedcfd",
+      gaugeColor: "#8b5cf6",
       usageColor: "#7c3aed",
       theme: "light",
     },
@@ -44,20 +47,77 @@
       id: "pink",
       name: "ピンク",
       themeColor1: "#f43f5e",
+      themeColor2: "#fb7185",
       bgColor: "#fff1f2",
-      borderColor: "#ffe4e6",
-      gaugeColor: "#fb7185",
+      borderColor: "#fecdd3",
+      gaugeColor: "#f43f5e",
       usageColor: "#e11d48",
       theme: "light",
     },
     {
+      id: "forest",
+      name: "フォレスト",
+      themeColor1: "#15803d",
+      themeColor2: "#4ade80",
+      bgColor: "#f0fdf4",
+      borderColor: "#bbf7d0",
+      gaugeColor: "#16a34a",
+      usageColor: "#15803d",
+      theme: "light",
+    },
+    {
+      id: "sunset",
+      name: "サンセット",
+      themeColor1: "#ea580c",
+      themeColor2: "#fb923c",
+      bgColor: "#fff7ed",
+      borderColor: "#fed7aa",
+      gaugeColor: "#ea580c",
+      usageColor: "#c2410c",
+      theme: "light",
+    },
+    {
+      id: "ocean",
+      name: "オーシャン",
+      themeColor1: "#0891b2",
+      themeColor2: "#22d3ee",
+      bgColor: "#ecfeff",
+      borderColor: "#a5f3fc",
+      gaugeColor: "#0891b2",
+      usageColor: "#0e7490",
+      theme: "light",
+    },
+    {
+      id: "amber",
+      name: "アンバー",
+      themeColor1: "#d97706",
+      themeColor2: "#fbbf24",
+      bgColor: "#fffbeb",
+      borderColor: "#fde68a",
+      gaugeColor: "#d97706",
+      usageColor: "#b45309",
+      theme: "light",
+    },
+    {
+      id: "midnight",
+      name: "ミッドナイト",
+      themeColor1: "#6366f1",
+      themeColor2: "#a5b4fc",
+      bgColor: "#0f172a",
+      borderColor: "#1e293b",
+      gaugeColor: "#818cf8",
+      usageColor: "#6366f1",
+      theme: "dark",
+    },
+    {
       id: "mono",
       name: "モノクロ",
-      themeColor1: "#475569",
+      themeColor1: "#334155",
+      themeColor2: "#64748b",
       bgColor: "#f8fafc",
       borderColor: "#e2e8f0",
-      gaugeColor: "#64748b",
-      usageColor: "#334155",
+      gaugeColor: "#475569",
+      usageColor: "#1e293b",
       theme: "light",
     },
   ];
@@ -831,6 +891,80 @@
       settingUsageColor.addEventListener("change", () => {
         saveState();
         showToast("使った金額の表示色を保存しました。");
+      });
+    }
+
+    // テーマコードのコピー
+    const themeCodeCopyBtn = $("theme-code-copy-btn");
+    if (themeCodeCopyBtn) {
+      themeCodeCopyBtn.addEventListener("click", () => {
+        const code = getThemeCode();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(code).then(() => {
+            showToast("テーマコードをコピーしました。");
+          }).catch(() => {
+            showToast("テーマコード: " + code);
+          });
+        } else {
+          showToast("テーマコードをコピーしました。");
+        }
+      });
+    }
+
+    // テーマコードの適用
+    const applyThemeCodeFromField = () => {
+      const input = $("theme-code-input");
+      if (!input) return;
+      const raw = input.value.trim();
+      if (!raw) return;
+      const parts = raw.split(/[_,\-\s]+/).filter(Boolean);
+      const hexRegex = /^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
+      if (parts.length < 3) {
+        showToast("テーマコードの形式が正しくありません。（例: #007A78_#FFFFFF_#34D399）");
+        return;
+      }
+      const formatted = parts.map((p) => {
+        const match = hexRegex.exec(p);
+        if (!match) return null;
+        let val = p.startsWith("#") ? p : `#${p}`;
+        if (val.length === 4) {
+          val = `#${val[1]}${val[1]}${val[2]}${val[2]}${val[3]}${val[3]}`;
+        }
+        return val;
+      });
+      if (formatted.some((p) => p === null)) {
+        showToast("有効なカラーコード（#RRGGBB）を入力してください。");
+        return;
+      }
+
+      state.settings.themeColor1 = formatted[0];
+      state.settings.themeColor2 = formatted[0];
+      state.settings.bgColor = formatted[1];
+      if (formatted.length >= 4) {
+        state.settings.borderColor = formatted[2];
+        state.settings.gaugeColor = formatted[3];
+      } else {
+        state.settings.borderColor = "#e2e8f0";
+        state.settings.gaugeColor = formatted[2];
+      }
+      state.settings.usageColor = state.settings.themeColor1;
+      saveState();
+      applyThemeColors();
+      renderCalendar();
+      showToast("テーマコードを適用しました。");
+    };
+
+    const themeCodeApplyBtn = $("theme-code-apply-btn");
+    if (themeCodeApplyBtn) {
+      themeCodeApplyBtn.addEventListener("click", applyThemeCodeFromField);
+    }
+    const themeCodeInput = $("theme-code-input");
+    if (themeCodeInput) {
+      themeCodeInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          applyThemeCodeFromField();
+        }
       });
     }
 
@@ -3698,6 +3832,17 @@
     return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
   }
 
+  function getThemeCode() {
+    const c1 = (state.settings.themeColor1 || "#007a78").toUpperCase();
+    const bg = (state.settings.bgColor || "#ffffff").toUpperCase();
+    const border = (state.settings.borderColor || "#e2e8f0").toUpperCase();
+    const gauge = (state.settings.gaugeColor || "#34d399").toUpperCase();
+    if (border === "#E2E8F0") {
+      return `${c1}_${bg}_${gauge}`;
+    }
+    return `${c1}_${bg}_${border}_${gauge}`;
+  }
+
   function applyThemeColors() {
     const color1 = state.settings.themeColor1 || "#007a78";
     const bgColor = state.settings.bgColor || "#ffffff";
@@ -3857,6 +4002,11 @@
       }
     }
 
+    const themeCodeInput = $("theme-code-input");
+    if (themeCodeInput && document.activeElement !== themeCodeInput) {
+      themeCodeInput.value = getThemeCode();
+    }
+
     updatePresetButtons();
   }
 
@@ -3898,7 +4048,7 @@
 
       const circle = document.createElement("div");
       circle.className = "swatch-circle";
-      circle.style.background = `linear-gradient(135deg, ${preset.themeColor1} 50%, color-mix(in srgb, ${preset.themeColor1} 30%, ${preset.bgColor}) 50%)`;
+      circle.style.background = `linear-gradient(135deg, ${preset.themeColor1} 50%, ${preset.themeColor2 || preset.gaugeColor} 50%)`;
 
       const check = document.createElement("span");
       check.className = "swatch-check";

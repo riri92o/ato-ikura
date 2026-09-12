@@ -2199,10 +2199,10 @@ textarea {
 }
 
 .theme-phone-mockup {
-  width: 124px;
-  height: 270px;
-  border-radius: 26px;
-  border: 3.5px solid #1c1d1f;
+  width: 126px;
+  height: 275px;
+  border-radius: 28px;
+  border: 3.5px solid #1a1a1c;
   background: var(--bg-color, var(--bg));
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   position: relative;
@@ -2218,10 +2218,10 @@ textarea {
   top: 3.5px;
   left: 50%;
   transform: translateX(-50%);
-  width: 32px;
-  height: 8px;
+  width: 28px;
+  height: 7px;
   background: #000000;
-  border-radius: 6px;
+  border-radius: 4px;
   z-index: 10;
 }
 
@@ -2229,11 +2229,12 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 3.5px 5px 1px;
-  font-size: 0.42rem;
+  padding: 4px 10px 1px;
+  font-size: 0.36rem;
   font-weight: 800;
   color: var(--text-muted);
   z-index: 9;
+  flex-shrink: 0;
 }
 
 .phone-status-icons {
@@ -2243,14 +2244,14 @@ textarea {
 }
 
 .phone-signal {
-  font-size: 0.38rem;
+  font-size: 0.34rem;
   font-weight: 850;
 }
 
 .phone-battery-pill {
-  width: 10px;
-  height: 5px;
-  border-radius: 2px;
+  width: 9px;
+  height: 4.5px;
+  border-radius: 1.5px;
   border: 1px solid currentColor;
   padding: 0.5px;
   display: flex;
@@ -2269,8 +2270,8 @@ textarea {
 .phone-screen-content {
   display: flex;
   flex-direction: column;
-  gap: 2.5px;
-  padding: 1px 3.5px 2px;
+  gap: 2px;
+  padding: 1px 4px;
   flex: 1;
   min-height: 0;
   justify-content: space-between;
@@ -2500,17 +2501,17 @@ textarea {
 
 .phone-mini-fab {
   position: absolute;
-  right: 6px;
-  bottom: 18px;
-  width: 14px;
-  height: 14px;
+  right: 7px;
+  bottom: 25px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--accent);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 900;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   z-index: 8;
@@ -2520,11 +2521,11 @@ textarea {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding-top: 1px;
+  padding: 2.5px 4px 6px;
   border-top: 1px solid var(--border);
   background: var(--surface);
-  margin: 0 -3.5px -2px;
-  padding-bottom: 1.5px;
+  flex-shrink: 0;
+  z-index: 9;
 }
 
 .mini-nav-item {
@@ -2532,7 +2533,7 @@ textarea {
   flex-direction: column;
   align-items: center;
   gap: 0.5px;
-  font-size: 0.26rem;
+  font-size: 0.25rem;
   font-weight: 750;
   color: var(--text-muted);
 }
@@ -2591,26 +2592,29 @@ textarea {
 .theme-swatches-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px 2px;
+  gap: 5px 2px;
   justify-items: center;
+  max-height: 155px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .theme-swatch-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2.5px;
+  gap: 2px;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 1.5px;
+  padding: 1px;
   border-radius: 8px;
   width: 100%;
 }
 
 .swatch-circle {
-  width: 32px;
-  height: 32px;
+  width: 29px;
+  height: 29px;
   border-radius: 50%;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
   position: relative;
@@ -2631,10 +2635,10 @@ textarea {
 
 .swatch-check {
   color: #ffffff;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 900;
   opacity: 0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .theme-swatch-item.is-active .swatch-check {
@@ -2642,7 +2646,7 @@ textarea {
 }
 
 .swatch-name {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 750;
   color: var(--text);
   white-space: nowrap;
@@ -2655,7 +2659,7 @@ textarea {
 }
 
 .swatch-plus {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -2723,6 +2727,83 @@ textarea {
   top: 0;
   left: 0;
   cursor: pointer;
+}
+
+/* テーマコード共有・読込 */
+.theme-code-panel {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.theme-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.theme-code-title {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.theme-code-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.theme-code-field {
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--text);
+  min-width: 0;
+  letter-spacing: -0.2px;
+}
+
+.theme-code-field:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.theme-code-btn {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 750;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.theme-code-btn:hover {
+  background: var(--surface-muted);
+}
+
+.theme-code-btn-primary {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+.theme-code-btn-primary:hover {
+  filter: brightness(1.08);
 }
 
 .app-version {

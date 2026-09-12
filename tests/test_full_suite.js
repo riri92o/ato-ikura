@@ -290,6 +290,35 @@ if (!floatPrev) throw new Error("theme-floating-preview element should exist!");
 if (typeof switchSettingsSubView === "function") {
   switchSettingsSubView("theme");
   if (floatPrev.classList.contains("is-hidden")) throw new Error("Floating preview should be visible in theme subview!");
+  
+  // Verify theme code input and buttons
+  const themeCodeInput = document.getElementById("theme-code-input");
+  const themeCodeApplyBtn = document.getElementById("theme-code-apply-btn");
+  if (!themeCodeInput || !themeCodeApplyBtn) throw new Error("Theme code elements must exist!");
+  
+  // Test theme code reading/applying
+  themeCodeInput.value = "#EA580C_#FFF7ED_#EA580C";
+  themeCodeApplyBtn.dispatchEvent({ type: "click" });
+  if (document.documentElement.style.getPropertyValue("--theme-color-1") !== "#EA580C") {
+    throw new Error("Theme code apply failed to update themeColor1");
+  }
+  if (document.documentElement.style.getPropertyValue("--bg-color") !== "#FFF7ED") {
+    throw new Error("Theme code apply failed to update bgColor");
+  }
+
+  // Test 4-part theme code
+  themeCodeInput.value = "#6366F1_#0F172A_#1E293B_#818CF8";
+  themeCodeApplyBtn.dispatchEvent({ type: "click" });
+  if (document.documentElement.style.getPropertyValue("--theme-color-1") !== "#6366F1") {
+    throw new Error("Theme code apply (4-part) failed to update themeColor1");
+  }
+  if (document.documentElement.style.getPropertyValue("--bg-color") !== "#0F172A") {
+    throw new Error("Theme code apply (4-part) failed to update bgColor");
+  }
+  if (document.documentElement.style.getPropertyValue("--gauge-color") !== "#818CF8") {
+    throw new Error("Theme code apply (4-part) failed to update gaugeColor");
+  }
+
   switchSettingsSubView("menu");
   if (!floatPrev.classList.contains("is-hidden")) throw new Error("Floating preview should be hidden in menu subview!");
 }
