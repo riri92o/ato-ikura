@@ -223,7 +223,6 @@
         </section>
 
         <section id="view-history" class="view" aria-labelledby="history-title">
-          <div class="page-heading"><p class="section-kicker">記録を振り返る</p><h2 id="history-title">履歴</h2></div>
           <div class="filter-panel">
             <div class="search-input-field">
               <span class="search-icon" aria-hidden="true">🔍</span>
@@ -241,8 +240,6 @@
         </section>
 
         <section id="view-report" class="view" aria-labelledby="report-title">
-          <div class="page-heading"><p class="section-kicker">見通しと分析</p><h2 id="report-title">レポート</h2></div>
-          
           <div class="report-subtab-switch" role="tablist" aria-label="レポートの表示切り替え">
             <button id="report-tab-outlook-btn" class="report-subtab-btn is-active" type="button" role="tab" aria-selected="true">見通し</button>
             <button id="report-tab-analysis-btn" class="report-subtab-btn" type="button" role="tab" aria-selected="false">分析</button>
@@ -430,8 +427,6 @@
 
         <section id="view-settings" class="view" aria-labelledby="settings-title">
           <div id="settings-menu-subview" class="settings-subview is-active">
-            <div class="page-heading"><p class="section-kicker">アプリの設定・案内</p><h2 id="settings-title">設定</h2></div>
-
             <div class="settings-nav-list">
               <button type="button" class="settings-menu-card" data-settings-nav="widgets">
                 <span class="settings-menu-title">ホーム画面のウィジェット</span>
@@ -553,7 +548,10 @@
                         </div>
                         <!-- Mini Summary Card -->
                         <div class="phone-mini-summary-card" id="phone-preview-summary">
-                          <span class="mini-summary-kicker">今月あと</span>
+                          <div class="mini-summary-top-row">
+                            <span class="mini-summary-kicker">今月あと</span>
+                            <span class="mini-summary-circle-btn">›</span>
+                          </div>
                           <div class="mini-summary-amount" id="phone-preview-remaining">97,480<small>円</small></div>
                           <div class="mini-summary-sub">
                             <span>使った額 <strong id="phone-preview-spent">2,520円</strong></span>
@@ -567,6 +565,12 @@
                             <div class="phone-mini-gauge-fill" id="phone-preview-gauge" style="width: 42%;"></div>
                           </div>
                           <span class="phone-mini-gauge-val" id="phone-preview-percent">42%使用</span>
+                        </div>
+                        <!-- Mini Smart Advisor -->
+                        <div class="phone-mini-advisor-card" id="phone-preview-advisor">
+                          <span class="mini-advisor-bulb">💡</span>
+                          <span class="mini-advisor-text">支出は順調です</span>
+                          <span class="mini-advisor-arrow">›</span>
                         </div>
                         <!-- Mini Calendar -->
                         <div class="phone-mini-calendar-card" id="phone-preview-calendar">

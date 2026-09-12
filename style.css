@@ -35,6 +35,8 @@
   --summary-shadow: 0 14px 32px rgba(0, 0, 0, 0.18);
   --radius-lg: 22px;
   --radius-md: 15px;
+  --radius-sm: 8px;
+  --radius-pill: 9999px;
   --bottom-nav-height: 72px;
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
   font-synthesis: none;
@@ -2328,12 +2330,32 @@ textarea {
   text-align: left;
 }
 
+.mini-summary-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .mini-summary-kicker {
   font-size: 0.34rem;
   font-weight: 750;
   color: var(--text-muted);
   line-height: 1;
-  display: block;
+}
+
+.mini-summary-circle-btn {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--surface-muted);
+  border: 0.5px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.42rem;
+  font-weight: 850;
+  color: var(--text-muted);
+  line-height: 1;
 }
 
 .mini-summary-amount {
@@ -2375,6 +2397,39 @@ textarea {
   display: flex;
   align-items: center;
   gap: 2.5px;
+}
+
+.phone-mini-advisor-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 3px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.3rem;
+  font-weight: 750;
+  color: var(--text-muted);
+}
+
+.mini-advisor-bulb {
+  font-size: 0.38rem;
+  line-height: 1;
+}
+
+.mini-advisor-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.mini-advisor-arrow {
+  font-size: 0.44rem;
+  font-weight: 850;
+  color: var(--text-muted);
+  line-height: 1;
 }
 
 .phone-mini-gauge-track {
@@ -3533,16 +3588,16 @@ dialog {
 .report-subtab-switch {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  background: var(--surface-muted);
+  gap: 4px;
+  background: var(--surface-soft);
   border: 1px solid var(--border);
   padding: 4px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   margin-bottom: 12px;
 }
 
 .report-subtab-btn {
-  min-height: 44px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3552,7 +3607,7 @@ dialog {
   color: var(--text-muted);
   font-size: 0.88rem;
   font-weight: 750;
-  border-radius: calc(var(--radius-md) - 3px);
+  border-radius: var(--radius-pill);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -5465,10 +5520,7 @@ dialog {
 
 /* 長押し準備 */
 .home-widget-block.is-drag-ready {
-  transform: scale(0.985);
-  opacity: 0.9;
-  transition: transform 0.12s ease;
-  box-shadow: 0 0 0 2px var(--accent) !important;
+  /* 誤表示を防ぐため長押し完了前の枠線・拡大縮小は表示しない */
 }
 
 /* ドラッグ中（浮遊・影・追従） */

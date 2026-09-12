@@ -1,5 +1,6 @@
 // Thorough test of all view transitions and dialog triggers in AtoIkura
 const window = this;
+window.scrollTo = function() {};
 window.addEventListener = function(evt, cb) {};
 const elements = {};
 const domLoadedCallbacks = [];
@@ -54,6 +55,7 @@ function createElementMock(tagOrId) {
     querySelectorAll: function(sel) { return []; },
     querySelector: function(sel) { return null; },
     setAttribute: function() {},
+    removeAttribute: function() {},
     getAttribute: function() { return null; },
     focus: function() {},
     reset: function() {},
@@ -80,6 +82,13 @@ const document = {
     return elements[id];
   },
   querySelectorAll: function(sel) {
+    if (sel === ".nav-item") {
+      return ["calendar", "history", "report", "cards", "settings"].map(function(v) {
+        var el = document.getElementById("nav-" + v);
+        el.dataset.view = v;
+        return el;
+      });
+    }
     return [];
   },
   querySelector: function(sel) {
@@ -285,6 +294,37 @@ if (typeof switchSettingsSubView === "function") {
   if (!floatPrev.classList.contains("is-hidden")) throw new Error("Floating preview should be hidden in menu subview!");
 }
 print("Theme Presets and Floating Live Preview tests passed!");
+
+// Test Nav Bar double tap / re-tap toggle
+print("Testing Bottom Nav double-tap toggling...");
+const navCalendarBtn = document.getElementById("nav-calendar");
+const navCardsBtn = document.getElementById("nav-cards");
+const navReportBtn = document.getElementById("nav-report");
+const payCardsTab = document.getElementById("payments-tab-cards");
+const reportOutlookBtn = document.getElementById("report-tab-outlook-btn");
+
+if (navCalendarBtn && navCardsBtn && navReportBtn) {
+  navCalendarBtn.dispatchEvent({ type: "click" });
+  if (payCardsTab) payCardsTab.dispatchEvent({ type: "click" });
+  if (reportOutlookBtn) reportOutlookBtn.dispatchEvent({ type: "click" });
+
+  navCardsBtn.dispatchEvent({ type: "click" }); // switch from calendar to cards (cards subview)
+  const cardsSub1 = document.getElementById("cards-payment-subview");
+  const subsSub1 = document.getElementById("subscriptions-payment-subview");
+  if (!cardsSub1.classList.contains("is-active")) throw new Error("Cards subview should be active on first tap");
+
+  navCardsBtn.dispatchEvent({ type: "click" }); // tap again -> toggle to subscriptions
+  if (!subsSub1.classList.contains("is-active")) throw new Error("Subscriptions subview should be active on double-tap");
+
+  navReportBtn.dispatchEvent({ type: "click" }); // switch to report (outlook pane)
+  const outlookPane1 = document.getElementById("report-pane-outlook");
+  const analysisPane1 = document.getElementById("report-pane-analysis");
+  if (!outlookPane1.classList.contains("is-active")) throw new Error("Outlook pane should be active on first tap");
+
+  navReportBtn.dispatchEvent({ type: "click" }); // tap again -> toggle to analysis
+  if (!analysisPane1.classList.contains("is-active")) throw new Error("Analysis pane should be active on double-tap");
+  print("Bottom Nav double-tap toggle passed!");
+}
 
 print("All view, dialog, subscription, and home widget integration tests passed successfully!");
 

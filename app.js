@@ -511,8 +511,31 @@
     const reportAdvisor = $("report-smart-advisor-banner");
     if (reportAdvisor) reportAdvisor.addEventListener("click", () => nextSmartAdvice("report-advisor"));
 
+    let lastNavTapTime = 0;
+    let lastNavTapView = "";
+
     document.querySelectorAll(".nav-item").forEach((button) => {
-      button.addEventListener("click", () => switchView(button.dataset.view));
+      button.addEventListener("click", () => {
+        const view = button.dataset.view;
+        const now = Date.now();
+        const isDoubleTap = (now - lastNavTapTime < 400 && lastNavTapView === view);
+        const isAlreadyActive = (currentView === view);
+
+        if (view === "cards" && isAlreadyActive) {
+          const nextSubview = currentPaymentsSubview === "cards" ? "subscriptions" : "cards";
+          switchPaymentsSubview(nextSubview);
+          if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        } else if (view === "report" && isAlreadyActive) {
+          const nextTab = reportSubTab === "outlook" ? "analysis" : "outlook";
+          switchReportSubTab(nextTab);
+          if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        } else {
+          switchView(view);
+        }
+
+        lastNavTapTime = now;
+        lastNavTapView = view;
+      });
     });
     $("quick-add-button").addEventListener("click", () => openExpenseDialog(Core.todayKey()));
     $("add-card-button").addEventListener("click", () => openCardDialog());
@@ -927,7 +950,7 @@
     if (viewKey === "widgets") {
       renderHomeWidgetsManageList("settings-widgets-manage-list");
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function switchCardSubView(subview, cardId = null) {
@@ -940,7 +963,7 @@
     if (!isMain) {
       renderCardHistoryList(cardId);
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function moveMonth(amount) {
@@ -1018,7 +1041,7 @@
       switchSettingsSubView("menu");
       renderSettings();
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   let suppressClickUntil = 0;
@@ -3790,6 +3813,12 @@
         miniGaugePercent.style.color = phoneMuted;
       }
 
+      const miniAdvisor = $("phone-preview-advisor");
+      if (miniAdvisor) {
+        miniAdvisor.style.borderColor = borderColor;
+        miniAdvisor.style.backgroundColor = phoneCardBg;
+      }
+
       const miniCalendar = $("phone-preview-calendar");
       if (miniCalendar) {
         miniCalendar.style.borderColor = borderColor;
@@ -3937,7 +3966,7 @@
     let currentDeltaY = 0;
     let initialOrderIds = [];
     let lastVibratedSnapTarget = null;
-    const LONG_PRESS_MS = 220;
+    const LONG_PRESS_MS = 420;
     const MOVE_CANCEL_THRESHOLD = 8;
 
     const getTopLevelBlocks = () =>
