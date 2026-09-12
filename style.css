@@ -5176,11 +5176,57 @@ dialog {
   will-change: transform;
 }
 
-/* 吸着ハイライト */
-.home-widget-block.is-drag-target {
+/* 吸着・磁力ドッキング状態（中心に重なったとき） */
+.home-widget-block.is-snap-active {
+  transform: scale(0.975) !important;
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2.5px var(--accent-soft) !important;
-  transform: scale(1.01);
+  box-shadow: 0 0 0 3px var(--accent), 0 12px 30px rgba(0, 0, 0, 0.16) !important;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease !important;
+}
+
+.home-widget-block.is-snap-active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  animation: pulseSnapPill 0.5s infinite alternate ease-in-out;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.home-widget-block.is-snap-active.snap-top::after {
+  top: -6px;
+}
+
+.home-widget-block.is-snap-active.snap-bottom::after {
+  bottom: -6px;
+}
+
+@keyframes pulseSnapPill {
+  0% { transform: translateX(-50%) scaleX(0.85); opacity: 0.75; }
+  100% { transform: translateX(-50%) scaleX(1.15); opacity: 1; }
+}
+
+/* FLIP移動アニメーション中のスタイル */
+.home-widget-block.is-animating {
+  transition: transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1) !important;
+  will-change: transform;
+}
+
+/* ドロップ完了時のバウンス */
+.home-widget-block.is-dock-bounce {
+  animation: widgetDockBounce 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+@keyframes widgetDockBounce {
+  0% { transform: scale(1.04); }
+  50% { transform: scale(0.985); }
+  100% { transform: scale(1); }
 }
 
 html.is-widget-dragging,

@@ -3735,7 +3735,8 @@
     let startY = 0;
     let currentDeltaY = 0;
     let initialOrderIds = [];
-    const LONG_PRESS_MS = 250;
+    let lastVibratedSnapTarget = null;
+    const LONG_PRESS_MS = 220;
     const MOVE_CANCEL_THRESHOLD = 8;
 
     const clearLongPress = () => {
@@ -3757,7 +3758,7 @@
       container.classList.add("is-dragging-active");
       block.classList.remove("is-drag-ready");
       block.classList.add("is-dragging");
-      block.style.transform = "translate3d(0, 0, 0) scale(1.03)";
+      block.style.transform = "translate3d(0, 0, 0) scale(1.04)";
       document.body.classList.add("is-widget-dragging");
       document.documentElement.classList.add("is-widget-dragging");
 
@@ -3766,8 +3767,40 @@
       }
 
       if (navigator.vibrate) {
-        try { navigator.vibrate(40); } catch (_) {}
+        try { navigator.vibrate(45); } catch (_) {}
       }
+    };
+
+    const animateSiblingsFLIP = (action) => {
+      const siblings = Array.from(container.querySelectorAll(".home-widget-block:not(.is-hidden)")).filter(
+        (el) => el !== draggedBlock
+      );
+      const firstPositions = new Map();
+      siblings.forEach((el) => {
+        firstPositions.set(el, el.getBoundingClientRect().top);
+      });
+
+      action();
+
+      siblings.forEach((el) => {
+        const firstTop = firstPositions.get(el);
+        const lastTop = el.getBoundingClientRect().top;
+        const deltaY = firstTop - lastTop;
+        if (deltaY !== 0) {
+          el.style.transform = `translate3d(0, ${deltaY}px, 0)`;
+          el.style.transition = "none";
+          requestAnimationFrame(() => {
+            el.classList.add("is-animating");
+            el.style.transform = "translate3d(0, 0, 0)";
+            el.style.transition = "transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1)";
+            setTimeout(() => {
+              el.classList.remove("is-animating");
+              el.style.transform = "";
+              el.style.transition = "";
+            }, 230);
+          });
+        }
+      });
     };
 
     const handleStart = (target, clientX, clientY) => {
@@ -3780,6 +3813,7 @@
       draggedBlock = block;
       startX = clientX;
       startY = clientY;
+      lastVibratedSnapTarget = null;
 
       block.classList.add("is-drag-ready");
 
@@ -3810,7 +3844,7 @@
       }
 
       currentDeltaY = clientY - startY;
-      draggedBlock.style.transform = `translate3d(0, ${currentDeltaY}px, 0) scale(1.03)`;
+      draggedBlock.style.transform = `translate3d(0, ${currentDeltaY}px, 0) scale(1.04)`;
 
       const draggedRect = draggedBlock.getBoundingClientRect();
       const draggedCenterY = draggedRect.top + draggedRect.height / 2;
@@ -3819,28 +3853,64 @@
         (el) => el !== draggedBlock
       );
 
+      let activeSnapSib = null;
+
       for (const sib of siblings) {
         const sibRect = sib.getBoundingClientRect();
         const sibCenterY = sibRect.top + sibRect.height / 2;
+        const distanceToCenter = Math.abs(draggedCenterY - sibCenterY);
 
-        const isSibAbove = sib.compareDocumentPosition ? (Boolean(sib.compareDocumentPosition(draggedBlock) & 4)) : false;
+        // 磁力スナップ吸着判定（相手の中心付近に重なったとき）
+        const snapZone = Math.max(38, sibRect.height * 0.45);
+        if (distanceToCenter < snapZone) {
+          activeSnapSib = sib;
+          const isAbove = draggedCenterY < sibCenterY;
+          sib.classList.add("is-snap-active");
+          sib.classList.toggle("snap-top", isAbove);
+          sib.classList.toggle("snap-bottom", !isAbove);
 
-        if (isSibAbove && draggedCenterY < sibCenterY) {
-          container.insertBefore(draggedBlock, sib);
+          if (lastVibratedSnapTarget !== sib) {
+            lastVibratedSnapTarget = sib;
+            if (navigator.vibrate) {
+              try { navigator.vibrate(18); } catch (_) {}
+            }
+          }
+        } else {
+          sib.classList.remove("is-snap-active", "snap-top", "snap-bottom");
+        }
+      }
+
+      if (!activeSnapSib) {
+        lastVibratedSnapTarget = null;
+      }
+
+      // 中心を越えたときの滑らかな入れ替え
+      for (const sib of siblings) {
+        const sibRect = sib.getBoundingClientRect();
+        const sibCenterY = sibRect.top + sibRect.height / 2;
+        const isSibAbove = sib.compareDocumentPosition ? Boolean(sib.compareDocumentPosition(draggedBlock) & 4) : false;
+
+        const swapThreshold = 14;
+        if (isSibAbove && draggedCenterY < sibCenterY - swapThreshold) {
+          animateSiblingsFLIP(() => {
+            container.insertBefore(draggedBlock, sib);
+          });
           startY = clientY;
           currentDeltaY = 0;
-          draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.03)`;
+          draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.04)`;
           if (navigator.vibrate) {
-            try { navigator.vibrate(25); } catch (_) {}
+            try { navigator.vibrate(28); } catch (_) {}
           }
           break;
-        } else if (!isSibAbove && draggedCenterY > sibCenterY) {
-          container.insertBefore(draggedBlock, sib.nextSibling);
+        } else if (!isSibAbove && draggedCenterY > sibCenterY + swapThreshold) {
+          animateSiblingsFLIP(() => {
+            container.insertBefore(draggedBlock, sib.nextSibling);
+          });
           startY = clientY;
           currentDeltaY = 0;
-          draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.03)`;
+          draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.04)`;
           if (navigator.vibrate) {
-            try { navigator.vibrate(25); } catch (_) {}
+            try { navigator.vibrate(28); } catch (_) {}
           }
           break;
         }
@@ -3856,16 +3926,26 @@
       if (!isDragging || !draggedBlock) {
         isDragging = false;
         draggedBlock = null;
+        lastVibratedSnapTarget = null;
         return;
       }
 
+      const finishingBlock = draggedBlock;
       isDragging = false;
-      draggedBlock.classList.remove("is-dragging");
-      draggedBlock.style.transform = "";
+      draggedBlock = null;
+      lastVibratedSnapTarget = null;
+
+      finishingBlock.classList.remove("is-dragging");
+      finishingBlock.style.transform = "";
+      finishingBlock.classList.add("is-dock-bounce");
+      setTimeout(() => {
+        finishingBlock.classList.remove("is-dock-bounce");
+      }, 350);
 
       Array.from(container.querySelectorAll(".home-widget-block")).forEach((el) => {
-        el.classList.remove("is-drag-target");
-        el.classList.remove("is-drag-ready");
+        el.classList.remove("is-snap-active", "snap-top", "snap-bottom", "is-drag-target", "is-drag-ready", "is-animating");
+        el.style.transform = "";
+        el.style.transition = "";
       });
 
       const newOrderIds = Array.from(container.querySelectorAll(".home-widget-block")).map(
@@ -3890,10 +3970,8 @@
         saveState();
         renderHomeWidgetsManageList("settings-widgets-manage-list");
         renderHomeWidgetsManageList("home-widgets-manage-list");
-        showToast("ウィジェットの配置を更新しました。");
+        showToast("ウィジェットを新しい配置に結合・更新しました。");
       }
-
-      draggedBlock = null;
     };
 
     // タッチイベント（スマホ実機向け）
