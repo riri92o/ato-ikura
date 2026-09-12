@@ -10,14 +10,78 @@
   };
 
   const THEME_PRESETS = [
-    { name: "フォレスト（標準）", color1: "#185a37", color2: "#388f5f" },
-    { name: "サクラ・ローズ", color1: "#a83260", color2: "#e06287" },
-    { name: "ラベンダー・ベリー", color1: "#5c3a92", color2: "#9b62c4" },
-    { name: "ミント・アクア", color1: "#1b6b66", color2: "#3cb5ab" },
-    { name: "ピーチ・コーラル", color1: "#b84e2a", color2: "#e88554" },
-    { name: "ディープ・オーシャン", color1: "#173e6e", color2: "#2b6cb0" },
-    { name: "サンセット・ワイン", color1: "#802548", color2: "#c45039" },
-    { name: "ミッドナイト・シック", color1: "#242c38", color2: "#445164" },
+    {
+      name: "🌿 フォレスト（標準）",
+      themeColor1: "#185a37",
+      bgColor: "#ffffff",
+      borderColor: "#e2e8f0",
+      gaugeColor: "#34d399",
+      usageColor: "#0284c7",
+      theme: "auto",
+    },
+    {
+      name: "🌸 サクラ・ラテ",
+      themeColor1: "#a83260",
+      bgColor: "#fffafb",
+      borderColor: "#fed7e2",
+      gaugeColor: "#f472b6",
+      usageColor: "#e11d48",
+      theme: "light",
+    },
+    {
+      name: "🌙 ミッドナイト・ダーク",
+      themeColor1: "#68b98b",
+      bgColor: "#111712",
+      borderColor: "#344039",
+      gaugeColor: "#34d399",
+      usageColor: "#77b3e7",
+      theme: "dark",
+    },
+    {
+      name: "☕ カプチーノ・モカ",
+      themeColor1: "#78350f",
+      bgColor: "#fefcf9",
+      borderColor: "#e7dfd5",
+      gaugeColor: "#d97706",
+      usageColor: "#b45309",
+      theme: "light",
+    },
+    {
+      name: "🌊 オーシャン・ブルー",
+      themeColor1: "#1e40af",
+      bgColor: "#f8fafc",
+      borderColor: "#cbd5e1",
+      gaugeColor: "#38bdf8",
+      usageColor: "#2563eb",
+      theme: "light",
+    },
+    {
+      name: "🍊 ビタミン・シトラス",
+      themeColor1: "#c2410c",
+      bgColor: "#fffcf7",
+      borderColor: "#fed7aa",
+      gaugeColor: "#fb923c",
+      usageColor: "#ea580c",
+      theme: "light",
+    },
+    {
+      name: "🪻 ラベンダー・パステル",
+      themeColor1: "#6b21a8",
+      bgColor: "#faf5ff",
+      borderColor: "#e9d5ff",
+      gaugeColor: "#a855f7",
+      usageColor: "#7c3aed",
+      theme: "light",
+    },
+    {
+      name: "🖤 モノトーン・ミニマル",
+      themeColor1: "#334155",
+      bgColor: "#f8fafc",
+      borderColor: "#e2e8f0",
+      gaugeColor: "#64748b",
+      usageColor: "#0f172a",
+      theme: "light",
+    },
   ];
 
   const CATEGORIES = ["食費", "日用品", "交通", "娯楽", "旅行", "衣服", "医療", "固定費", "その他"];
@@ -101,6 +165,7 @@
     populateStaticSelects();
     bindEvents();
     applyTheme();
+    setupHomeWidgetsDragAndDrop();
     $("history-month").value = currentMonth.slice(0, 7);
     renderAll();
     registerServiceWorker();
@@ -718,19 +783,12 @@
     $("theme-select").addEventListener("change", saveTheme);
     $("theme-color-1").addEventListener("input", (e) => {
       state.settings.themeColor1 = e.target.value;
+      state.settings.themeColor2 = e.target.value;
       applyThemeColors();
     });
     $("theme-color-1").addEventListener("change", () => {
       saveState();
-      showToast("カラー1（開始色）を保存しました。");
-    });
-    $("theme-color-2").addEventListener("input", (e) => {
-      state.settings.themeColor2 = e.target.value;
-      applyThemeColors();
-    });
-    $("theme-color-2").addEventListener("change", () => {
-      saveState();
-      showToast("カラー2（終了色）を保存しました。");
+      showToast("テーマカラーを保存しました。");
     });
 
     $("setting-bg-color").addEventListener("input", (e) => {
@@ -774,12 +832,15 @@
     }
 
     $("reset-colors-button").addEventListener("click", () => {
+      state.settings.theme = "auto";
+      state.settings.themeColor1 = "#185a37";
+      state.settings.themeColor2 = "#185a37";
       state.settings.bgColor = "#ffffff";
       state.settings.borderColor = "#e2e8f0";
       state.settings.gaugeColor = "#34d399";
       state.settings.usageColor = "#0284c7";
       saveState();
-      applyThemeColors();
+      applyTheme();
       renderCalendar();
       showToast("テーマ・カラーを初期値に戻しました。");
     });
@@ -3000,7 +3061,8 @@
     $("setting-reserve").value = state.settings.minimumReserve === null ? "" : formatNumber(state.settings.minimumReserve);
     $("theme-select").value = state.settings.theme;
     $("theme-color-1").value = state.settings.themeColor1 || "#185a37";
-    $("theme-color-2").value = state.settings.themeColor2 || "#388f5f";
+    const themeColor2El = $("theme-color-2");
+    if (themeColor2El) themeColor2El.value = state.settings.themeColor2 || state.settings.themeColor1 || "#185a37";
     $("setting-bg-color").value = state.settings.bgColor || "#ffffff";
     $("setting-border-color").value = state.settings.borderColor || "#e2e8f0";
     $("setting-gauge-color").value = state.settings.gaugeColor || "#34d399";
@@ -3008,7 +3070,8 @@
     const usageColorEl = $("setting-usage-color");
     if (usageColorEl) usageColorEl.value = usageColor;
     $("theme-color-1-val").textContent = (state.settings.themeColor1 || "#185a37").toUpperCase();
-    $("theme-color-2-val").textContent = (state.settings.themeColor2 || "#388f5f").toUpperCase();
+    const themeColor2ValEl = $("theme-color-2-val");
+    if (themeColor2ValEl) themeColor2ValEl.textContent = (state.settings.themeColor2 || state.settings.themeColor1 || "#185a37").toUpperCase();
     $("setting-bg-color-val").textContent = (state.settings.bgColor || "#ffffff").toUpperCase();
     $("setting-border-color-val").textContent = (state.settings.borderColor || "#e2e8f0").toUpperCase();
     $("setting-gauge-color-val").textContent = (state.settings.gaugeColor || "#34d399").toUpperCase();
@@ -3470,14 +3533,14 @@
 
   function applyThemeColors() {
     const color1 = state.settings.themeColor1 || "#185a37";
-    const color2 = state.settings.themeColor2 || "#388f5f";
     const bgColor = state.settings.bgColor || "#ffffff";
     const borderColor = state.settings.borderColor || "#e2e8f0";
     const gaugeColor = state.settings.gaugeColor || "#34d399";
     const usageColor = state.settings.usageColor || "#0284c7";
 
     document.documentElement.style.setProperty("--theme-color-1", color1);
-    document.documentElement.style.setProperty("--theme-color-2", color2);
+    document.documentElement.style.setProperty("--theme-color-2", color1);
+    document.documentElement.style.setProperty("--accent", color1);
     document.documentElement.style.setProperty("--bg-color", bgColor);
     document.documentElement.style.setProperty("--border-color", borderColor);
     document.documentElement.style.setProperty("--gauge-color", gaugeColor);
@@ -3488,7 +3551,7 @@
     if (isDarkBg) {
       document.documentElement.style.setProperty("--text", "#f8fafc");
       document.documentElement.style.setProperty("--text-muted", "#94a3b8");
-      document.documentElement.style.setProperty("--accent-dark", "color-mix(in srgb, var(--theme-color-2, #34d399) 70%, #ffffff)");
+      document.documentElement.style.setProperty("--accent-dark", "color-mix(in srgb, var(--theme-color-1, #34d399) 70%, #ffffff)");
       document.documentElement.style.setProperty("--surface", "color-mix(in srgb, var(--bg-color) 70%, #1e293b)");
       document.documentElement.style.setProperty("--surface-muted", "color-mix(in srgb, var(--bg-color) 85%, #334155)");
       document.documentElement.style.setProperty("--surface-soft", "color-mix(in srgb, var(--bg-color) 90%, #0f172a)");
@@ -3502,14 +3565,10 @@
     }
 
     const val1 = $("theme-color-1-val");
-    const val2 = $("theme-color-2-val");
     if (val1) val1.textContent = color1.toUpperCase();
-    if (val2) val2.textContent = color2.toUpperCase();
 
     const input1 = $("theme-color-1");
-    const input2 = $("theme-color-2");
     if (input1 && input1.value.toLowerCase() !== color1.toLowerCase()) input1.value = color1;
-    if (input2 && input2.value.toLowerCase() !== color2.toLowerCase()) input2.value = color2;
 
     const bgInput = $("setting-bg-color");
     const bgVal = $("setting-bg-color-val");
@@ -3531,54 +3590,251 @@
     if (usageInput && usageInput.value.toLowerCase() !== usageColor.toLowerCase()) usageInput.value = usageColor;
     if (usageVal) usageVal.textContent = usageColor.toUpperCase();
 
-    const preview = $("theme-preview-bar");
-    if (preview) {
-      preview.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
-    }
-
     updatePresetButtons();
   }
 
   function updatePresetButtons() {
     const c1 = (state.settings.themeColor1 || "").toLowerCase();
-    const c2 = (state.settings.themeColor2 || "").toLowerCase();
+    const bg = (state.settings.bgColor || "").toLowerCase();
+    const border = (state.settings.borderColor || "").toLowerCase();
+    const gauge = (state.settings.gaugeColor || "").toLowerCase();
+    const usage = (state.settings.usageColor || "").toLowerCase();
+
     document.querySelectorAll(".preset-button").forEach((button) => {
-      const p1 = (button.dataset.color1 || "").toLowerCase();
-      const p2 = (button.dataset.color2 || "").toLowerCase();
-      button.classList.toggle("is-active", p1 === c1 && p2 === c2);
+      const match =
+        button.dataset.themeColor1?.toLowerCase() === c1 &&
+        button.dataset.bgColor?.toLowerCase() === bg &&
+        button.dataset.borderColor?.toLowerCase() === border &&
+        button.dataset.gaugeColor?.toLowerCase() === gauge &&
+        button.dataset.usageColor?.toLowerCase() === usage;
+      button.classList.toggle("is-active", Boolean(match));
     });
   }
 
   function renderPresetPalette() {
     const grid = $("preset-palette-grid");
-    if (!grid || grid.children.length > 0) return;
+    if (!grid) return;
+    grid.innerHTML = "";
 
     THEME_PRESETS.forEach((preset) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "preset-button";
-      button.dataset.color1 = preset.color1;
-      button.dataset.color2 = preset.color2;
+      button.dataset.themeColor1 = preset.themeColor1;
+      button.dataset.bgColor = preset.bgColor;
+      button.dataset.borderColor = preset.borderColor;
+      button.dataset.gaugeColor = preset.gaugeColor;
+      button.dataset.usageColor = preset.usageColor;
+      button.dataset.theme = preset.theme || "auto";
 
-      const swatch = document.createElement("span");
-      swatch.className = "preset-swatch";
-      swatch.style.background = `linear-gradient(135deg, ${preset.color1} 0%, ${preset.color2} 100%)`;
+      const swatchGroup = document.createElement("span");
+      swatchGroup.className = "preset-swatch-group";
+
+      const dot1 = document.createElement("span");
+      dot1.className = "preset-dot";
+      dot1.style.backgroundColor = preset.themeColor1;
+      dot1.title = "テーマ色";
+
+      const dot2 = document.createElement("span");
+      dot2.className = "preset-dot";
+      dot2.style.backgroundColor = preset.bgColor;
+      dot2.title = "背景色";
+
+      const dot3 = document.createElement("span");
+      dot3.className = "preset-dot";
+      dot3.style.backgroundColor = preset.gaugeColor;
+      dot3.title = "ゲージ色";
+
+      const dot4 = document.createElement("span");
+      dot4.className = "preset-dot";
+      dot4.style.backgroundColor = preset.usageColor;
+      dot4.title = "利用額色";
+
+      swatchGroup.append(dot1, dot2, dot3, dot4);
 
       const label = document.createElement("span");
       label.textContent = preset.name;
 
-      button.append(swatch, label);
+      button.append(swatchGroup, label);
       button.addEventListener("click", () => {
-        state.settings.themeColor1 = preset.color1;
-        state.settings.themeColor2 = preset.color2;
+        state.settings.themeColor1 = preset.themeColor1;
+        state.settings.themeColor2 = preset.themeColor1;
+        state.settings.bgColor = preset.bgColor;
+        state.settings.borderColor = preset.borderColor;
+        state.settings.gaugeColor = preset.gaugeColor;
+        state.settings.usageColor = preset.usageColor;
+        if (preset.theme) state.settings.theme = preset.theme;
         saveState();
-        applyThemeColors();
-        showToast(`テーマ色を「${preset.name}」に変更しました。`);
+        applyTheme();
+        renderCalendar();
+        showToast(`おすすめテーマ「${preset.name}」を適用しました。`);
       });
       grid.append(button);
     });
 
     updatePresetButtons();
+  }
+
+  function setupHomeWidgetsDragAndDrop() {
+    const container = $("home-widgets-container");
+    if (!container) return;
+
+    let longPressTimer = null;
+    let draggedBlock = null;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let currentDeltaY = 0;
+    let lastSwapTarget = null;
+    const LONG_PRESS_MS = 320;
+    const MOVE_THRESHOLD = 8;
+
+    const clearLongPress = () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+      if (draggedBlock && !isDragging) {
+        draggedBlock.classList.remove("is-drag-ready");
+        draggedBlock = null;
+      }
+    };
+
+    container.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 && e.pointerType === "mouse") return;
+      const interactive = e.target.closest("button, input, select, textarea, a, summary, [role='button'], [role='tab'], label");
+      if (interactive && !interactive.classList.contains("home-widget-block")) return;
+
+      const block = e.target.closest(".home-widget-block");
+      if (!block || block.classList.contains("is-hidden")) return;
+
+      draggedBlock = block;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      block.classList.add("is-drag-ready");
+
+      longPressTimer = setTimeout(() => {
+        isDragging = true;
+        block.classList.remove("is-drag-ready");
+        block.classList.add("is-dragging");
+
+        if (navigator.vibrate) {
+          try { navigator.vibrate(40); } catch (_) {}
+        }
+      }, LONG_PRESS_MS);
+    });
+
+    window.addEventListener("pointermove", (e) => {
+      if (!draggedBlock) return;
+
+      const dx = Math.abs(e.clientX - startX);
+      const dy = Math.abs(e.clientY - startY);
+
+      if (!isDragging) {
+        if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
+          clearLongPress();
+        }
+        return;
+      }
+
+      e.preventDefault();
+      currentDeltaY = e.clientY - startY;
+      draggedBlock.style.transform = `translate3d(0, ${currentDeltaY}px, 0) scale(1.03)`;
+
+      const draggedRect = draggedBlock.getBoundingClientRect();
+      const draggedCenterY = draggedRect.top + draggedRect.height / 2;
+
+      const siblings = Array.from(container.querySelectorAll(".home-widget-block:not(.is-hidden)")).filter(
+        (el) => el !== draggedBlock
+      );
+
+      let closestTarget = null;
+      let minDistance = Infinity;
+
+      for (const sib of siblings) {
+        const sibRect = sib.getBoundingClientRect();
+        const sibCenterY = sibRect.top + sibRect.height / 2;
+        const distance = Math.abs(draggedCenterY - sibCenterY);
+
+        const snapThreshold = Math.max(38, sibRect.height * 0.45);
+        if (distance < snapThreshold && distance < minDistance) {
+          minDistance = distance;
+          closestTarget = sib;
+        }
+      }
+
+      siblings.forEach((sib) => sib.classList.remove("is-drag-target"));
+
+      if (closestTarget && closestTarget !== lastSwapTarget) {
+        closestTarget.classList.add("is-drag-target");
+        
+        const targetRect = closestTarget.getBoundingClientRect();
+        const targetCenterY = targetRect.top + targetRect.height / 2;
+
+        if (draggedCenterY < targetCenterY) {
+          container.insertBefore(draggedBlock, closestTarget);
+        } else {
+          container.insertBefore(draggedBlock, closestTarget.nextSibling);
+        }
+
+        startY = e.clientY;
+        currentDeltaY = 0;
+        draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.03)`;
+
+        if (navigator.vibrate) {
+          try { navigator.vibrate(18); } catch (_) {}
+        }
+        lastSwapTarget = closestTarget;
+      }
+    }, { passive: false });
+
+    const finishDrag = () => {
+      clearLongPress();
+      if (!isDragging || !draggedBlock) {
+        isDragging = false;
+        draggedBlock = null;
+        lastSwapTarget = null;
+        return;
+      }
+
+      isDragging = false;
+      draggedBlock.classList.remove("is-dragging");
+      draggedBlock.style.transform = "";
+
+      Array.from(container.querySelectorAll(".home-widget-block")).forEach((el) => {
+        el.classList.remove("is-drag-target");
+        el.classList.remove("is-drag-ready");
+      });
+
+      const newOrderIds = Array.from(container.querySelectorAll(".home-widget-block")).map(
+        (el) => el.dataset.widget
+      );
+
+      const currentWidgets = state.settings.homeWidgets || defaultHomeWidgets();
+      const reordered = [];
+      newOrderIds.forEach((id) => {
+        const item = currentWidgets.find((w) => w.id === id);
+        if (item) reordered.push(item);
+      });
+      currentWidgets.forEach((w) => {
+        if (!reordered.some((rw) => rw.id === w.id)) {
+          reordered.push(w);
+        }
+      });
+
+      state.settings.homeWidgets = reordered;
+      saveState();
+      renderHomeWidgetsManageList("settings-widgets-manage-list");
+      renderHomeWidgetsManageList("home-widgets-manage-list");
+      showToast("ウィジェットの配置を更新しました。");
+
+      draggedBlock = null;
+      lastSwapTarget = null;
+    };
+
+    window.addEventListener("pointerup", finishDrag);
+    window.addEventListener("pointercancel", finishDrag);
   }
 
   function exportData() {

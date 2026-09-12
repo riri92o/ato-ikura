@@ -522,43 +522,27 @@
                 </select>
               </label>
 
+              <!-- おすすめテーマパターン（背景・枠線・アクセントをトータルコーディネート） -->
               <div class="theme-color-section">
-                <span class="color-setting-title">テーマカラー（2色のグラデーション）</span>
-                <p class="settings-description">「この月に使った合計」の大枠やアプリのアクセント色に反映されます。</p>
+                <span class="color-setting-title">おすすめテーマパターン</span>
+                <p class="settings-description">全体の背景・アクセント・ゲージなどの配色をワンタップでまとめて切り替えます。</p>
+                <div class="preset-grid" id="preset-palette-grid"></div>
+              </div>
 
-                <div class="theme-color-pickers">
+              <!-- 個別カラー設定（テーマカラー1色 ＋ 背景・枠線・ゲージ・利用額） -->
+              <div class="theme-color-section">
+                <span class="color-setting-title">カラーの個別カスタマイズ</span>
+                <p class="settings-description">テーマカラー、全体の背景色、カード枠線色、予算ゲージの色を好みに合わせて細かく調整できます。</p>
+
+                <div class="theme-custom-colors-grid">
                   <label class="color-picker-item" for="theme-color-1">
-                    <span class="color-label">カラー1（開始色）</span>
+                    <span class="color-label">テーマカラー</span>
                     <div class="color-input-wrapper">
                       <input id="theme-color-1" type="color" value="#185a37" />
                       <span id="theme-color-1-val" class="color-hex">#185A37</span>
                     </div>
                   </label>
-                  <div class="color-picker-arrow" aria-hidden="true">→</div>
-                  <label class="color-picker-item" for="theme-color-2">
-                    <span class="color-label">カラー2（終了色）</span>
-                    <div class="color-input-wrapper">
-                      <input id="theme-color-2" type="color" value="#388f5f" />
-                      <span id="theme-color-2-val" class="color-hex">#388F5F</span>
-                    </div>
-                  </label>
-                </div>
 
-                <div id="theme-preview-bar" class="theme-preview-bar">
-                  <span>グラデーション プレビュー</span>
-                </div>
-
-                <div class="preset-section">
-                  <span class="preset-title">おすすめ・かわいい配色パレット</span>
-                  <div class="preset-grid" id="preset-palette-grid"></div>
-                </div>
-              </div>
-
-              <div class="theme-color-section">
-                <span class="color-setting-title">背景・枠線・ゲージのカスタマイズ</span>
-                <p class="settings-description">全体の背景色、カード枠線色、予算ゲージの色を好みに合わせて変更できます。</p>
-
-                <div class="theme-extra-pickers">
                   <label class="color-picker-item" for="setting-bg-color">
                     <span class="color-label">背景色</span>
                     <div class="color-input-wrapper">
@@ -592,7 +576,7 @@
                   </label>
                 </div>
 
-                <div style="margin-top: 10px;">
+                <div style="margin-top: 14px;">
                   <button id="reset-colors-button" class="button button-ghost full-width" type="button">テーマ・カラーを初期値に戻す</button>
                 </div>
               </div>
