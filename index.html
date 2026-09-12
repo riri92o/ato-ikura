@@ -49,91 +49,96 @@
             </button>
             <input id="month-picker" class="visually-hidden" type="month" aria-label="表示する月" />
             <button id="next-month" class="month-nav-btn" type="button" aria-label="次の月">›</button>
+            <button id="open-home-widgets-button" class="home-widget-edit-btn" type="button" aria-label="ホーム画面のレイアウトを編集">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14"></line>
+                <line x1="4" y1="10" x2="4" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="3"></line>
+                <line x1="20" y1="21" x2="20" y2="16"></line>
+                <line x1="20" y1="12" x2="20" y2="3"></line>
+                <line x1="1" y1="14" x2="7" y2="14"></line>
+                <line x1="9" y1="8" x2="15" y2="8"></line>
+                <line x1="17" y1="16" x2="23" y2="16"></line>
+              </svg>
+            </button>
           </div>
           <div id="cycle-period-bar" class="cycle-period-bar"><span id="cycle-period-badge" class="cycle-period-badge">集計期間: —</span></div>
 
-          <section class="summary-panel" aria-label="月間サマリー">
-            <div class="budget-mode-switch-wrapper">
-              <div class="budget-mode-switch" role="tablist" aria-label="集計方式の切り替え">
-                <button id="mode-usage-btn" class="budget-mode-tab is-active" type="button" role="tab" aria-selected="true" data-mode="usage">使った額</button>
-                <button id="mode-outflow-btn" class="budget-mode-tab" type="button" role="tab" aria-selected="false" data-mode="outflow">口座から出る額</button>
+          <div id="home-widgets-container" class="home-widgets-container">
+            <!-- 1. 予算・残額サマリー -->
+            <section id="widget-budget-summary" class="home-widget-block" data-widget="budget-summary">
+              <div class="budget-mode-switch-wrapper">
+                <div class="budget-mode-switch" role="tablist" aria-label="集計方式の切り替え">
+                  <button id="mode-usage-btn" class="budget-mode-tab is-active" type="button" role="tab" aria-selected="true" data-mode="usage">使った額</button>
+                  <button id="mode-outflow-btn" class="budget-mode-tab" type="button" role="tab" aria-selected="false" data-mode="outflow">口座から出る額</button>
+                </div>
               </div>
-            </div>
-
-            <!-- 単一の統合サマリーカード -->
-            <div class="summary-unified-card">
-              <!-- 予算設定済みの表示 -->
-              <div id="summary-budget-set" class="summary-budget-content">
-                <div class="summary-main-row">
-                  <div class="summary-remaining-block">
-                    <span class="summary-kicker" id="budget-primary-label">今月あと</span>
-                    <div class="summary-amount-row">
-                      <strong id="budget-remaining-amount" class="summary-huge-amount">0</strong>
-                      <span id="budget-remaining-unit" class="summary-unit-yen">円</span>
+              <div class="summary-unified-card">
+                <div id="summary-budget-set" class="summary-budget-content">
+                  <div class="summary-main-row">
+                    <div class="summary-remaining-block">
+                      <span class="summary-kicker" id="budget-primary-label">今月あと</span>
+                      <div class="summary-amount-row">
+                        <strong id="budget-remaining-amount" class="summary-huge-amount">0</strong>
+                        <span id="budget-remaining-unit" class="summary-unit-yen">円</span>
+                      </div>
                     </div>
+                    <button id="open-budget-button" class="summary-circle-edit-btn" type="button" aria-label="予算を設定">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
                   </div>
-                  <button id="open-budget-button" class="summary-circle-edit-btn" type="button" aria-label="予算を設定">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                  </button>
+                  <div class="summary-sub-stats-row">
+                    <span class="stat-item"><span class="stat-label" id="budget-spent-label">使った額</span> <strong id="budget-spent-amount">0円</strong></span>
+                    <span class="stat-divider">｜</span>
+                    <span class="stat-item"><span class="stat-label">予算</span> <strong id="budget-total-val">0円</strong></span>
+                  </div>
                 </div>
-
-                <!-- 補助情報行: 使った額 2,520円 ｜ 予算 100,000円 -->
-                <div class="summary-sub-stats-row">
-                  <span class="stat-item"><span class="stat-label" id="budget-spent-label">使った額</span> <strong id="budget-spent-amount">0円</strong></span>
-                  <span class="stat-divider">｜</span>
-                  <span class="stat-item"><span class="stat-label">予算</span> <strong id="budget-total-val">0円</strong></span>
+                <div id="summary-budget-unset" class="summary-budget-content is-hidden">
+                  <div class="summary-main-row">
+                    <div class="summary-remaining-block">
+                      <span class="summary-kicker" id="budget-unset-spent-label">今月の支出</span>
+                      <div class="summary-amount-row">
+                        <strong id="budget-unset-spent-amount" class="summary-huge-amount">0</strong>
+                        <span class="summary-unit-yen">円</span>
+                      </div>
+                    </div>
+                    <button id="open-budget-from-unset-button" class="summary-set-budget-btn" type="button">予算を設定 ＋</button>
+                  </div>
                 </div>
+              </div>
+            </section>
 
-                <!-- 進捗ゲージ: ［進捗ゲージ］ 3%使用 -->
+            <!-- 2. 予算進捗ゲージ -->
+            <section id="widget-budget-gauge" class="home-widget-block" data-widget="budget-gauge">
+              <div class="widget-card widget-gauge-card">
                 <div class="summary-gauge-row" id="budget-gauge-card">
                   <div class="summary-gauge-track">
                     <div id="budget-gauge-fill" class="summary-gauge-fill" style="width: 0%;"></div>
                   </div>
                   <span id="budget-percent-val" class="summary-gauge-percent">0%使用</span>
                 </div>
-
-                <!-- AIの一言: 💡 1日あたり約4,430円使えます › -->
-                <div id="smart-advisor-banner" class="summary-ai-row" role="button" tabindex="0" aria-label="タップで別のアドバイスを表示">
-                  <span class="ai-icon" aria-hidden="true">
-                    <svg class="ai-bulb-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M9 18h6" />
-                      <path d="M10 22h4" />
-                      <path d="M12 2a7 7 0 0 0-7 7c0 2.5 1.3 4.7 3.3 6h7.4c2-1.3 3.3-3.5 3.3-6a7 7 0 0 0-7-7z" />
-                    </svg>
-                  </span>
-                  <span id="advisor-text" class="ai-text">支出状況を分析しています…</span>
-                  <span class="ai-arrow" aria-hidden="true">›</span>
-                </div>
               </div>
+            </section>
 
-              <!-- 予算未設定時の案内 -->
-              <div id="summary-budget-unset" class="summary-budget-content is-hidden">
-                <div class="summary-main-row">
-                  <div class="summary-remaining-block">
-                    <span class="summary-kicker" id="budget-unset-spent-label">今月の支出</span>
-                    <div class="summary-amount-row">
-                      <strong id="budget-unset-spent-amount" class="summary-huge-amount">0</strong>
-                      <span class="summary-unit-yen">円</span>
-                    </div>
-                  </div>
-                  <button id="open-budget-from-unset-button" class="summary-set-budget-btn" type="button">予算を設定 ＋</button>
-                </div>
-
-                <div class="summary-ai-row" role="button" tabindex="0" id="smart-advisor-banner-unset" aria-label="タップで別のアドバイスを表示">
-                  <span class="ai-icon" aria-hidden="true">
-                    <svg class="ai-bulb-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M9 18h6" />
-                      <path d="M10 22h4" />
-                      <path d="M12 2a7 7 0 0 0-7 7c0 2.5 1.3 4.7 3.3 6h7.4c2-1.3 3.3-3.5 3.3-6a7 7 0 0 0-7-7z" />
-                    </svg>
-                  </span>
-                  <span id="advisor-text-unset" class="ai-text">予算を設定すると、今月あと使える金額が表示されます</span>
-                  <span class="ai-arrow" aria-hidden="true">›</span>
-                </div>
+            <!-- 3. スマートアドバイザー -->
+            <section id="widget-smart-advisor" class="home-widget-block" data-widget="smart-advisor">
+              <div id="smart-advisor-banner" class="summary-ai-row" role="button" tabindex="0" aria-label="タップで別のアドバイスを表示">
+                <span class="ai-icon" aria-hidden="true">
+                  <svg class="ai-bulb-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18h6" />
+                    <path d="M10 22h4" />
+                    <path d="M12 2a7 7 0 0 0-7 7c0 2.5 1.3 4.7 3.3 6h7.4c2-1.3 3.3-3.5 3.3-6a7 7 0 0 0-7-7z" />
+                  </svg>
+                </span>
+                <span id="advisor-text" class="ai-text">支出状況を分析しています…</span>
+                <span class="ai-arrow" aria-hidden="true">›</span>
               </div>
+            </section>
 
-              <!-- 内訳を見る（折りたたみ） -->
-              <div class="summary-breakdown-wrapper">
+            <!-- 4. 出金・カード内訳 -->
+            <section id="widget-breakdown" class="home-widget-block" data-widget="breakdown">
+              <div class="summary-breakdown-wrapper widget-card">
                 <button id="toggle-breakdown-btn" class="breakdown-toggle-btn" type="button" aria-expanded="false">
                   <span id="toggle-breakdown-text">内訳を見る</span>
                   <span id="toggle-breakdown-arrow" class="breakdown-arrow" aria-hidden="true">⌄</span>
@@ -147,16 +152,74 @@
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <section class="calendar-card" aria-label="月間カレンダー">
-            <div class="weekday-row" aria-hidden="true">
-              <span class="weekday-sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="weekday-sat">土</span>
-            </div>
-            <div id="calendar-grid" class="calendar-grid"></div>
-            <div id="calendar-legend" class="calendar-legend" aria-label="凡例"></div>
-          </section>
+            <!-- 5. 月間カレンダー -->
+            <section id="widget-calendar" class="home-widget-block" data-widget="calendar">
+              <div class="calendar-card" aria-label="月間カレンダー">
+                <div class="weekday-row" aria-hidden="true">
+                  <span class="weekday-sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="weekday-sat">土</span>
+                </div>
+                <div id="calendar-grid" class="calendar-grid"></div>
+                <div id="calendar-legend" class="calendar-legend" aria-label="凡例"></div>
+              </div>
+            </section>
+
+            <!-- 6. 口座残高＆見通し -->
+            <section id="widget-balance-outlook" class="home-widget-block is-hidden" data-widget="balance-outlook">
+              <div class="widget-card widget-balance-card">
+                <div class="widget-card-header">
+                  <h3 class="widget-title">口座残高・30日の見通し</h3>
+                  <button id="widget-balance-settings-btn" class="widget-action-btn" type="button">設定</button>
+                </div>
+                <div class="balance-grid mini-balance-grid">
+                  <div><span>現在残高</span><strong id="home-balance-current">未設定</strong></div>
+                  <div><span>カード引落予定</span><strong id="home-balance-upcoming">0円</strong></div>
+                  <div><span>引落後予想</span><strong id="home-balance-after">未設定</strong></div>
+                  <div class="available"><span>あと使える目安</span><strong id="home-balance-available">未設定</strong></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 7. 直近のカード引落予定 -->
+            <section id="widget-upcoming-withdrawals" class="home-widget-block is-hidden" data-widget="upcoming-withdrawals">
+              <div class="widget-card">
+                <div class="widget-card-header">
+                  <h3 class="widget-title">直近のカード引き落とし予定</h3>
+                </div>
+                <div id="home-upcoming-withdrawals-list" class="record-list mini-record-list"></div>
+              </div>
+            </section>
+
+            <!-- 8. 今月の支出TOP3 -->
+            <section id="widget-category-top3" class="home-widget-block is-hidden" data-widget="category-top3">
+              <div class="widget-card">
+                <div class="widget-card-header">
+                  <h3 class="widget-title">今月の支出TOP3カテゴリ</h3>
+                </div>
+                <div id="home-category-top3-list" class="category-summary"></div>
+              </div>
+            </section>
+
+            <!-- 9. 今週の支出サマリー -->
+            <section id="widget-weekly-summary" class="home-widget-block is-hidden" data-widget="weekly-summary">
+              <div class="widget-card">
+                <div class="widget-card-header">
+                  <h3 class="widget-title">今週の支出ペース</h3>
+                </div>
+                <div class="weekly-stats-grid">
+                  <div class="weekly-stat-box">
+                    <span>今週使った額</span>
+                    <strong id="home-weekly-spent">0円</strong>
+                  </div>
+                  <div class="weekly-stat-box">
+                    <span>1日平均（今週）</span>
+                    <strong id="home-weekly-avg">0円</strong>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
         </section>
 
         <section id="view-history" class="view" aria-labelledby="history-title">
@@ -370,6 +433,11 @@
             <div class="page-heading"><p class="section-kicker">アプリの設定・案内</p><h2 id="settings-title">設定</h2></div>
 
             <div class="settings-nav-list">
+              <button type="button" class="settings-menu-card" data-settings-nav="widgets">
+                <span class="settings-menu-title">ホーム画面のウィジェット</span>
+                <span class="settings-menu-arrow" aria-hidden="true">›</span>
+              </button>
+
               <button type="button" class="settings-menu-card" data-settings-nav="cycle">
                 <span class="settings-menu-title">集計期間・給料日</span>
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
@@ -402,6 +470,18 @@
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
               </button>
             </div>
+          </div>
+
+          <div id="settings-subview-widgets" class="settings-subview">
+            <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
+            <div class="page-heading"><p class="section-kicker">表示パーツのカスタマイズ</p><h2>ホーム画面のウィジェット</h2></div>
+            <section class="settings-card">
+              <p class="settings-description">ホーム画面に表示するパーツのON/OFFと並び順を自由に変更できます。</p>
+              <div id="settings-widgets-manage-list" class="widget-manage-list"></div>
+              <div class="widget-manage-actions">
+                <button id="settings-reset-widgets-btn" class="button button-outline" type="button">初期配置に戻す</button>
+              </div>
+            </section>
           </div>
 
           <div id="settings-subview-cycle" class="settings-subview">
@@ -619,18 +699,14 @@
 
       <nav class="bottom-nav" aria-label="メインメニュー" role="tablist">
         <div class="bottom-nav-indicator" id="bottom-nav-indicator" aria-hidden="true"></div>
-        <button id="nav-calendar" class="nav-item is-active" type="button" role="tab" data-view="calendar" aria-selected="true" aria-controls="view-calendar" aria-current="page">
+        <button id="nav-calendar" class="nav-item is-active" type="button" role="tab" data-view="calendar" aria-selected="true" aria-controls="view-calendar" aria-current="page" aria-label="ホーム">
           <span aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-              <rect x="7" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor"></rect>
-              <rect x="14.5" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor"></rect>
+              <path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </span>
-          <small>カレンダー</small>
+          <small>ホーム</small>
         </button>
         <button id="nav-history" class="nav-item" type="button" role="tab" data-view="history" aria-selected="false" aria-controls="view-history">
           <span aria-hidden="true">
@@ -1115,6 +1191,25 @@
         <button id="sub-detail-toggle-active-btn" class="button button-secondary" type="button">一時停止</button>
         <button id="sub-detail-edit-btn" class="button button-primary" type="button">編集する</button>
         <button id="sub-detail-delete-btn" class="button button-ghost sub-danger-btn" type="button">削除</button>
+      </div>
+    </dialog>
+
+    <!-- ホーム画面ウィジェット管理ダイアログ -->
+    <dialog id="home-widgets-dialog" class="app-dialog bottom-sheet-dialog">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header">
+        <div><p class="section-kicker">表示パーツのカスタマイズ</p><h2>ホーム画面のウィジェット</h2></div>
+        <button class="dialog-close icon-button" type="button" data-close-dialog="home-widgets-dialog" aria-label="閉じる">×</button>
+      </div>
+      <div class="home-widgets-dialog-content">
+        <p class="settings-description">ホーム画面に表示するパーツのON/OFFと並び順を変更できます。</p>
+        <div id="home-widgets-manage-list" class="widget-manage-list"></div>
+        <div class="widget-manage-actions" style="margin-top: 14px;">
+          <button id="home-reset-widgets-btn" class="button button-ghost full-width" type="button">初期配置に戻す</button>
+        </div>
+      </div>
+      <div class="dialog-actions" style="margin-top: 18px;">
+        <button class="button button-primary full-width" type="button" data-close-dialog="home-widgets-dialog">完了</button>
       </div>
     </dialog>
 

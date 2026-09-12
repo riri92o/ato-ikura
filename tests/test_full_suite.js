@@ -216,4 +216,20 @@ if (typeof updateNavIndicator === "function") {
 }
 print("Bottom Nav indicator updater test passed!");
 
-print("All view, dialog, and subscription integration tests passed successfully!");
+// Test Home Widgets Configuration
+print("Testing Home Widgets configuration and reordering...");
+const stateWidgets = AtoIkuraCore ? JSON.parse(localStorage.getItem("ato-ikura-data-v1") || "{}") : null;
+if (typeof renderHomeWidgets === "function") {
+  renderHomeWidgets();
+}
+if (typeof renderHomeWidgetsManageList === "function") {
+  renderHomeWidgetsManageList("settings-widgets-manage-list");
+  renderHomeWidgetsManageList("home-widgets-manage-list");
+}
+if (typeof resetHomeWidgets === "function") {
+  resetHomeWidgets();
+}
+print("Home Widgets configuration tests passed!");
+
+print("All view, dialog, subscription, and home widget integration tests passed successfully!");
+

@@ -56,6 +56,22 @@
     other: { name: "その他", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>` },
   };
 
+  const DEFAULT_HOME_WIDGETS = [
+    { id: "budget-summary", name: "予算・残額サマリー", enabled: true },
+    { id: "budget-gauge", name: "予算進捗ゲージ", enabled: true },
+    { id: "smart-advisor", name: "スマートアドバイザー", enabled: true },
+    { id: "breakdown", name: "出金・カード内訳", enabled: true },
+    { id: "calendar", name: "月間カレンダー", enabled: true },
+    { id: "balance-outlook", name: "口座残高・見通し", enabled: false },
+    { id: "upcoming-withdrawals", name: "直近のカード引落予定", enabled: false },
+    { id: "category-top3", name: "今月の支出TOP3", enabled: false },
+    { id: "weekly-summary", name: "今週の支出サマリー", enabled: false },
+  ];
+
+  function defaultHomeWidgets() {
+    return DEFAULT_HOME_WIDGETS.map((item) => ({ ...item }));
+  }
+
   let state = loadState();
   let currentMonth = firstOfMonth(Core.todayKey());
   let reportMonth = currentMonth;
@@ -144,6 +160,7 @@
         gaugeColor: "#34d399",
         budgetMode: "usage",
         cycleStartDay: 1,
+        homeWidgets: defaultHomeWidgets(),
       },
       updatedAt: new Date().toISOString(),
     };
@@ -308,6 +325,30 @@
     clean.settings.budgetMode = ["usage", "outflow"].includes(input.settings?.budgetMode) ? input.settings.budgetMode : "usage";
     const cycleDay = input.settings?.cycleStartDay;
     clean.settings.cycleStartDay = cycleDay === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleDay) || 1));
+
+    if (Array.isArray(input.settings?.homeWidgets)) {
+      const knownIds = DEFAULT_HOME_WIDGETS.map((w) => w.id);
+      const userWidgets = input.settings.homeWidgets
+        .filter((w) => w && knownIds.includes(w.id))
+        .map((w) => {
+          const defaultObj = DEFAULT_HOME_WIDGETS.find((d) => d.id === w.id);
+          return {
+            id: w.id,
+            name: defaultObj ? defaultObj.name : String(w.name || w.id),
+            enabled: Boolean(w.enabled),
+          };
+        });
+
+      DEFAULT_HOME_WIDGETS.forEach((dw) => {
+        if (!userWidgets.some((uw) => uw.id === dw.id)) {
+          userWidgets.push({ ...dw });
+        }
+      });
+      clean.settings.homeWidgets = userWidgets;
+    } else {
+      clean.settings.homeWidgets = defaultHomeWidgets();
+    }
+
     clean.updatedAt = String(input.updatedAt || new Date().toISOString());
     return clean;
   }
@@ -759,6 +800,33 @@
     const settingsDeleteBtn = $("settings-menu-delete-btn");
     if (settingsDeleteBtn) settingsDeleteBtn.addEventListener("click", deleteAllData);
 
+    const openHomeWidgetsBtn = $("open-home-widgets-button");
+    if (openHomeWidgetsBtn) {
+      openHomeWidgetsBtn.addEventListener("click", () => {
+        renderHomeWidgetsManageList("home-widgets-manage-list");
+        const dialog = $("home-widgets-dialog");
+        if (dialog) showDialog(dialog);
+      });
+    }
+
+    const homeResetWidgetsBtn = $("home-reset-widgets-btn");
+    if (homeResetWidgetsBtn) {
+      homeResetWidgetsBtn.addEventListener("click", resetHomeWidgets);
+    }
+
+    const settingsResetWidgetsBtn = $("settings-reset-widgets-btn");
+    if (settingsResetWidgetsBtn) {
+      settingsResetWidgetsBtn.addEventListener("click", resetHomeWidgets);
+    }
+
+    const widgetBalanceSettingsBtn = $("widget-balance-settings-btn");
+    if (widgetBalanceSettingsBtn) {
+      widgetBalanceSettingsBtn.addEventListener("click", () => {
+        switchView("settings");
+        switchSettingsSubView("balance");
+      });
+    }
+
     $("export-button").addEventListener("click", exportData);
     $("import-button").addEventListener("click", () => $("import-file").click());
     $("import-file").addEventListener("change", importData);
@@ -770,6 +838,7 @@
   function switchSettingsSubView(viewKey) {
     const subviews = {
       menu: $("settings-menu-subview"),
+      widgets: $("settings-subview-widgets"),
       cycle: $("settings-subview-cycle"),
       balance: $("settings-subview-balance"),
       theme: $("settings-subview-theme"),
@@ -780,6 +849,9 @@
     Object.entries(subviews).forEach(([key, el]) => {
       if (el) el.classList.toggle("is-active", key === viewKey);
     });
+    if (viewKey === "widgets") {
+      renderHomeWidgetsManageList("settings-widgets-manage-list");
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -1240,6 +1312,241 @@
     renderCalendarLegend();
     renderMonthlySummary();
     renderSmartAdvisor("advisor");
+    renderHomeWidgets();
+  }
+
+  function renderHomeWidgets() {
+    const container = $("home-widgets-container");
+    if (!container) return;
+
+    const widgets = state.settings.homeWidgets || defaultHomeWidgets();
+
+    widgets.forEach((w) => {
+      const el = $(`widget-${w.id}`);
+      if (el) {
+        container.appendChild(el);
+        el.classList.toggle("is-hidden", !w.enabled);
+      }
+    });
+
+    widgets.forEach((w) => {
+      if (!w.enabled) return;
+      if (w.id === "balance-outlook") {
+        renderHomeBalanceOutlook();
+      } else if (w.id === "upcoming-withdrawals") {
+        renderHomeUpcomingWithdrawals();
+      } else if (w.id === "category-top3") {
+        renderHomeCategoryTop3();
+      } else if (w.id === "weekly-summary") {
+        renderHomeWeeklySummary();
+      }
+    });
+  }
+
+  function renderHomeBalanceOutlook() {
+    const current = state.settings.currentBalance;
+    const reserve = state.settings.minimumReserve;
+    const upcoming = Core.getUpcomingCardTotal(Core.todayKey(), 30, state.expenses, state.cards, state.manualPayments, state.subscriptions);
+
+    const elCurrent = $("home-balance-current");
+    const elUpcoming = $("home-balance-upcoming");
+    const elAfter = $("home-balance-after");
+    const elAvailable = $("home-balance-available");
+
+    if (elCurrent) elCurrent.textContent = current === null ? "未設定" : formatYen(current);
+    if (elUpcoming) elUpcoming.textContent = formatYen(upcoming);
+    if (elAfter) {
+      elAfter.textContent = current === null ? "未設定" : formatSignedYen(current - upcoming);
+      elAfter.parentElement.classList.toggle("is-negative", current !== null && current - upcoming < 0);
+    }
+    if (elAvailable) {
+      elAvailable.textContent = current === null || reserve === null ? "未設定" : formatSignedYen(current - upcoming - reserve);
+      elAvailable.parentElement.classList.toggle("is-negative", current !== null && reserve !== null && current - upcoming - reserve < 0);
+    }
+  }
+
+  function renderHomeUpcomingWithdrawals() {
+    const list = $("home-upcoming-withdrawals-list");
+    if (!list) return;
+
+    const today = Core.todayKey();
+    const next30 = Core.addDays(today, 30);
+    const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments, state.subscriptions);
+
+    const withdrawalDays = [];
+    dailyTotals.forEach((val, dateKey) => {
+      if (dateKey >= today && dateKey <= next30 && val.cardWithdrawal > 0) {
+        withdrawalDays.push({ date: dateKey, amount: val.cardWithdrawal });
+      }
+    });
+    withdrawalDays.sort((a, b) => a.date.localeCompare(b.date));
+
+    if (!withdrawalDays.length) {
+      list.replaceChildren(createElement("p", "empty-inline", "今後30日間のカード引落予定はありません。"));
+      return;
+    }
+
+    const rows = withdrawalDays.slice(0, 3).map((item) => {
+      const el = createElement("div", "record-item");
+      const icon = createElement("span", "record-icon", "引落");
+      const main = createElement("span", "record-main");
+      main.append(createElement("strong", "", formatDate(item.date)));
+
+      const cardBreakdowns = state.cards.map((card) => {
+        const amt = getCardWithdrawalAmount(card.id, item.date);
+        return amt > 0 ? `${card.name}: ${formatYen(amt)}` : null;
+      }).filter(Boolean);
+
+      main.append(createElement("span", "", cardBreakdowns.length ? cardBreakdowns.join(" / ") : "カード引落"));
+      const amountEl = createElement("strong", "record-amount", formatYen(item.amount));
+      el.append(icon, main, amountEl);
+      return el;
+    });
+
+    list.replaceChildren(...rows);
+  }
+
+  function renderHomeCategoryTop3() {
+    const container = $("home-category-top3-list");
+    if (!container) return;
+
+    const monthKey = currentMonth.slice(0, 7);
+    const cycleDay = state.settings.cycleStartDay || 1;
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
+    const entries = Object.entries(summary.categories).sort((a, b) => b[1] - a[1]);
+
+    if (!entries.length) {
+      container.replaceChildren(createElement("p", "empty-inline", "今月の支出はまだありません。"));
+      return;
+    }
+
+    const top3 = entries.slice(0, 3);
+    const max = top3[0][1] || 1;
+    const nodes = top3.map(([category, amount], idx) => {
+      const row = createElement("div", "category-row");
+      const label = createElement("span", "", `${idx + 1}. ${category}`);
+      const track = createElement("div", "progress-track");
+      const value = createElement("div", "progress-value");
+      value.style.width = `${Math.max(3, Math.round((amount / max) * 100))}%`;
+      track.append(value);
+      row.append(label, track, createElement("strong", "", formatYen(amount)));
+      return row;
+    });
+
+    container.replaceChildren(...nodes);
+  }
+
+  function renderHomeWeeklySummary() {
+    const elSpent = $("home-weekly-spent");
+    const elAvg = $("home-weekly-avg");
+    if (!elSpent || !elAvg) return;
+
+    const today = Core.todayKey();
+    const todayDate = Core.parseDateKey(today);
+    if (!todayDate) return;
+
+    const dayOfWeek = todayDate.getDay();
+    const sundayOffset = -dayOfWeek;
+    const weekStartKey = Core.addDays(today, sundayOffset);
+
+    let weekSpent = 0;
+    state.expenses.forEach((e) => {
+      if (e.date >= weekStartKey && e.date <= today) {
+        weekSpent += Core.normalizeAmount(e.amount);
+      }
+    });
+
+    const daysPassedInWeek = dayOfWeek + 1;
+    const dailyAvg = Math.round(weekSpent / daysPassedInWeek);
+
+    elSpent.textContent = formatYen(weekSpent);
+    elAvg.textContent = `${formatYen(dailyAvg)}/日`;
+  }
+
+  function resetHomeWidgets() {
+    state.settings.homeWidgets = defaultHomeWidgets();
+    saveState();
+    renderHomeWidgets();
+    renderHomeWidgetsManageList("settings-widgets-manage-list");
+    renderHomeWidgetsManageList("home-widgets-manage-list");
+    showToast("ホーム画面のウィジェット配置を初期値に戻しました。");
+  }
+
+  function renderHomeWidgetsManageList(containerId) {
+    const container = $(containerId);
+    if (!container) return;
+
+    const widgets = state.settings.homeWidgets || defaultHomeWidgets();
+    const nodes = widgets.map((widget, index) => {
+      const item = createElement("div", `widget-manage-item ${widget.enabled ? "" : "is-disabled"}`);
+
+      const left = createElement("div", "widget-manage-left");
+      const info = createElement("div", "widget-manage-info");
+      const title = createElement("span", "widget-manage-title", widget.name);
+      const status = createElement("span", "widget-manage-status", widget.enabled ? "表示中" : "非表示");
+      info.append(title, status);
+      left.append(info);
+
+      const controls = createElement("div", "widget-manage-controls");
+
+      // 並び替えボタン
+      const reorderGroup = createElement("div", "widget-reorder-buttons");
+      const upBtn = createElement("button", "widget-order-btn", "▲");
+      upBtn.type = "button";
+      upBtn.title = "上へ移動";
+      upBtn.disabled = index === 0;
+      upBtn.addEventListener("click", () => {
+        if (index > 0) {
+          const temp = widgets[index - 1];
+          widgets[index - 1] = widgets[index];
+          widgets[index] = temp;
+          state.settings.homeWidgets = widgets;
+          saveState();
+          renderHomeWidgets();
+          renderHomeWidgetsManageList("settings-widgets-manage-list");
+          renderHomeWidgetsManageList("home-widgets-manage-list");
+        }
+      });
+
+      const downBtn = createElement("button", "widget-order-btn", "▼");
+      downBtn.type = "button";
+      downBtn.title = "下へ移動";
+      downBtn.disabled = index === widgets.length - 1;
+      downBtn.addEventListener("click", () => {
+        if (index < widgets.length - 1) {
+          const temp = widgets[index + 1];
+          widgets[index + 1] = widgets[index];
+          widgets[index] = temp;
+          state.settings.homeWidgets = widgets;
+          saveState();
+          renderHomeWidgets();
+          renderHomeWidgetsManageList("settings-widgets-manage-list");
+          renderHomeWidgetsManageList("home-widgets-manage-list");
+        }
+      });
+      reorderGroup.append(upBtn, downBtn);
+
+      // 表示ON/OFFスイッチ
+      const toggleLabel = createElement("label", "widget-toggle");
+      const toggleInput = createElement("input", "");
+      toggleInput.type = "checkbox";
+      toggleInput.checked = Boolean(widget.enabled);
+      toggleInput.addEventListener("change", (e) => {
+        widget.enabled = e.target.checked;
+        saveState();
+        renderHomeWidgets();
+        renderHomeWidgetsManageList("settings-widgets-manage-list");
+        renderHomeWidgetsManageList("home-widgets-manage-list");
+      });
+      const toggleSlider = createElement("span", "widget-toggle-slider");
+      toggleLabel.append(toggleInput, toggleSlider);
+
+      controls.append(reorderGroup, toggleLabel);
+      item.append(left, controls);
+      return item;
+    });
+
+    container.replaceChildren(...nodes);
   }
 
   function renderCalendarLegend() {
@@ -2712,6 +3019,7 @@
     renderPresetPalette();
     updatePresetButtons();
     applyThemeColors();
+    renderHomeWidgetsManageList("settings-widgets-manage-list");
   }
 
   function updateCyclePreview() {
