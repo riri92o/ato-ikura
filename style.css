@@ -5130,12 +5130,15 @@ dialog {
   -webkit-touch-callout: none !important;
 }
 
+.home-widgets-container.is-dragging-active {
+  touch-action: none !important;
+}
+
 .home-widget-block {
   width: 100%;
   position: relative;
-  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.18s ease, opacity 0.18s ease;
   will-change: transform;
-  touch-action: pan-y;
   user-select: none !important;
   -webkit-user-select: none !important;
   -webkit-touch-callout: none !important;
@@ -5157,34 +5160,37 @@ dialog {
 /* 長押し準備 */
 .home-widget-block.is-drag-ready {
   transform: scale(0.985);
-  opacity: 0.92;
-  transition: transform 0.15s ease;
-  box-shadow: 0 0 0 2px var(--accent);
+  opacity: 0.9;
+  transition: transform 0.12s ease;
+  box-shadow: 0 0 0 2px var(--accent) !important;
 }
 
 /* ドラッグ中（浮遊・影・追従） */
 .home-widget-block.is-dragging {
-  z-index: 60;
-  opacity: 0.96;
+  z-index: 100 !important;
+  opacity: 0.98 !important;
   transform: scale(1.03) !important;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24), 0 0 0 2px var(--accent) !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.32), 0 0 0 2.5px var(--accent) !important;
   touch-action: none !important;
-  transition: none !important;
+  transition: box-shadow 0.15s ease !important;
   border-radius: 18px;
+  will-change: transform;
 }
 
 /* 吸着ハイライト */
 .home-widget-block.is-drag-target {
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px var(--accent-soft) !important;
+  box-shadow: 0 0 0 2.5px var(--accent-soft) !important;
   transform: scale(1.01);
 }
 
+html.is-widget-dragging,
 body.is-widget-dragging {
   user-select: none !important;
   -webkit-user-select: none !important;
   -webkit-touch-callout: none !important;
   overflow: hidden !important;
+  overscroll-behavior: none !important;
   touch-action: none !important;
 }
 

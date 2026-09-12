@@ -3735,10 +3735,9 @@
     let startY = 0;
     let currentDeltaY = 0;
     let lastSwapTarget = null;
-    let activePointerId = null;
     let initialOrderIds = [];
-    const LONG_PRESS_MS = 300;
-    const MOVE_THRESHOLD = 12;
+    const LONG_PRESS_MS = 250;
+    const MOVE_CANCEL_THRESHOLD = 8;
 
     const clearLongPress = () => {
       if (longPressTimer) {
@@ -3751,68 +3750,67 @@
       }
     };
 
-    // スマホでの長押しテキスト選択・コピーメニューを防止
-    container.addEventListener("contextmenu", (e) => {
-      e.preventDefault();
-    });
+    const startDrag = (block) => {
+      isDragging = true;
+      initialOrderIds = Array.from(container.querySelectorAll(".home-widget-block")).map(
+        (el) => el.dataset.widget
+      );
+      container.classList.add("is-dragging-active");
+      block.classList.remove("is-drag-ready");
+      block.classList.add("is-dragging");
+      document.body.classList.add("is-widget-dragging");
+      document.documentElement.classList.add("is-widget-dragging");
 
-    const onPointerDown = (e) => {
-      if (e.button !== 0 && e.pointerType === "mouse") return;
-      const interactive = e.target.closest("button, input, select, textarea, a, summary, [role='button'], [role='tab'], label");
-      if (interactive && !interactive.classList.contains("home-widget-block")) return;
+      if (window.getSelection) {
+        window.getSelection().removeAllRanges();
+      }
 
-      const block = e.target.closest(".home-widget-block");
-      if (!block || block.classList.contains("is-hidden")) return;
+      if (navigator.vibrate) {
+        try { navigator.vibrate(40); } catch (_) {}
+      }
+    };
+
+    const handleStart = (target, clientX, clientY) => {
+      const interactive = target.closest("button, input, select, textarea, a, summary, [role='button'], [role='tab'], label");
+      if (interactive && !interactive.classList.contains("home-widget-block")) return false;
+
+      const block = target.closest(".home-widget-block");
+      if (!block || block.classList.contains("is-hidden")) return false;
 
       draggedBlock = block;
-      activePointerId = e.pointerId ?? null;
-      startX = e.clientX;
-      startY = e.clientY;
+      startX = clientX;
+      startY = clientY;
+      lastSwapTarget = null;
 
       block.classList.add("is-drag-ready");
 
       longPressTimer = setTimeout(() => {
-        isDragging = true;
-        initialOrderIds = Array.from(container.querySelectorAll(".home-widget-block")).map(
-          (el) => el.dataset.widget
-        );
-        block.classList.remove("is-drag-ready");
-        block.classList.add("is-dragging");
-        document.body.classList.add("is-widget-dragging");
-
-        if (window.getSelection) {
-          window.getSelection().removeAllRanges();
-        }
-
-        if (activePointerId && block.setPointerCapture) {
-          try { block.setPointerCapture(activePointerId); } catch (_) {}
-        }
-
-        if (navigator.vibrate) {
-          try { navigator.vibrate(45); } catch (_) {}
-        }
+        startDrag(block);
       }, LONG_PRESS_MS);
+
+      return true;
     };
 
-    const onPointerMove = (e) => {
+    const handleMove = (clientX, clientY, preventDefaultFn) => {
       if (!draggedBlock) return;
 
-      const dx = Math.abs(e.clientX - startX);
-      const dy = Math.abs(e.clientY - startY);
+      const dx = Math.abs(clientX - startX);
+      const dy = Math.abs(clientY - startY);
 
       if (!isDragging) {
-        if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
+        if (dx > MOVE_CANCEL_THRESHOLD || dy > MOVE_CANCEL_THRESHOLD) {
           clearLongPress();
         }
         return;
       }
 
-      e.preventDefault();
+      if (preventDefaultFn) preventDefaultFn();
+
       if (window.getSelection) {
         window.getSelection().removeAllRanges();
       }
 
-      currentDeltaY = e.clientY - startY;
+      currentDeltaY = clientY - startY;
       draggedBlock.style.transform = `translate3d(0, ${currentDeltaY}px, 0) scale(1.03)`;
 
       const draggedRect = draggedBlock.getBoundingClientRect();
@@ -3830,7 +3828,7 @@
         const sibCenterY = sibRect.top + sibRect.height / 2;
         const distance = Math.abs(draggedCenterY - sibCenterY);
 
-        const snapThreshold = Math.max(38, sibRect.height * 0.45);
+        const snapThreshold = Math.max(36, sibRect.height * 0.45);
         if (distance < snapThreshold && distance < minDistance) {
           minDistance = distance;
           closestTarget = sib;
@@ -3851,7 +3849,7 @@
           container.insertBefore(draggedBlock, closestTarget.nextSibling);
         }
 
-        startY = e.clientY;
+        startY = clientY;
         currentDeltaY = 0;
         draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.03)`;
 
@@ -3862,20 +3860,17 @@
       }
     };
 
-    const finishDrag = () => {
+    const handleEnd = () => {
       clearLongPress();
+      container.classList.remove("is-dragging-active");
       document.body.classList.remove("is-widget-dragging");
+      document.documentElement.classList.remove("is-widget-dragging");
 
       if (!isDragging || !draggedBlock) {
         isDragging = false;
         draggedBlock = null;
         lastSwapTarget = null;
-        activePointerId = null;
         return;
-      }
-
-      if (activePointerId && draggedBlock.releasePointerCapture) {
-        try { draggedBlock.releasePointerCapture(activePointerId); } catch (_) {}
       }
 
       isDragging = false;
@@ -3914,13 +3909,56 @@
 
       draggedBlock = null;
       lastSwapTarget = null;
-      activePointerId = null;
     };
 
-    container.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointermove", onPointerMove, { passive: false });
-    window.addEventListener("pointerup", finishDrag);
-    window.addEventListener("pointercancel", finishDrag);
+    // タッチイベント（スマホ実機向け）
+    container.addEventListener("touchstart", (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      handleStart(e.target, touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    window.addEventListener("touchmove", (e) => {
+      if (!draggedBlock) return;
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      handleMove(touch.clientX, touch.clientY, () => {
+        if (e.cancelable) e.preventDefault();
+      });
+    }, { passive: false });
+
+    window.addEventListener("touchend", handleEnd, { passive: true });
+    window.addEventListener("touchcancel", handleEnd, { passive: true });
+
+    // ポインターイベント（PC・マウス向け）
+    container.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "touch") return;
+      if (e.button !== 0) return;
+      handleStart(e.target, e.clientX, e.clientY);
+    });
+
+    window.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "touch") return;
+      handleMove(e.clientX, e.clientY, () => {
+        if (e.cancelable) e.preventDefault();
+      });
+    });
+
+    window.addEventListener("pointerup", (e) => {
+      if (e.pointerType === "touch") return;
+      handleEnd();
+    });
+
+    window.addEventListener("pointercancel", (e) => {
+      if (e.pointerType === "touch") return;
+      handleEnd();
+    });
+
+    container.addEventListener("contextmenu", (e) => {
+      if (isDragging || draggedBlock) {
+        e.preventDefault();
+      }
+    });
   }
 
   function setupFloatingThemePreviewDrag() {
