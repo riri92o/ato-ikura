@@ -627,23 +627,24 @@ h3 {
 }
 
 .summary-breakdown-wrapper {
-  margin-top: 4px;
-  padding-top: 2px;
+  margin-top: 2px;
+  padding: 6px 12px;
+  border-radius: 14px;
 }
 
 .breakdown-toggle-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
   width: 100%;
-  min-height: 32px;
-  padding: 6px 8px 2px;
+  min-height: 24px;
+  padding: 2px 4px;
   border: 0;
   background: transparent;
   color: var(--accent-dark);
-  font-size: 0.86rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 750;
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
@@ -653,7 +654,7 @@ h3 {
 }
 
 .breakdown-arrow {
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   font-weight: 800;
   line-height: 1;
   transition: transform 0.2s ease;
@@ -662,29 +663,29 @@ h3 {
 
 .summary-breakdown-content {
   animation: fadeIn 0.2s ease-out;
-  padding-top: 6px;
+  padding-top: 4px;
 }
 
 .summary-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
   margin-top: 4px;
 }
 
 .summary-grid > div {
   min-width: 0;
-  padding: 8px 10px;
-  border-radius: 12px;
+  padding: 5px 8px;
+  border-radius: 9px;
   background: var(--surface-muted);
   border: 1px solid var(--border);
 }
 
 .summary-grid span {
   display: block;
-  margin: 0 0 2px;
+  margin: 0 0 1px;
   color: var(--text-muted);
-  font-size: 0.71rem;
+  font-size: 0.67rem;
   font-weight: 650;
 }
 
@@ -692,15 +693,15 @@ h3 {
   display: block;
   overflow: hidden;
   color: var(--text);
-  font-size: 0.95rem;
-  font-weight: 750;
+  font-size: 0.86rem;
+  font-weight: 850;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .summary-grid .summary-total {
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
-  border-color: color-mix(in srgb, var(--accent) 30%, var(--surface));
+  border-color: var(--border-subtle);
+  background: var(--accent-soft);
 }
 
 .summary-grid .summary-total span {

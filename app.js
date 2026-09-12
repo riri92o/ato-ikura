@@ -1391,9 +1391,21 @@
     const container = $("home-widgets-container");
     if (!container) return;
 
+    // 1. まとめた枠ラッパー（.home-widget-merged-card）内に移動していたウィジェット要素を、
+    //    すべて直下の container に取り出して復元し、空になったラッパーを削除
+    if (container.querySelectorAll) {
+      container.querySelectorAll(".home-widget-merged-card").forEach((m) => {
+        m.querySelectorAll("[id^='widget-']").forEach((child) => {
+          child.classList.remove("is-in-merged-card");
+          container.appendChild(child);
+        });
+        m.remove();
+      });
+    }
+
     const widgets = state.settings.homeWidgets || defaultHomeWidgets();
 
-    // 連続する同一groupIdのウィジェットをグループ化
+    // 2. 連続する同一groupIdのウィジェットをグループ化（2個でも3個以上でも対応）
     const groups = [];
     let currentGroup = null;
 
@@ -1411,14 +1423,10 @@
       }
     });
 
-    // 以前生成されたまとめた枠ラッパーをクリーンアップ
-    if (container.querySelectorAll) {
-      container.querySelectorAll(".home-widget-merged-card").forEach((m) => m.remove());
-    }
-
+    // 3. 各グループ（結合カードまたは単独カード）をDOMに配置
     groups.forEach((group) => {
       if (group.groupId && group.items.length > 1) {
-        // 1つの枠にまとめる（結合ウィジェットカード）
+        // === 1つの枠にまとめる（結合ウィジェットカード） ===
         const mergedWrapper = document.createElement("div");
         mergedWrapper.className = "home-widget-block home-widget-merged-card";
         mergedWrapper.dataset.widget = group.items.map((it) => it.id).join("+");
@@ -1455,34 +1463,37 @@
         header.append(badge, splitBtn);
         mergedWrapper.append(header);
 
-        group.items.forEach((w, idx) => {
+        let prevWasEnabled = false;
+        group.items.forEach((w) => {
           const el = $(`widget-${w.id}`);
           if (el) {
             el.classList.add("is-in-merged-card");
             el.classList.toggle("is-hidden", !w.enabled);
-            mergedWrapper.appendChild(el);
-            if (idx < group.items.length - 1 && w.enabled && group.items[idx + 1]?.enabled) {
+            if (w.enabled && prevWasEnabled) {
               const divider = document.createElement("div");
               divider.className = "merged-widget-divider";
               mergedWrapper.appendChild(divider);
             }
+            mergedWrapper.appendChild(el);
+            if (w.enabled) prevWasEnabled = true;
           }
         });
 
         container.appendChild(mergedWrapper);
       } else {
-        // 単独の通常ウィジェット
+        // === 単独の通常ウィジェット ===
         group.items.forEach((w) => {
           const el = $(`widget-${w.id}`);
           if (el) {
             el.classList.remove("is-in-merged-card");
-            container.appendChild(el);
             el.classList.toggle("is-hidden", !w.enabled);
+            container.appendChild(el);
           }
         });
       }
     });
 
+    // 4. 動的ウィジェットの再描画
     widgets.forEach((w) => {
       if (!w.enabled) return;
       if (w.id === "balance-outlook") {
@@ -3844,6 +3855,12 @@
     const LONG_PRESS_MS = 220;
     const MOVE_CANCEL_THRESHOLD = 8;
 
+    const getTopLevelBlocks = () =>
+      Array.from(container.children).filter((el) => el.classList && el.classList.contains("home-widget-block"));
+
+    const getVisibleTopLevelBlocks = () =>
+      getTopLevelBlocks().filter((el) => !el.classList.contains("is-hidden"));
+
     const clearLongPress = () => {
       if (longPressTimer) {
         clearTimeout(longPressTimer);
@@ -3858,9 +3875,7 @@
     const startDrag = (block) => {
       isDragging = true;
       activeMergeTarget = null;
-      initialOrderIds = Array.from(container.querySelectorAll(".home-widget-block")).map(
-        (el) => el.dataset.widget
-      );
+      initialOrderIds = getTopLevelBlocks().map((el) => el.dataset.widget);
       container.classList.add("is-dragging-active");
       block.classList.remove("is-drag-ready");
       block.classList.add("is-dragging");
@@ -3878,9 +3893,7 @@
     };
 
     const animateSiblingsFLIP = (action) => {
-      const siblings = Array.from(container.querySelectorAll(".home-widget-block:not(.is-hidden)")).filter(
-        (el) => el !== draggedBlock
-      );
+      const siblings = getVisibleTopLevelBlocks().filter((el) => el !== draggedBlock);
       const firstPositions = new Map();
       siblings.forEach((el) => {
         firstPositions.set(el, el.getBoundingClientRect().top);
@@ -3913,8 +3926,14 @@
       const interactive = target.closest("button, input, select, textarea, a, summary, [role='button'], [role='tab'], label");
       if (interactive && !interactive.classList.contains("home-widget-block")) return false;
 
-      const block = target.closest(".home-widget-block");
-      if (!block || block.classList.contains("is-hidden")) return false;
+      let block = target.closest(".home-widget-block");
+      if (!block) return false;
+
+      // 結合カード内の子ウィジェットをタップした場合は、結合カード全体をドラッグ対象にする
+      if (block.parentElement && block.parentElement.classList.contains("home-widget-merged-card")) {
+        block = block.parentElement;
+      }
+      if (block.parentElement !== container || block.classList.contains("is-hidden")) return false;
 
       draggedBlock = block;
       startX = clientX;
@@ -3956,9 +3975,7 @@
       const draggedRect = draggedBlock.getBoundingClientRect();
       const draggedCenterY = draggedRect.top + draggedRect.height / 2;
 
-      const siblings = Array.from(container.querySelectorAll(".home-widget-block:not(.is-hidden)")).filter(
-        (el) => el !== draggedBlock
-      );
+      const siblings = getVisibleTopLevelBlocks().filter((el) => el !== draggedBlock);
 
       let foundMergeTarget = null;
 
@@ -4052,7 +4069,7 @@
         finishingBlock.classList.remove("is-dock-bounce");
       }, 350);
 
-      Array.from(container.querySelectorAll(".home-widget-block")).forEach((el) => {
+      getTopLevelBlocks().forEach((el) => {
         el.classList.remove("is-snap-active", "snap-top", "snap-bottom", "is-drag-target", "is-drag-ready", "is-animating");
         el.style.transform = "";
         el.style.transition = "";
@@ -4061,7 +4078,7 @@
       const currentWidgets = state.settings.homeWidgets || defaultHomeWidgets();
 
       if (targetToMerge && targetToMerge !== finishingBlock) {
-        // === 2つの枠を1つの枠に結合する ===
+        // === 2つ（またはそれ以上）の枠を1つの枠に結合する ===
         const draggedIds = (finishingBlock.dataset.widget || "").split("+").filter(Boolean);
         const targetIds = (targetToMerge.dataset.widget || "").split("+").filter(Boolean);
 
@@ -4078,14 +4095,13 @@
             }
           });
 
-          // targetIdsの直後にdraggedIdsが連続するように配列を並び替え
+          // targetIdsの直後にdraggedIdsが連続するように配列を並び替え（3個以上でもすべて統合）
           const reordered = [];
           const placedIds = new Set();
 
           currentWidgets.forEach((w) => {
             if (placedIds.has(w.id)) return;
             if (targetIds.includes(w.id)) {
-              // targetのウィジェットたちを配置
               targetIds.forEach((tid) => {
                 const tw = currentWidgets.find((x) => x.id === tid);
                 if (tw && !placedIds.has(tw.id)) {
@@ -4093,7 +4109,6 @@
                   placedIds.add(tw.id);
                 }
               });
-              // 続いてdraggedのウィジェットたちを直後に配置
               draggedIds.forEach((did) => {
                 const dw = currentWidgets.find((x) => x.id === did);
                 if (dw && !placedIds.has(dw.id)) {
@@ -4107,7 +4122,6 @@
             }
           });
 
-          // もし未配置のものがあれば追加
           currentWidgets.forEach((w) => {
             if (!placedIds.has(w.id)) {
               reordered.push(w);
@@ -4124,25 +4138,21 @@
           if (navigator.vibrate) {
             try { navigator.vibrate([30, 40, 30]); } catch (_) {}
           }
-          showToast("✨ 2つのウィジェットを1つの枠に結合しました！");
+          showToast("✨ 枠同士を1つに結合しました！");
           return;
         }
       }
 
       // 通常の並び替え（結合ドロップでない場合）
-      const newOrderBlockIds = Array.from(container.querySelectorAll(".home-widget-block")).map(
-        (el) => el.dataset.widget
-      );
-
+      const topBlocks = getTopLevelBlocks();
       const flattenedIds = [];
-      newOrderBlockIds.forEach((bw) => {
-        if (bw) {
-          bw.split("+").forEach((id) => {
-            if (id && !flattenedIds.includes(id)) {
-              flattenedIds.push(id);
-            }
-          });
-        }
+      topBlocks.forEach((b) => {
+        const bw = b.dataset.widget || "";
+        bw.split("+").forEach((id) => {
+          if (id && !flattenedIds.includes(id)) {
+            flattenedIds.push(id);
+          }
+        });
       });
 
       const reordered = [];

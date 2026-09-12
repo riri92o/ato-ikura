@@ -254,9 +254,19 @@ if (stateData.settings && stateData.settings.homeWidgets) {
   if (typeof renderHomeWidgetsManageList === "function") renderHomeWidgetsManageList("settings-widgets-manage-list");
   print("Widget merge render OK!");
 
-  // Simulate unmerging
+  // Simulate merging 3 widgets
+  stateData.settings.homeWidgets[0].groupId = "test_merged_group_1";
+  stateData.settings.homeWidgets[1].groupId = "test_merged_group_1";
+  stateData.settings.homeWidgets[2].groupId = "test_merged_group_1";
+  localStorage.setItem("ato-ikura-data-v1", JSON.stringify(stateData));
+  if (typeof renderHomeWidgets === "function") renderHomeWidgets();
+  if (typeof renderHomeWidgetsManageList === "function") renderHomeWidgetsManageList("settings-widgets-manage-list");
+  print("3-Widget merge render OK!");
+
+  // Simulate unmerging all
   stateData.settings.homeWidgets[0].groupId = null;
   stateData.settings.homeWidgets[1].groupId = null;
+  stateData.settings.homeWidgets[2].groupId = null;
   localStorage.setItem("ato-ikura-data-v1", JSON.stringify(stateData));
   if (typeof renderHomeWidgets === "function") renderHomeWidgets();
   if (typeof renderHomeWidgetsManageList === "function") renderHomeWidgetsManageList("settings-widgets-manage-list");
