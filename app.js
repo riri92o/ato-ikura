@@ -889,9 +889,10 @@
     window.addEventListener("touchstart", (e) => {
       if (e.touches.length !== 1) return;
       const target = e.target;
-      // 開いているモーダル内、入力フォーム、横スクロールUI上では画面スワイプを無効化
-      // ※ボタンやリンク上でのタッチも追跡開始し、横ドラッグされた場合のみスワイプに移行
+      // 開いているモーダル内、下部ナビゲーション、FAB、入力フォーム、横スクロールUI上では画面スワイプを無効化
+      // ※ナビバー操作時にメイン画面が干渉して動くのを完全に防止
       if (
+        target.closest(".bottom-nav, .fab") ||
         target.closest("dialog[open]") ||
         target.closest("input, textarea, select, canvas") ||
         target.closest(".filter-chip-group, .summary-filter-row, .palette-row, .month-toolbar, .horizontal-scroll")
