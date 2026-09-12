@@ -514,7 +514,71 @@
             <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
             <div class="page-heading"><p class="section-kicker">配色とデザイン</p><h2>表示・テーマ</h2></div>
             <section class="settings-card">
-              <label>モード
+              <!-- 見本スマホ画面プレビュー -->
+              <div class="theme-preview-section">
+                <span class="color-setting-title">配色プレビュー（見本画面）</span>
+                <div class="theme-phone-mockup-wrapper">
+                  <div class="theme-phone-mockup" id="theme-phone-mockup">
+                    <div class="phone-status-bar">
+                      <span class="phone-time">9:41</span>
+                      <span class="phone-battery">100%</span>
+                    </div>
+                    <div class="phone-content-body">
+                      <!-- ミニツールバー -->
+                      <div class="phone-mini-toolbar">
+                        <span class="phone-mini-btn">‹</span>
+                        <strong class="phone-mini-title">2026年9月</strong>
+                        <span class="phone-mini-btn">›</span>
+                      </div>
+                      <!-- ミニサマリーカード -->
+                      <div class="phone-mini-card phone-mini-summary" id="phone-preview-summary">
+                        <div class="phone-mini-kicker">今月あと</div>
+                        <div class="phone-mini-amount-row">
+                          <span class="phone-mini-huge" id="phone-preview-remaining">38,000</span>
+                          <span class="phone-mini-unit">円</span>
+                        </div>
+                        <div class="phone-mini-stats">
+                          <span>使った額 <strong id="phone-preview-spent">62,000円</strong></span>
+                          <span>予算 100,000円</span>
+                        </div>
+                      </div>
+                      <!-- ミニゲージカード -->
+                      <div class="phone-mini-card phone-mini-gauge-card">
+                        <div class="phone-mini-gauge-track">
+                          <div class="phone-mini-gauge-fill" id="phone-preview-gauge" style="width: 62%;"></div>
+                        </div>
+                        <span class="phone-mini-gauge-text" id="phone-preview-percent">62%使用</span>
+                      </div>
+                      <!-- ミニレコード -->
+                      <div class="phone-mini-card phone-mini-record">
+                        <span class="phone-mini-icon" id="phone-preview-icon">食</span>
+                        <div class="phone-mini-rec-info">
+                          <strong>スーパー買出</strong>
+                          <small>食費・現金</small>
+                        </div>
+                        <strong class="phone-mini-rec-amt" id="phone-preview-usage-amt">¥3,480</strong>
+                      </div>
+                    </div>
+                    <!-- ミニボトムナビ -->
+                    <div class="phone-mini-nav" id="phone-preview-nav">
+                      <div class="phone-mini-nav-item is-active" id="phone-preview-nav-item">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z"></path></svg>
+                        <span>ホーム</span>
+                      </div>
+                      <div class="phone-mini-nav-item">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line></svg>
+                        <span>履歴</span>
+                      </div>
+                      <div class="phone-mini-nav-item">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        <span>レポート</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <label style="margin-top: 14px;">モード
                 <select id="theme-select">
                   <option value="auto">端末の設定に合わせる</option>
                   <option value="light">ライト</option>
@@ -522,17 +586,15 @@
                 </select>
               </label>
 
-              <!-- おすすめテーマパターン（背景・枠線・アクセントをトータルコーディネート） -->
+              <!-- おすすめテーマパターン -->
               <div class="theme-color-section">
                 <span class="color-setting-title">おすすめテーマパターン</span>
-                <p class="settings-description">全体の背景・アクセント・ゲージなどの配色をワンタップでまとめて切り替えます。</p>
                 <div class="preset-grid" id="preset-palette-grid"></div>
               </div>
 
-              <!-- 個別カラー設定（テーマカラー1色 ＋ 背景・枠線・ゲージ・利用額） -->
+              <!-- 個別カラー設定 -->
               <div class="theme-color-section">
                 <span class="color-setting-title">カラーの個別カスタマイズ</span>
-                <p class="settings-description">テーマカラー、全体の背景色、カード枠線色、予算ゲージの色を好みに合わせて細かく調整できます。</p>
 
                 <div class="theme-custom-colors-grid">
                   <label class="color-picker-item" for="theme-color-1">

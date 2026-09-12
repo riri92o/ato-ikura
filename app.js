@@ -3590,6 +3590,41 @@
     if (usageInput && usageInput.value.toLowerCase() !== usageColor.toLowerCase()) usageInput.value = usageColor;
     if (usageVal) usageVal.textContent = usageColor.toUpperCase();
 
+    // 見本スマホ画面（ライブプレビュー）の反映
+    const mockup = $("theme-phone-mockup");
+    if (mockup) {
+      mockup.style.backgroundColor = bgColor;
+      mockup.style.borderColor = borderColor;
+      mockup.style.color = isDarkBg ? "#f8fafc" : "#1e293b";
+
+      const miniSummary = $("phone-preview-summary");
+      if (miniSummary) {
+        miniSummary.style.borderColor = borderColor;
+        miniSummary.style.backgroundColor = isDarkBg ? "rgba(255, 255, 255, 0.08)" : colorWithAlpha(color1, 0.08);
+      }
+
+      const miniRemaining = $("phone-preview-remaining");
+      if (miniRemaining) miniRemaining.style.color = color1;
+
+      const miniGauge = $("phone-preview-gauge");
+      if (miniGauge) miniGauge.style.backgroundColor = gaugeColor;
+
+      const miniIcon = $("phone-preview-icon");
+      if (miniIcon) {
+        miniIcon.style.backgroundColor = colorWithAlpha(usageColor, 0.15);
+        miniIcon.style.color = usageColor;
+      }
+
+      const miniAmt = $("phone-preview-usage-amt");
+      if (miniAmt) miniAmt.style.color = usageColor;
+
+      const miniNav = $("phone-preview-nav");
+      if (miniNav) miniNav.style.borderColor = borderColor;
+
+      const miniNavItem = $("phone-preview-nav-item");
+      if (miniNavItem) miniNavItem.style.color = color1;
+    }
+
     updatePresetButtons();
   }
 
@@ -3686,7 +3721,7 @@
     let startY = 0;
     let currentDeltaY = 0;
     let lastSwapTarget = null;
-    const LONG_PRESS_MS = 320;
+    const LONG_PRESS_MS = 300;
     const MOVE_THRESHOLD = 8;
 
     const clearLongPress = () => {
@@ -3699,6 +3734,11 @@
         draggedBlock = null;
       }
     };
+
+    // スマホでの長押しテキスト選択・コピーメニューを防止
+    container.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+    });
 
     container.addEventListener("pointerdown", (e) => {
       if (e.button !== 0 && e.pointerType === "mouse") return;
@@ -3718,9 +3758,14 @@
         isDragging = true;
         block.classList.remove("is-drag-ready");
         block.classList.add("is-dragging");
+        document.body.classList.add("is-widget-dragging");
+
+        if (window.getSelection) {
+          window.getSelection().removeAllRanges();
+        }
 
         if (navigator.vibrate) {
-          try { navigator.vibrate(40); } catch (_) {}
+          try { navigator.vibrate(45); } catch (_) {}
         }
       }, LONG_PRESS_MS);
     });
@@ -3739,6 +3784,10 @@
       }
 
       e.preventDefault();
+      if (window.getSelection) {
+        window.getSelection().removeAllRanges();
+      }
+
       currentDeltaY = e.clientY - startY;
       draggedBlock.style.transform = `translate3d(0, ${currentDeltaY}px, 0) scale(1.03)`;
 
@@ -3783,7 +3832,7 @@
         draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.03)`;
 
         if (navigator.vibrate) {
-          try { navigator.vibrate(18); } catch (_) {}
+          try { navigator.vibrate(20); } catch (_) {}
         }
         lastSwapTarget = closestTarget;
       }
@@ -3791,6 +3840,8 @@
 
     const finishDrag = () => {
       clearLongPress();
+      document.body.classList.remove("is-widget-dragging");
+
       if (!isDragging || !draggedBlock) {
         isDragging = false;
         draggedBlock = null;

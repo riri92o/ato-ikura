@@ -2045,6 +2045,226 @@ textarea {
   display: inline-block;
 }
 
+/* ==========================================================================
+   見本スマホ画面（テーマプレビュー）
+   ========================================================================== */
+
+.theme-preview-section {
+  margin: 2px 0 16px;
+}
+
+.theme-phone-mockup-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 4px;
+}
+
+.theme-phone-mockup {
+  width: 100%;
+  max-width: 280px;
+  border-radius: 26px;
+  border: 2.5px solid var(--border-color, var(--border));
+  background: var(--bg-color, var(--bg));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+  padding: 11px 13px 9px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.phone-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.phone-content-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.phone-mini-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px;
+  font-size: 0.72rem;
+}
+
+.phone-mini-btn {
+  color: var(--text-muted);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.phone-mini-title {
+  color: var(--text);
+  font-weight: 850;
+  font-size: 0.76rem;
+}
+
+.phone-mini-card {
+  border-radius: 12px;
+  border: 1px solid var(--border-color, var(--border));
+  background: var(--surface);
+  padding: 8px 10px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.phone-mini-summary {
+  text-align: left;
+}
+
+.phone-mini-kicker {
+  font-size: 0.6rem;
+  font-weight: 750;
+  color: var(--text-muted);
+}
+
+.phone-mini-amount-row {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin: 1px 0 4px;
+}
+
+.phone-mini-huge {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--accent);
+}
+
+.phone-mini-unit {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.phone-mini-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  padding-top: 3px;
+  border-top: 1px dashed var(--border-color, var(--border));
+}
+
+.phone-mini-stats strong {
+  color: var(--text);
+}
+
+.phone-mini-gauge-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+}
+
+.phone-mini-gauge-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 6px;
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+
+.phone-mini-gauge-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: var(--gauge-color, var(--accent));
+  transition: width 0.3s ease, background-color 0.2s ease;
+}
+
+.phone-mini-gauge-text {
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.phone-mini-record {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+}
+
+.phone-mini-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: 0.65rem;
+  font-weight: 850;
+  flex-shrink: 0;
+  background: var(--usage-soft, rgba(2, 132, 199, 0.15));
+  color: var(--usage-color, #0284c7);
+}
+
+.phone-mini-rec-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.phone-mini-rec-info strong {
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.phone-mini-rec-info small {
+  font-size: 0.54rem;
+  color: var(--text-muted);
+}
+
+.phone-mini-rec-amt {
+  font-size: 0.72rem;
+  font-weight: 850;
+  color: var(--usage-color, #0284c7);
+}
+
+.phone-mini-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1px solid var(--border-color, var(--border));
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+.phone-mini-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.52rem;
+  font-weight: 750;
+  color: var(--text-muted);
+}
+
+.phone-mini-nav-item.is-active {
+  color: var(--accent);
+}
+
 .app-version {
   margin: 15px 0 0;
   color: var(--text-muted);
@@ -4805,6 +5025,10 @@ dialog {
   flex-direction: column;
   gap: 12px;
   position: relative;
+  touch-action: pan-y;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
 }
 
 .home-widget-block {
@@ -4813,8 +5037,18 @@ dialog {
   transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease, opacity 0.2s ease;
   will-change: transform;
   touch-action: pan-y;
-  user-select: none;
-  -webkit-user-select: none;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-drag: none;
+}
+
+.home-widget-block *,
+.home-widget-block *::before,
+.home-widget-block *::after {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
 }
 
 .home-widget-block.is-hidden {
@@ -4844,6 +5078,13 @@ dialog {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2px var(--accent-soft) !important;
   transform: scale(1.01);
+}
+
+body.is-widget-dragging {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+  overflow: hidden !important;
 }
 
 /* 共通ウィジェットカード */
