@@ -2149,10 +2149,9 @@ textarea {
 .theme-preview-card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 6px 4px 8px;
+  padding: 6px 4px;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .theme-card-header {

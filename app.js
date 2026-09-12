@@ -3747,23 +3747,26 @@
     // 見本スマホ画面（リアルタイムライブプレビュー）の反映
     const mockup = $("theme-phone-mockup");
     if (mockup) {
-      const currentTheme = state.settings.theme || "auto";
-      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const isDarkEffective = currentTheme === "dark" || (currentTheme === "auto" && prefersDark);
+      const isDark = isDarkBg;
+      const phoneCardBg = isDark ? "rgba(255, 255, 255, 0.08)" : "#ffffff";
+      const phoneText = isDark ? "#edf5ef" : "#1e293b";
+      const phoneMuted = isDark ? "#94a3b8" : "#64748b";
 
-      const phoneBg = isDarkEffective ? (getLuminance(bgColor) < 0.45 ? bgColor : "#111814") : (getLuminance(bgColor) >= 0.45 ? bgColor : "#ffffff");
-      const phoneCardBg = isDarkEffective ? "rgba(255, 255, 255, 0.07)" : "rgba(255, 255, 255, 0.92)";
-      const phoneBorder = borderColor;
-      const phoneText = isDarkEffective ? "#f8fafc" : "#1e293b";
-
-      mockup.style.backgroundColor = phoneBg;
+      mockup.style.backgroundColor = bgColor;
       mockup.style.color = phoneText;
       mockup.style.borderColor = "#1c1d1f";
 
+      const timeEl = mockup.querySelector(".phone-time");
+      if (timeEl) timeEl.style.color = phoneText;
+      const sigEl = mockup.querySelector(".phone-signal");
+      if (sigEl) sigEl.style.color = phoneText;
+      const titleEl = mockup.querySelector(".mini-header-title");
+      if (titleEl) titleEl.style.color = phoneText;
+
       const miniSummary = $("phone-preview-summary");
       if (miniSummary) {
-        miniSummary.style.borderColor = phoneBorder;
-        miniSummary.style.backgroundColor = isDarkEffective ? "rgba(255, 255, 255, 0.06)" : colorWithAlpha(color1, 0.08);
+        miniSummary.style.borderColor = borderColor;
+        miniSummary.style.backgroundColor = isDark ? "rgba(255, 255, 255, 0.06)" : colorWithAlpha(color1, 0.08);
       }
 
       const miniRemaining = $("phone-preview-remaining");
@@ -3771,18 +3774,31 @@
 
       const miniGaugeCard = $("phone-preview-gauge-card");
       if (miniGaugeCard) {
-        miniGaugeCard.style.borderColor = phoneBorder;
+        miniGaugeCard.style.borderColor = borderColor;
         miniGaugeCard.style.backgroundColor = phoneCardBg;
       }
 
       const miniGauge = $("phone-preview-gauge");
-      if (miniGauge) miniGauge.style.backgroundColor = gaugeColor;
+      if (miniGauge) {
+        miniGauge.style.background = gaugeColor;
+        miniGauge.style.width = "42%";
+      }
+
+      const miniGaugePercent = $("phone-preview-percent");
+      if (miniGaugePercent) {
+        miniGaugePercent.textContent = "42%使用";
+        miniGaugePercent.style.color = phoneMuted;
+      }
 
       const miniCalendar = $("phone-preview-calendar");
       if (miniCalendar) {
-        miniCalendar.style.borderColor = phoneBorder;
+        miniCalendar.style.borderColor = borderColor;
         miniCalendar.style.backgroundColor = phoneCardBg;
       }
+
+      mockup.querySelectorAll(".phone-mini-days span:not(.mini-today)").forEach((el) => {
+        el.style.color = phoneText;
+      });
 
       const miniToday = $("phone-preview-today");
       if (miniToday) {
@@ -3798,8 +3814,8 @@
 
       const miniNav = $("phone-preview-nav");
       if (miniNav) {
-        miniNav.style.borderColor = phoneBorder;
-        miniNav.style.backgroundColor = isDarkEffective ? "rgba(18, 24, 21, 0.95)" : "rgba(255, 255, 255, 0.95)";
+        miniNav.style.borderColor = borderColor;
+        miniNav.style.backgroundColor = isDark ? "rgba(24, 32, 25, 0.95)" : "rgba(255, 255, 255, 0.95)";
       }
 
       const miniNavActive = $("phone-preview-nav-active");
@@ -3992,8 +4008,8 @@
     };
 
     const handleStart = (target, clientX, clientY) => {
-      const interactive = target.closest("button, input, select, textarea, a, summary, [role='button'], [role='tab'], label");
-      if (interactive && !interactive.classList.contains("home-widget-block")) return false;
+      const formControl = target.closest("input, select, textarea, a");
+      if (formControl) return false;
 
       let block = target.closest(".home-widget-block");
       if (!block) return false;
@@ -4130,6 +4146,15 @@
       draggedBlock = null;
       activeMergeTarget = null;
       lastVibratedSnapTarget = null;
+
+      // ドラッグ終了直後の意図しないクリック発火を防止
+      const preventClickAfterDrag = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        window.removeEventListener("click", preventClickAfterDrag, true);
+      };
+      window.addEventListener("click", preventClickAfterDrag, true);
+      setTimeout(() => window.removeEventListener("click", preventClickAfterDrag, true), 150);
 
       finishingBlock.classList.remove("is-dragging");
       finishingBlock.style.transform = "";
