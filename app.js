@@ -3955,7 +3955,7 @@
       const miniGaugePercent = $("phone-preview-percent");
       if (miniGaugePercent) {
         miniGaugePercent.textContent = "42%使用";
-        miniGaugePercent.style.color = phoneMuted;
+        miniGaugePercent.style.color = isDark ? "#edf5ef" : color1;
       }
 
       const miniAdvisor = $("phone-preview-advisor");

@@ -532,7 +532,7 @@ h3 {
 }
 
 .summary-sub-stats-row strong {
-  color: var(--text);
+  color: var(--accent-dark);
   font-weight: 850;
 }
 
@@ -576,7 +576,7 @@ h3 {
 .summary-gauge-percent {
   font-size: 0.8rem;
   font-weight: 850;
-  color: var(--text);
+  color: var(--accent-dark);
   white-space: nowrap;
 }
 
