@@ -511,149 +511,199 @@
           </div>
 
           <div id="settings-subview-theme" class="settings-subview">
-            <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
-            <div class="page-heading"><p class="section-kicker">配色とデザイン</p><h2>表示・テーマ</h2></div>
-            <section class="settings-card">
-              <!-- 移動可能・スマホ風見本画面（フロートFAB） -->
-              <div id="theme-floating-preview" class="theme-floating-preview is-hidden">
-                <div class="floating-preview-header" id="floating-preview-header">
-                  <div class="floating-preview-drag-handle" title="ドラッグして画面上の好きな場所に移動">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><circle cx="8" cy="6" r="1.6"></circle><circle cx="16" cy="6" r="1.6"></circle><circle cx="8" cy="12" r="1.6"></circle><circle cx="16" cy="12" r="1.6"></circle><circle cx="8" cy="18" r="1.6"></circle><circle cx="16" cy="18" r="1.6"></circle></svg>
-                    <span>見本画面</span>
+            <!-- サブビューヘッダー: 戻る ‹ | 表示・テーマ | リセットボタン -->
+            <div class="subview-topbar">
+              <button class="back-link-btn subview-back-btn" type="button" data-back-settings aria-label="設定一覧に戻る">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <h2 class="subview-title">表示・テーマ</h2>
+              <button id="theme-top-reset-btn" class="subview-reset-btn" type="button">リセット</button>
+            </div>
+
+            <!-- プレビュー＆設定エリア（1画面最適化 / 2列構成） -->
+            <div class="theme-screen-container" id="theme-floating-preview">
+              <!-- 上部: プレビュー＆基本設定 -->
+              <div class="theme-top-grid">
+                <!-- 左側: ミニスマホプレビュー -->
+                <section class="theme-card theme-preview-card">
+                  <div class="theme-card-header">
+                    <span class="theme-card-title">プレビュー</span>
+                    <span class="theme-live-badge"><span class="badge-dot"></span>リアルタイム反映</span>
                   </div>
-                  <div class="floating-preview-actions">
-                    <button type="button" class="floating-preview-min-btn" id="floating-preview-min-btn" title="最小化/展開" aria-label="プレビュー最小化">
-                      <span class="min-icon">−</span>
-                    </button>
+                  <div class="theme-phone-wrapper">
+                    <div class="theme-phone-mockup" id="theme-phone-mockup">
+                      <!-- Dynamic Island -->
+                      <div class="phone-dynamic-island"></div>
+                      <!-- Status Bar -->
+                      <div class="phone-status-bar">
+                        <span class="phone-time">14:06</span>
+                        <div class="phone-status-icons">
+                          <span class="phone-signal">5G</span>
+                          <span class="phone-battery-pill"><span class="phone-battery-level"></span></span>
+                        </div>
+                      </div>
+                      <!-- Phone Screen Content -->
+                      <div class="phone-screen-content">
+                        <!-- Mini Header -->
+                        <div class="phone-mini-header">
+                          <span class="mini-icon-btn">‹</span>
+                          <strong class="mini-header-title">2026年9月 ▾</strong>
+                          <span class="mini-icon-btn">›</span>
+                        </div>
+                        <!-- Mini Mode Switch -->
+                        <div class="phone-mini-mode-switch">
+                          <span class="mini-mode-tab is-active" id="phone-mode-usage">使った額</span>
+                          <span class="mini-mode-tab" id="phone-mode-outflow">口座から出る額</span>
+                        </div>
+                        <!-- Mini Summary Card -->
+                        <div class="phone-mini-summary-card" id="phone-preview-summary">
+                          <span class="mini-summary-kicker">今月あと</span>
+                          <div class="mini-summary-amount" id="phone-preview-remaining">97,480<small>円</small></div>
+                          <div class="mini-summary-sub">
+                            <span>使った額 <strong id="phone-preview-spent">2,520円</strong></span>
+                            <span class="mini-stat-sep">｜</span>
+                            <span>予算 100,000円</span>
+                          </div>
+                        </div>
+                        <!-- Mini Gauge Card -->
+                        <div class="phone-mini-gauge-card" id="phone-preview-gauge-card">
+                          <div class="phone-mini-gauge-track">
+                            <div class="phone-mini-gauge-fill" id="phone-preview-gauge" style="width: 3%;"></div>
+                          </div>
+                          <span class="phone-mini-gauge-val" id="phone-preview-percent">3%使用</span>
+                        </div>
+                        <!-- Mini Calendar -->
+                        <div class="phone-mini-calendar-card" id="phone-preview-calendar">
+                          <div class="phone-mini-weekdays">
+                            <span class="mini-sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="mini-sat">土</span>
+                          </div>
+                          <div class="phone-mini-days">
+                            <span></span><span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                            <span>6</span><span>7</span><span>8</span><span class="mini-today" id="phone-preview-today">9</span><span>10</span><span>11</span><span>12</span>
+                            <span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span>
+                          </div>
+                        </div>
+                        <!-- Mini FAB -->
+                        <div class="phone-mini-fab" id="phone-preview-fab">+</div>
+                        <!-- Mini Bottom Nav -->
+                        <div class="phone-mini-nav" id="phone-preview-nav">
+                          <div class="mini-nav-item is-active" id="phone-preview-nav-active">
+                            <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            <span>カレンダー</span>
+                          </div>
+                          <div class="mini-nav-item">
+                            <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line></svg>
+                            <span>履歴</span>
+                          </div>
+                          <div class="mini-nav-item">
+                            <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                            <span>レポート</span>
+                          </div>
+                          <div class="mini-nav-item">
+                            <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                            <span>支払い</span>
+                          </div>
+                          <div class="mini-nav-item">
+                            <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            <span>設定</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div class="floating-preview-body" id="floating-preview-body">
-                  <div class="theme-phone-mockup" id="theme-phone-mockup">
-                    <div class="phone-speaker-pill"></div>
-                    <div class="phone-status-bar">
-                      <span class="phone-time">9:41</span>
-                      <span class="phone-battery">100%</span>
+                </section>
+
+                <!-- 右側: 表示モード & カラーテーマ -->
+                <div class="theme-controls-right">
+                  <!-- 表示モード -->
+                  <section class="theme-card theme-mode-card">
+                    <h3 class="theme-section-heading">表示モード</h3>
+                    <div class="theme-mode-segment" role="radiogroup" aria-label="表示モード選択">
+                      <button type="button" class="mode-seg-btn" data-mode-val="light" aria-checked="false">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <span>ライト</span>
+                      </button>
+                      <button type="button" class="mode-seg-btn" data-mode-val="dark" aria-checked="false">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        <span>ダーク</span>
+                      </button>
+                      <button type="button" class="mode-seg-btn" data-mode-val="auto" aria-checked="false">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                        <span>端末</span>
+                      </button>
                     </div>
-                    <div class="phone-content-body">
-                      <!-- ミニツールバー -->
-                      <div class="phone-mini-toolbar">
-                        <span class="phone-mini-btn">‹</span>
-                        <strong class="phone-mini-title">2026年9月</strong>
-                        <span class="phone-mini-btn">›</span>
-                      </div>
-                      <!-- ミニサマリーカード -->
-                      <div class="phone-mini-card phone-mini-summary" id="phone-preview-summary">
-                        <div class="phone-mini-kicker">今月あと</div>
-                        <div class="phone-mini-amount-row">
-                          <span class="phone-mini-huge" id="phone-preview-remaining">38,000</span>
-                          <span class="phone-mini-unit">円</span>
-                        </div>
-                        <div class="phone-mini-stats">
-                          <span>使った額 <strong id="phone-preview-spent">62,000円</strong></span>
-                          <span>予算 100,000円</span>
-                        </div>
-                      </div>
-                      <!-- ミニゲージカード -->
-                      <div class="phone-mini-card phone-mini-gauge-card">
-                        <div class="phone-mini-gauge-track">
-                          <div class="phone-mini-gauge-fill" id="phone-preview-gauge" style="width: 62%;"></div>
-                        </div>
-                        <span class="phone-mini-gauge-text" id="phone-preview-percent">62%使用</span>
-                      </div>
-                      <!-- ミニレコード -->
-                      <div class="phone-mini-card phone-mini-record">
-                        <span class="phone-mini-icon" id="phone-preview-icon">食</span>
-                        <div class="phone-mini-rec-info">
-                          <strong>スーパー買出</strong>
-                          <small>食費・現金</small>
-                        </div>
-                        <strong class="phone-mini-rec-amt" id="phone-preview-usage-amt">¥3,480</strong>
-                      </div>
+                    <select id="theme-select" class="is-hidden" aria-hidden="true">
+                      <option value="auto">端末の設定に合わせる</option>
+                      <option value="light">ライト</option>
+                      <option value="dark">ダーク</option>
+                    </select>
+                  </section>
+
+                  <!-- カラーテーマ -->
+                  <section class="theme-card theme-palette-card">
+                    <h3 class="theme-section-heading">カラーテーマ</h3>
+                    <div class="theme-swatches-grid" id="preset-palette-grid">
+                      <!-- Dynamic presets rendered here -->
                     </div>
-                    <!-- ミニボトムナビ -->
-                    <div class="phone-mini-nav" id="phone-preview-nav">
-                      <div class="phone-mini-nav-item is-active" id="phone-preview-nav-item">
-                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z"></path></svg>
-                        <span>ホーム</span>
-                      </div>
-                      <div class="phone-mini-nav-item">
-                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line></svg>
-                        <span>履歴</span>
-                      </div>
-                      <div class="phone-mini-nav-item">
-                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                        <span>レポート</span>
-                      </div>
-                    </div>
-                  </div>
+                  </section>
                 </div>
               </div>
 
-              <label style="margin-top: 14px;">モード
-                <select id="theme-select">
-                  <option value="auto">端末の設定に合わせる</option>
-                  <option value="light">ライト</option>
-                  <option value="dark">ダーク</option>
-                </select>
-              </label>
-
-              <!-- おすすめテーマパターン -->
-              <div class="theme-color-section">
-                <span class="color-setting-title">おすすめテーマパターン</span>
-                <div class="preset-grid" id="preset-palette-grid"></div>
-              </div>
-
-              <!-- 個別カラー設定 -->
-              <div class="theme-color-section">
-                <span class="color-setting-title">カラーの個別カスタマイズ</span>
-
-                <div class="theme-custom-colors-grid">
-                  <label class="color-picker-item" for="theme-color-1">
-                    <span class="color-label">テーマカラー</span>
-                    <div class="color-input-wrapper">
-                      <input id="theme-color-1" type="color" value="#185a37" />
-                      <span id="theme-color-1-val" class="color-hex">#185A37</span>
+              <!-- 下部: 細かく設定（個別カラーカスタマイズ 2x2グリッド） -->
+              <section class="theme-card theme-custom-card">
+                <h3 class="theme-section-heading">細かく設定</h3>
+                <div class="theme-color-rows-grid">
+                  <!-- メインカラー -->
+                  <label class="theme-color-item" for="theme-color-1">
+                    <span class="theme-item-name">メインカラー</span>
+                    <div class="theme-item-right">
+                      <span class="theme-color-circle" id="theme-color-1-circle"></span>
+                      <span class="theme-arrow">›</span>
                     </div>
+                    <input id="theme-color-1" class="theme-hidden-color-input" type="color" value="#007a78" />
+                    <span id="theme-color-1-val" class="is-hidden">#007A78</span>
                   </label>
 
-                  <label class="color-picker-item" for="setting-bg-color">
-                    <span class="color-label">背景色</span>
-                    <div class="color-input-wrapper">
-                      <input id="setting-bg-color" type="color" value="#ffffff" />
-                      <span id="setting-bg-color-val" class="color-hex">#FFFFFF</span>
+                  <!-- 背景色 -->
+                  <label class="theme-color-item" for="setting-bg-color">
+                    <span class="theme-item-name">背景色</span>
+                    <div class="theme-item-right">
+                      <span class="theme-color-circle" id="setting-bg-color-circle"></span>
+                      <span class="theme-arrow">›</span>
                     </div>
+                    <input id="setting-bg-color" class="theme-hidden-color-input" type="color" value="#ffffff" />
+                    <span id="setting-bg-color-val" class="is-hidden">#FFFFFF</span>
                   </label>
 
-                  <label class="color-picker-item" for="setting-border-color">
-                    <span class="color-label">枠線色</span>
-                    <div class="color-input-wrapper">
-                      <input id="setting-border-color" type="color" value="#e2e8f0" />
-                      <span id="setting-border-color-val" class="color-hex">#E2E8F0</span>
+                  <!-- カード背景 (borderColor) -->
+                  <label class="theme-color-item" for="setting-border-color">
+                    <span class="theme-item-name">カード背景</span>
+                    <div class="theme-item-right">
+                      <span class="theme-color-circle" id="setting-border-color-circle"></span>
+                      <span class="theme-arrow">›</span>
                     </div>
+                    <input id="setting-border-color" class="theme-hidden-color-input" type="color" value="#e2e8f0" />
+                    <span id="setting-border-color-val" class="is-hidden">#E2E8F0</span>
                   </label>
 
-                  <label class="color-picker-item" for="setting-gauge-color">
-                    <span class="color-label">ゲージ色</span>
-                    <div class="color-input-wrapper">
-                      <input id="setting-gauge-color" type="color" value="#34d399" />
-                      <span id="setting-gauge-color-val" class="color-hex">#34D399</span>
+                  <!-- ゲージ -->
+                  <label class="theme-color-item" for="setting-gauge-color">
+                    <span class="theme-item-name">ゲージ</span>
+                    <div class="theme-item-right">
+                      <span class="theme-color-circle" id="setting-gauge-color-circle"></span>
+                      <span class="theme-arrow">›</span>
                     </div>
-                  </label>
-
-                  <label class="color-picker-item" for="setting-usage-color">
-                    <span class="color-label">使った金額</span>
-                    <div class="color-input-wrapper">
-                      <input id="setting-usage-color" type="color" value="#0284c7" />
-                      <span id="setting-usage-color-val" class="color-hex">#0284C7</span>
-                    </div>
+                    <input id="setting-gauge-color" class="theme-hidden-color-input" type="color" value="#34d399" />
+                    <span id="setting-gauge-color-val" class="is-hidden">#34D399</span>
                   </label>
                 </div>
 
-                <div style="margin-top: 14px;">
-                  <button id="reset-colors-button" class="button button-ghost full-width" type="button">テーマ・カラーを初期値に戻す</button>
-                </div>
-              </div>
-            </section>
+                <!-- 既存互換用の不可視要素 -->
+                <input id="setting-usage-color" class="is-hidden" type="color" value="#0284c7" />
+                <span id="setting-usage-color-val" class="is-hidden">#0284C7</span>
+                <button id="reset-colors-button" class="is-hidden" type="button">初期値に戻す</button>
+              </section>
+            </div>
           </div>
 
           <div id="settings-subview-backup" class="settings-subview">

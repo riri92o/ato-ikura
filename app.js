@@ -11,75 +11,53 @@
 
   const THEME_PRESETS = [
     {
-      name: "🌿 フォレスト（標準）",
-      themeColor1: "#185a37",
-      bgColor: "#ffffff",
-      borderColor: "#e2e8f0",
-      gaugeColor: "#34d399",
+      id: "teal",
+      name: "ティール",
+      themeColor1: "#007a78",
+      bgColor: "#f2f9f9",
+      borderColor: "#e0f2f1",
+      gaugeColor: "#26a69a",
+      usageColor: "#007a78",
+      theme: "light",
+    },
+    {
+      id: "blue",
+      name: "ブルー",
+      themeColor1: "#0284c7",
+      bgColor: "#f0f9ff",
+      borderColor: "#e0f2fe",
+      gaugeColor: "#38bdf8",
       usageColor: "#0284c7",
       theme: "light",
     },
     {
-      name: "🌸 サクラ・ラテ",
-      themeColor1: "#a83260",
-      bgColor: "#fffafb",
-      borderColor: "#fed7e2",
-      gaugeColor: "#f472b6",
-      usageColor: "#e11d48",
-      theme: "light",
-    },
-    {
-      name: "🌙 ミッドナイト・ダーク",
-      themeColor1: "#68b98b",
-      bgColor: "#111712",
-      borderColor: "#344039",
-      gaugeColor: "#34d399",
-      usageColor: "#77b3e7",
-      theme: "dark",
-    },
-    {
-      name: "☕ カプチーノ・モカ",
-      themeColor1: "#78350f",
-      bgColor: "#fefcf9",
-      borderColor: "#e7dfd5",
-      gaugeColor: "#d97706",
-      usageColor: "#b45309",
-      theme: "light",
-    },
-    {
-      name: "🌊 オーシャン・ブルー",
-      themeColor1: "#1e40af",
-      bgColor: "#f8fafc",
-      borderColor: "#cbd5e1",
-      gaugeColor: "#38bdf8",
-      usageColor: "#2563eb",
-      theme: "light",
-    },
-    {
-      name: "🍊 ビタミン・シトラス",
-      themeColor1: "#c2410c",
-      bgColor: "#fffcf7",
-      borderColor: "#fed7aa",
-      gaugeColor: "#fb923c",
-      usageColor: "#ea580c",
-      theme: "light",
-    },
-    {
-      name: "🪻 ラベンダー・パステル",
-      themeColor1: "#6b21a8",
+      id: "lavender",
+      name: "ラベンダー",
+      themeColor1: "#8b5cf6",
       bgColor: "#faf5ff",
-      borderColor: "#e9d5ff",
-      gaugeColor: "#a855f7",
+      borderColor: "#f3e8ff",
+      gaugeColor: "#c084fc",
       usageColor: "#7c3aed",
       theme: "light",
     },
     {
-      name: "🖤 モノトーン・ミニマル",
-      themeColor1: "#334155",
+      id: "pink",
+      name: "ピンク",
+      themeColor1: "#f43f5e",
+      bgColor: "#fff1f2",
+      borderColor: "#ffe4e6",
+      gaugeColor: "#fb7185",
+      usageColor: "#e11d48",
+      theme: "light",
+    },
+    {
+      id: "mono",
+      name: "モノクロ",
+      themeColor1: "#475569",
       bgColor: "#f8fafc",
       borderColor: "#e2e8f0",
       gaugeColor: "#64748b",
-      usageColor: "#0f172a",
+      usageColor: "#334155",
       theme: "light",
     },
   ];
@@ -833,14 +811,44 @@
       });
     }
 
+    const themeTopResetBtn = $("theme-top-reset-btn");
+    if (themeTopResetBtn) {
+      themeTopResetBtn.addEventListener("click", () => {
+        if (confirm("テーマと配色を初期設定に戻しますか？")) {
+          const def = THEME_PRESETS[0];
+          state.settings.theme = "auto";
+          state.settings.themeColor1 = def.themeColor1;
+          state.settings.themeColor2 = def.themeColor1;
+          state.settings.bgColor = def.bgColor;
+          state.settings.borderColor = def.borderColor;
+          state.settings.gaugeColor = def.gaugeColor;
+          state.settings.usageColor = def.usageColor;
+          saveState();
+          applyTheme();
+          renderCalendar();
+          showToast("テーマと配色を初期値に戻しました。");
+        }
+      });
+    }
+
+    document.querySelectorAll(".mode-seg-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const modeVal = btn.dataset.modeVal;
+        state.settings.theme = modeVal;
+        saveState();
+        applyTheme();
+        showToast(`表示モードを「${modeVal === "light" ? "ライト" : modeVal === "dark" ? "ダーク" : "端末に合わせる"}」に変更しました。`);
+      });
+    });
+
     $("reset-colors-button").addEventListener("click", () => {
       state.settings.theme = "auto";
-      state.settings.themeColor1 = "#185a37";
-      state.settings.themeColor2 = "#185a37";
-      state.settings.bgColor = "#ffffff";
-      state.settings.borderColor = "#e2e8f0";
-      state.settings.gaugeColor = "#34d399";
-      state.settings.usageColor = "#0284c7";
+      state.settings.themeColor1 = "#007a78";
+      state.settings.themeColor2 = "#007a78";
+      state.settings.bgColor = "#f2f9f9";
+      state.settings.borderColor = "#e0f2f1";
+      state.settings.gaugeColor = "#26a69a";
+      state.settings.usageColor = "#007a78";
       saveState();
       applyTheme();
       renderCalendar();
@@ -3647,6 +3655,13 @@
     if (themeSelect && themeSelect.value !== theme) {
       themeSelect.value = theme;
     }
+
+    document.querySelectorAll(".mode-seg-btn").forEach((btn) => {
+      const active = btn.dataset.modeVal === theme;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-checked", active ? "true" : "false");
+    });
+
     applyThemeColors();
   }
 
@@ -3661,7 +3676,7 @@
   }
 
   function applyThemeColors() {
-    const color1 = state.settings.themeColor1 || "#185a37";
+    const color1 = state.settings.themeColor1 || "#007a78";
     const bgColor = state.settings.bgColor || "#ffffff";
     const borderColor = state.settings.borderColor || "#e2e8f0";
     const gaugeColor = state.settings.gaugeColor || "#34d399";
@@ -3719,39 +3734,82 @@
     if (usageInput && usageInput.value.toLowerCase() !== usageColor.toLowerCase()) usageInput.value = usageColor;
     if (usageVal) usageVal.textContent = usageColor.toUpperCase();
 
-    // 見本スマホ画面（ライブプレビュー）の反映
+    // 細かく設定カード内の色見本サークル更新
+    const cCircle1 = $("theme-color-1-circle");
+    if (cCircle1) cCircle1.style.backgroundColor = color1;
+    const cCircleBg = $("setting-bg-color-circle");
+    if (cCircleBg) cCircleBg.style.backgroundColor = bgColor;
+    const cCircleBorder = $("setting-border-color-circle");
+    if (cCircleBorder) cCircleBorder.style.backgroundColor = borderColor;
+    const cCircleGauge = $("setting-gauge-color-circle");
+    if (cCircleGauge) cCircleGauge.style.backgroundColor = gaugeColor;
+
+    // 見本スマホ画面（リアルタイムライブプレビュー）の反映
     const mockup = $("theme-phone-mockup");
     if (mockup) {
-      mockup.style.backgroundColor = bgColor;
-      mockup.style.borderColor = borderColor;
-      mockup.style.color = isDarkBg ? "#f8fafc" : "#1e293b";
+      const currentTheme = state.settings.theme || "auto";
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const isDarkEffective = currentTheme === "dark" || (currentTheme === "auto" && prefersDark);
+
+      const phoneBg = isDarkEffective ? (getLuminance(bgColor) < 0.45 ? bgColor : "#111814") : (getLuminance(bgColor) >= 0.45 ? bgColor : "#ffffff");
+      const phoneCardBg = isDarkEffective ? "rgba(255, 255, 255, 0.07)" : "rgba(255, 255, 255, 0.92)";
+      const phoneBorder = borderColor;
+      const phoneText = isDarkEffective ? "#f8fafc" : "#1e293b";
+
+      mockup.style.backgroundColor = phoneBg;
+      mockup.style.color = phoneText;
+      mockup.style.borderColor = "#1c1d1f";
 
       const miniSummary = $("phone-preview-summary");
       if (miniSummary) {
-        miniSummary.style.borderColor = borderColor;
-        miniSummary.style.backgroundColor = isDarkBg ? "rgba(255, 255, 255, 0.08)" : colorWithAlpha(color1, 0.08);
+        miniSummary.style.borderColor = phoneBorder;
+        miniSummary.style.backgroundColor = isDarkEffective ? "rgba(255, 255, 255, 0.06)" : colorWithAlpha(color1, 0.08);
       }
 
       const miniRemaining = $("phone-preview-remaining");
       if (miniRemaining) miniRemaining.style.color = color1;
 
+      const miniGaugeCard = $("phone-preview-gauge-card");
+      if (miniGaugeCard) {
+        miniGaugeCard.style.borderColor = phoneBorder;
+        miniGaugeCard.style.backgroundColor = phoneCardBg;
+      }
+
       const miniGauge = $("phone-preview-gauge");
       if (miniGauge) miniGauge.style.backgroundColor = gaugeColor;
 
-      const miniIcon = $("phone-preview-icon");
-      if (miniIcon) {
-        miniIcon.style.backgroundColor = colorWithAlpha(usageColor, 0.15);
-        miniIcon.style.color = usageColor;
+      const miniCalendar = $("phone-preview-calendar");
+      if (miniCalendar) {
+        miniCalendar.style.borderColor = phoneBorder;
+        miniCalendar.style.backgroundColor = phoneCardBg;
       }
 
-      const miniAmt = $("phone-preview-usage-amt");
-      if (miniAmt) miniAmt.style.color = usageColor;
+      const miniToday = $("phone-preview-today");
+      if (miniToday) {
+        miniToday.style.backgroundColor = color1;
+        miniToday.style.color = "#ffffff";
+      }
+
+      const miniFab = $("phone-preview-fab");
+      if (miniFab) {
+        miniFab.style.backgroundColor = color1;
+        miniFab.style.color = "#ffffff";
+      }
 
       const miniNav = $("phone-preview-nav");
-      if (miniNav) miniNav.style.borderColor = borderColor;
+      if (miniNav) {
+        miniNav.style.borderColor = phoneBorder;
+        miniNav.style.backgroundColor = isDarkEffective ? "rgba(18, 24, 21, 0.95)" : "rgba(255, 255, 255, 0.95)";
+      }
 
-      const miniNavItem = $("phone-preview-nav-item");
-      if (miniNavItem) miniNavItem.style.color = color1;
+      const miniNavActive = $("phone-preview-nav-active");
+      if (miniNavActive) miniNavActive.style.color = color1;
+
+      const modeUsageTab = $("phone-mode-usage");
+      if (modeUsageTab) {
+        modeUsageTab.style.backgroundColor = color1;
+        modeUsageTab.style.color = "#ffffff";
+      }
     }
 
     updatePresetButtons();
@@ -3759,20 +3817,21 @@
 
   function updatePresetButtons() {
     const c1 = (state.settings.themeColor1 || "").toLowerCase();
-    const bg = (state.settings.bgColor || "").toLowerCase();
-    const border = (state.settings.borderColor || "").toLowerCase();
     const gauge = (state.settings.gaugeColor || "").toLowerCase();
-    const usage = (state.settings.usageColor || "").toLowerCase();
 
+    let matchedAny = false;
     document.querySelectorAll(".preset-button").forEach((button) => {
       const match =
         button.dataset.themeColor1?.toLowerCase() === c1 &&
-        button.dataset.bgColor?.toLowerCase() === bg &&
-        button.dataset.borderColor?.toLowerCase() === border &&
-        button.dataset.gaugeColor?.toLowerCase() === gauge &&
-        button.dataset.usageColor?.toLowerCase() === usage;
+        button.dataset.gaugeColor?.toLowerCase() === gauge;
       button.classList.toggle("is-active", Boolean(match));
+      if (match) matchedAny = true;
     });
+
+    const customBtn = $("preset-custom-btn");
+    if (customBtn) {
+      customBtn.classList.toggle("is-active", !matchedAny);
+    }
   }
 
   function renderPresetPalette() {
@@ -3783,7 +3842,8 @@
     THEME_PRESETS.forEach((preset) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "preset-button";
+      button.className = "theme-swatch-item preset-button";
+      button.dataset.presetId = preset.id;
       button.dataset.themeColor1 = preset.themeColor1;
       button.dataset.bgColor = preset.bgColor;
       button.dataset.borderColor = preset.borderColor;
@@ -3791,35 +3851,20 @@
       button.dataset.usageColor = preset.usageColor;
       button.dataset.theme = preset.theme || "auto";
 
-      const swatchGroup = document.createElement("span");
-      swatchGroup.className = "preset-swatch-group";
+      const circle = document.createElement("div");
+      circle.className = "swatch-circle";
+      circle.style.background = `linear-gradient(135deg, ${preset.themeColor1} 50%, color-mix(in srgb, ${preset.themeColor1} 30%, ${preset.bgColor}) 50%)`;
 
-      const dot1 = document.createElement("span");
-      dot1.className = "preset-dot";
-      dot1.style.backgroundColor = preset.themeColor1;
-      dot1.title = "テーマ色";
+      const check = document.createElement("span");
+      check.className = "swatch-check";
+      check.textContent = "✓";
+      circle.appendChild(check);
 
-      const dot2 = document.createElement("span");
-      dot2.className = "preset-dot";
-      dot2.style.backgroundColor = preset.bgColor;
-      dot2.title = "背景色";
+      const name = document.createElement("span");
+      name.className = "swatch-name";
+      name.textContent = preset.name;
 
-      const dot3 = document.createElement("span");
-      dot3.className = "preset-dot";
-      dot3.style.backgroundColor = preset.gaugeColor;
-      dot3.title = "ゲージ色";
-
-      const dot4 = document.createElement("span");
-      dot4.className = "preset-dot";
-      dot4.style.backgroundColor = preset.usageColor;
-      dot4.title = "利用額色";
-
-      swatchGroup.append(dot1, dot2, dot3, dot4);
-
-      const label = document.createElement("span");
-      label.textContent = preset.name;
-
-      button.append(swatchGroup, label);
+      button.append(circle, name);
       button.addEventListener("click", () => {
         state.settings.themeColor1 = preset.themeColor1;
         state.settings.themeColor2 = preset.themeColor1;
@@ -3831,10 +3876,34 @@
         saveState();
         applyTheme();
         renderCalendar();
-        showToast(`おすすめテーマ「${preset.name}」を適用しました。`);
+        showToast(`テーマ「${preset.name}」を適用しました。`);
       });
       grid.append(button);
     });
+
+    // カスタム（+）ボタン
+    const customBtn = document.createElement("button");
+    customBtn.type = "button";
+    customBtn.className = "theme-swatch-item is-custom";
+    customBtn.id = "preset-custom-btn";
+
+    const customCircle = document.createElement("div");
+    customCircle.className = "swatch-circle swatch-custom-circle";
+    const customPlus = document.createElement("span");
+    customPlus.className = "swatch-plus";
+    customPlus.textContent = "+";
+    customCircle.appendChild(customPlus);
+
+    const customName = document.createElement("span");
+    customName.className = "swatch-name";
+    customName.textContent = "カスタム";
+
+    customBtn.append(customCircle, customName);
+    customBtn.addEventListener("click", () => {
+      const colorInput = $("theme-color-1");
+      if (colorInput) colorInput.click();
+    });
+    grid.append(customBtn);
 
     updatePresetButtons();
   }
