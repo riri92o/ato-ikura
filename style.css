@@ -5180,36 +5180,32 @@ dialog {
 .home-widget-block.is-snap-active {
   transform: scale(0.975) !important;
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 3px var(--accent), 0 12px 30px rgba(0, 0, 0, 0.16) !important;
+  box-shadow: 0 0 0 3px var(--accent), 0 12px 30px rgba(0, 0, 0, 0.22) !important;
   transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease !important;
 }
 
 .home-widget-block.is-snap-active::after {
-  content: "";
+  content: "🔗 1つの枠に結合";
   position: absolute;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 64px;
-  height: 4px;
-  border-radius: 4px;
+  transform: translate(-50%, -50%);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
   background: var(--accent);
-  box-shadow: 0 0 10px var(--accent);
-  animation: pulseSnapPill 0.5s infinite alternate ease-in-out;
-  z-index: 50;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 850;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  animation: pulseMergeBadge 0.4s infinite alternate ease-in-out;
+  z-index: 80;
   pointer-events: none;
+  white-space: nowrap;
 }
 
-.home-widget-block.is-snap-active.snap-top::after {
-  top: -6px;
-}
-
-.home-widget-block.is-snap-active.snap-bottom::after {
-  bottom: -6px;
-}
-
-@keyframes pulseSnapPill {
-  0% { transform: translateX(-50%) scaleX(0.85); opacity: 0.75; }
-  100% { transform: translateX(-50%) scaleX(1.15); opacity: 1; }
+@keyframes pulseMergeBadge {
+  0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
 }
 
 /* FLIP移動アニメーション中のスタイル */
@@ -5227,6 +5223,105 @@ dialog {
   0% { transform: scale(1.04); }
   50% { transform: scale(0.985); }
   100% { transform: scale(1); }
+}
+
+/* ==========================================================================
+   まとめた枠（グループ・結合ウィジェットカード）
+   ========================================================================== */
+
+.home-widget-merged-card {
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.merged-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px 6px;
+  border-bottom: 1px dashed var(--border);
+  margin-bottom: 2px;
+}
+
+.merged-card-badge {
+  font-size: 0.72rem;
+  font-weight: 850;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.merged-card-split-btn {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 750;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.merged-card-split-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  border-color: var(--accent);
+}
+
+.merged-widget-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.75;
+  margin: 3px 0;
+}
+
+/* 結合カード内の子ウィジェットをシームレス化 */
+.home-widget-block.is-in-merged-card {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.home-widget-block.is-in-merged-card .widget-card,
+.home-widget-block.is-in-merged-card .summary-unified-card,
+.home-widget-block.is-in-merged-card .calendar-card,
+.home-widget-block.is-in-merged-card .summary-breakdown-wrapper {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 4px 0 !important;
+}
+
+.widget-manage-split-badge {
+  font-size: 0.68rem;
+  font-weight: 750;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+  cursor: pointer;
+  margin-top: 3px;
+  width: fit-content;
+  transition: all 0.15s ease;
+}
+
+.widget-manage-split-badge:hover {
+  background: var(--accent);
+  color: #ffffff;
 }
 
 html.is-widget-dragging,

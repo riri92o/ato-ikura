@@ -402,12 +402,13 @@
             id: w.id,
             name: defaultObj ? defaultObj.name : String(w.name || w.id),
             enabled: Boolean(w.enabled),
+            groupId: w.groupId ? String(w.groupId) : null,
           };
         });
 
       DEFAULT_HOME_WIDGETS.forEach((dw) => {
         if (!userWidgets.some((uw) => uw.id === dw.id)) {
-          userWidgets.push({ ...dw });
+          userWidgets.push({ ...dw, groupId: null });
         }
       });
       clean.settings.homeWidgets = userWidgets;
@@ -1392,11 +1393,93 @@
 
     const widgets = state.settings.homeWidgets || defaultHomeWidgets();
 
+    // 連続する同一groupIdのウィジェットをグループ化
+    const groups = [];
+    let currentGroup = null;
+
     widgets.forEach((w) => {
-      const el = $(`widget-${w.id}`);
-      if (el) {
-        container.appendChild(el);
-        el.classList.toggle("is-hidden", !w.enabled);
+      if (w.groupId) {
+        if (currentGroup && currentGroup.groupId === w.groupId) {
+          currentGroup.items.push(w);
+        } else {
+          currentGroup = { groupId: w.groupId, items: [w] };
+          groups.push(currentGroup);
+        }
+      } else {
+        currentGroup = null;
+        groups.push({ groupId: null, items: [w] });
+      }
+    });
+
+    // 以前生成されたまとめた枠ラッパーをクリーンアップ
+    if (container.querySelectorAll) {
+      container.querySelectorAll(".home-widget-merged-card").forEach((m) => m.remove());
+    }
+
+    groups.forEach((group) => {
+      if (group.groupId && group.items.length > 1) {
+        // 1つの枠にまとめる（結合ウィジェットカード）
+        const mergedWrapper = document.createElement("div");
+        mergedWrapper.className = "home-widget-block home-widget-merged-card";
+        mergedWrapper.dataset.widget = group.items.map((it) => it.id).join("+");
+        mergedWrapper.dataset.groupId = group.groupId;
+
+        const isGroupEnabled = group.items.some((it) => it.enabled);
+        mergedWrapper.classList.toggle("is-hidden", !isGroupEnabled);
+
+        const header = document.createElement("div");
+        header.className = "merged-card-header";
+
+        const badge = document.createElement("span");
+        badge.className = "merged-card-badge";
+        badge.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> まとめた枠`;
+
+        const splitBtn = document.createElement("button");
+        splitBtn.type = "button";
+        splitBtn.className = "merged-card-split-btn";
+        splitBtn.textContent = "⎘ 分離する";
+        splitBtn.title = "結合を解除して別々の枠に戻す";
+        splitBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const targetGid = group.groupId;
+          widgets.forEach((it) => {
+            if (it.groupId === targetGid) it.groupId = null;
+          });
+          saveState();
+          renderHomeWidgets();
+          renderHomeWidgetsManageList("settings-widgets-manage-list");
+          renderHomeWidgetsManageList("home-widgets-manage-list");
+          showToast("枠の結合を解除しました。");
+        });
+
+        header.append(badge, splitBtn);
+        mergedWrapper.append(header);
+
+        group.items.forEach((w, idx) => {
+          const el = $(`widget-${w.id}`);
+          if (el) {
+            el.classList.add("is-in-merged-card");
+            el.classList.toggle("is-hidden", !w.enabled);
+            mergedWrapper.appendChild(el);
+            if (idx < group.items.length - 1 && w.enabled && group.items[idx + 1]?.enabled) {
+              const divider = document.createElement("div");
+              divider.className = "merged-widget-divider";
+              mergedWrapper.appendChild(divider);
+            }
+          }
+        });
+
+        container.appendChild(mergedWrapper);
+      } else {
+        // 単独の通常ウィジェット
+        group.items.forEach((w) => {
+          const el = $(`widget-${w.id}`);
+          if (el) {
+            el.classList.remove("is-in-merged-card");
+            container.appendChild(el);
+            el.classList.toggle("is-hidden", !w.enabled);
+          }
+        });
       }
     });
 
@@ -1556,6 +1639,27 @@
       const title = createElement("span", "widget-manage-title", widget.name);
       const status = createElement("span", "widget-manage-status", widget.enabled ? "表示中" : "非表示");
       info.append(title, status);
+
+      if (widget.groupId) {
+        const groupBadge = createElement("button", "widget-manage-split-badge", "🔗 結合中 (解除)");
+        groupBadge.type = "button";
+        groupBadge.title = "このグループの結合を解除";
+        groupBadge.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const gid = widget.groupId;
+          widgets.forEach((w) => {
+            if (w.groupId === gid) w.groupId = null;
+          });
+          state.settings.homeWidgets = widgets;
+          saveState();
+          renderHomeWidgets();
+          renderHomeWidgetsManageList("settings-widgets-manage-list");
+          renderHomeWidgetsManageList("home-widgets-manage-list");
+          showToast("枠の結合を解除しました。");
+        });
+        info.append(groupBadge);
+      }
+
       left.append(info);
 
       const controls = createElement("div", "widget-manage-controls");
@@ -3730,6 +3834,7 @@
 
     let longPressTimer = null;
     let draggedBlock = null;
+    let activeMergeTarget = null;
     let isDragging = false;
     let startX = 0;
     let startY = 0;
@@ -3752,6 +3857,7 @@
 
     const startDrag = (block) => {
       isDragging = true;
+      activeMergeTarget = null;
       initialOrderIds = Array.from(container.querySelectorAll(".home-widget-block")).map(
         (el) => el.dataset.widget
       );
@@ -3813,6 +3919,7 @@
       draggedBlock = block;
       startX = clientX;
       startY = clientY;
+      activeMergeTarget = null;
       lastVibratedSnapTarget = null;
 
       block.classList.add("is-drag-ready");
@@ -3853,66 +3960,66 @@
         (el) => el !== draggedBlock
       );
 
-      let activeSnapSib = null;
+      let foundMergeTarget = null;
 
       for (const sib of siblings) {
         const sibRect = sib.getBoundingClientRect();
         const sibCenterY = sibRect.top + sibRect.height / 2;
         const distanceToCenter = Math.abs(draggedCenterY - sibCenterY);
 
-        // 磁力スナップ吸着判定（相手の中心付近に重なったとき）
-        const snapZone = Math.max(38, sibRect.height * 0.45);
-        if (distanceToCenter < snapZone) {
-          activeSnapSib = sib;
-          const isAbove = draggedCenterY < sibCenterY;
+        // 相手の中心付近に重なったときは「1つの枠に結合」ゾーン
+        const mergeZone = Math.min(65, sibRect.height * 0.42);
+        if (distanceToCenter < mergeZone) {
+          foundMergeTarget = sib;
           sib.classList.add("is-snap-active");
-          sib.classList.toggle("snap-top", isAbove);
-          sib.classList.toggle("snap-bottom", !isAbove);
 
           if (lastVibratedSnapTarget !== sib) {
             lastVibratedSnapTarget = sib;
             if (navigator.vibrate) {
-              try { navigator.vibrate(18); } catch (_) {}
+              try { navigator.vibrate(22); } catch (_) {}
             }
           }
         } else {
-          sib.classList.remove("is-snap-active", "snap-top", "snap-bottom");
+          sib.classList.remove("is-snap-active");
         }
       }
 
-      if (!activeSnapSib) {
+      activeMergeTarget = foundMergeTarget;
+      if (!activeMergeTarget) {
         lastVibratedSnapTarget = null;
       }
 
-      // 中心を越えたときの滑らかな入れ替え
-      for (const sib of siblings) {
-        const sibRect = sib.getBoundingClientRect();
-        const sibCenterY = sibRect.top + sibRect.height / 2;
-        const isSibAbove = sib.compareDocumentPosition ? Boolean(sib.compareDocumentPosition(draggedBlock) & 4) : false;
+      // 結合ゾーンにいない時（上下にしっかり抜けた時）のみ、位置の滑らかな入れ替え（FLIP）を実行
+      if (!activeMergeTarget) {
+        for (const sib of siblings) {
+          const sibRect = sib.getBoundingClientRect();
+          const sibCenterY = sibRect.top + sibRect.height / 2;
+          const isSibAbove = sib.compareDocumentPosition ? Boolean(sib.compareDocumentPosition(draggedBlock) & 4) : false;
 
-        const swapThreshold = 14;
-        if (isSibAbove && draggedCenterY < sibCenterY - swapThreshold) {
-          animateSiblingsFLIP(() => {
-            container.insertBefore(draggedBlock, sib);
-          });
-          startY = clientY;
-          currentDeltaY = 0;
-          draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.04)`;
-          if (navigator.vibrate) {
-            try { navigator.vibrate(28); } catch (_) {}
+          const swapThreshold = Math.min(48, sibRect.height * 0.48);
+          if (isSibAbove && draggedCenterY < sibCenterY - swapThreshold) {
+            animateSiblingsFLIP(() => {
+              container.insertBefore(draggedBlock, sib);
+            });
+            startY = clientY;
+            currentDeltaY = 0;
+            draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.04)`;
+            if (navigator.vibrate) {
+              try { navigator.vibrate(28); } catch (_) {}
+            }
+            break;
+          } else if (!isSibAbove && draggedCenterY > sibCenterY + swapThreshold) {
+            animateSiblingsFLIP(() => {
+              container.insertBefore(draggedBlock, sib.nextSibling);
+            });
+            startY = clientY;
+            currentDeltaY = 0;
+            draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.04)`;
+            if (navigator.vibrate) {
+              try { navigator.vibrate(28); } catch (_) {}
+            }
+            break;
           }
-          break;
-        } else if (!isSibAbove && draggedCenterY > sibCenterY + swapThreshold) {
-          animateSiblingsFLIP(() => {
-            container.insertBefore(draggedBlock, sib.nextSibling);
-          });
-          startY = clientY;
-          currentDeltaY = 0;
-          draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.04)`;
-          if (navigator.vibrate) {
-            try { navigator.vibrate(28); } catch (_) {}
-          }
-          break;
         }
       }
     };
@@ -3926,13 +4033,16 @@
       if (!isDragging || !draggedBlock) {
         isDragging = false;
         draggedBlock = null;
+        activeMergeTarget = null;
         lastVibratedSnapTarget = null;
         return;
       }
 
       const finishingBlock = draggedBlock;
+      const targetToMerge = activeMergeTarget;
       isDragging = false;
       draggedBlock = null;
+      activeMergeTarget = null;
       lastVibratedSnapTarget = null;
 
       finishingBlock.classList.remove("is-dragging");
@@ -3948,30 +4058,109 @@
         el.style.transition = "";
       });
 
-      const newOrderIds = Array.from(container.querySelectorAll(".home-widget-block")).map(
+      const currentWidgets = state.settings.homeWidgets || defaultHomeWidgets();
+
+      if (targetToMerge && targetToMerge !== finishingBlock) {
+        // === 2つの枠を1つの枠に結合する ===
+        const draggedIds = (finishingBlock.dataset.widget || "").split("+").filter(Boolean);
+        const targetIds = (targetToMerge.dataset.widget || "").split("+").filter(Boolean);
+
+        if (draggedIds.length > 0 && targetIds.length > 0) {
+          // グループIDの割り当て（既存のgroupIdがあれば引き継ぐ、なければ新規生成）
+          const existingGroup = currentWidgets.find((w) => (targetIds.includes(w.id) || draggedIds.includes(w.id)) && w.groupId);
+          const groupId = existingGroup?.groupId || `group_${Date.now()}`;
+
+          // 全対象ウィジェットに同一のgroupIdを設定
+          const combinedIds = [...targetIds, ...draggedIds];
+          currentWidgets.forEach((w) => {
+            if (combinedIds.includes(w.id)) {
+              w.groupId = groupId;
+            }
+          });
+
+          // targetIdsの直後にdraggedIdsが連続するように配列を並び替え
+          const reordered = [];
+          const placedIds = new Set();
+
+          currentWidgets.forEach((w) => {
+            if (placedIds.has(w.id)) return;
+            if (targetIds.includes(w.id)) {
+              // targetのウィジェットたちを配置
+              targetIds.forEach((tid) => {
+                const tw = currentWidgets.find((x) => x.id === tid);
+                if (tw && !placedIds.has(tw.id)) {
+                  reordered.push(tw);
+                  placedIds.add(tw.id);
+                }
+              });
+              // 続いてdraggedのウィジェットたちを直後に配置
+              draggedIds.forEach((did) => {
+                const dw = currentWidgets.find((x) => x.id === did);
+                if (dw && !placedIds.has(dw.id)) {
+                  reordered.push(dw);
+                  placedIds.add(dw.id);
+                }
+              });
+            } else if (!draggedIds.includes(w.id)) {
+              reordered.push(w);
+              placedIds.add(w.id);
+            }
+          });
+
+          // もし未配置のものがあれば追加
+          currentWidgets.forEach((w) => {
+            if (!placedIds.has(w.id)) {
+              reordered.push(w);
+              placedIds.add(w.id);
+            }
+          });
+
+          state.settings.homeWidgets = reordered;
+          saveState();
+          renderHomeWidgets();
+          renderHomeWidgetsManageList("settings-widgets-manage-list");
+          renderHomeWidgetsManageList("home-widgets-manage-list");
+
+          if (navigator.vibrate) {
+            try { navigator.vibrate([30, 40, 30]); } catch (_) {}
+          }
+          showToast("✨ 2つのウィジェットを1つの枠に結合しました！");
+          return;
+        }
+      }
+
+      // 通常の並び替え（結合ドロップでない場合）
+      const newOrderBlockIds = Array.from(container.querySelectorAll(".home-widget-block")).map(
         (el) => el.dataset.widget
       );
 
-      const orderChanged = JSON.stringify(newOrderIds) !== JSON.stringify(initialOrderIds);
-      if (orderChanged) {
-        const currentWidgets = state.settings.homeWidgets || defaultHomeWidgets();
-        const reordered = [];
-        newOrderIds.forEach((id) => {
-          const item = currentWidgets.find((w) => w.id === id);
-          if (item) reordered.push(item);
-        });
-        currentWidgets.forEach((w) => {
-          if (!reordered.some((rw) => rw.id === w.id)) {
-            reordered.push(w);
-          }
-        });
+      const flattenedIds = [];
+      newOrderBlockIds.forEach((bw) => {
+        if (bw) {
+          bw.split("+").forEach((id) => {
+            if (id && !flattenedIds.includes(id)) {
+              flattenedIds.push(id);
+            }
+          });
+        }
+      });
 
-        state.settings.homeWidgets = reordered;
-        saveState();
-        renderHomeWidgetsManageList("settings-widgets-manage-list");
-        renderHomeWidgetsManageList("home-widgets-manage-list");
-        showToast("ウィジェットを新しい配置に結合・更新しました。");
-      }
+      const reordered = [];
+      flattenedIds.forEach((id) => {
+        const item = currentWidgets.find((w) => w.id === id);
+        if (item) reordered.push(item);
+      });
+      currentWidgets.forEach((w) => {
+        if (!reordered.some((rw) => rw.id === w.id)) {
+          reordered.push(w);
+        }
+      });
+
+      state.settings.homeWidgets = reordered;
+      saveState();
+      renderHomeWidgetsManageList("settings-widgets-manage-list");
+      renderHomeWidgetsManageList("home-widgets-manage-list");
+      showToast("ウィジェットの並び順を更新しました。");
     };
 
     // タッチイベント（スマホ実機向け）

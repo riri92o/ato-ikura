@@ -51,6 +51,8 @@ function createElementMock(tagOrId) {
     getContext: function() {
       return {};
     },
+    querySelectorAll: function(sel) { return []; },
+    querySelector: function(sel) { return null; },
     setAttribute: function() {},
     getAttribute: function() { return null; },
     focus: function() {},
@@ -239,6 +241,28 @@ if (typeof renderHomeWidgetsManageList === "function") {
 if (typeof resetHomeWidgets === "function") {
   resetHomeWidgets();
 }
+
+// Test Widget Merging & Unmerging
+print("Testing Home Widgets Merging (結合) and Unmerging (分離)...");
+const stateData = JSON.parse(localStorage.getItem("ato-ikura-data-v1") || "{}");
+if (stateData.settings && stateData.settings.homeWidgets) {
+  // Simulate merging first 2 widgets
+  stateData.settings.homeWidgets[0].groupId = "test_merged_group_1";
+  stateData.settings.homeWidgets[1].groupId = "test_merged_group_1";
+  localStorage.setItem("ato-ikura-data-v1", JSON.stringify(stateData));
+  if (typeof renderHomeWidgets === "function") renderHomeWidgets();
+  if (typeof renderHomeWidgetsManageList === "function") renderHomeWidgetsManageList("settings-widgets-manage-list");
+  print("Widget merge render OK!");
+
+  // Simulate unmerging
+  stateData.settings.homeWidgets[0].groupId = null;
+  stateData.settings.homeWidgets[1].groupId = null;
+  localStorage.setItem("ato-ikura-data-v1", JSON.stringify(stateData));
+  if (typeof renderHomeWidgets === "function") renderHomeWidgets();
+  if (typeof renderHomeWidgetsManageList === "function") renderHomeWidgetsManageList("settings-widgets-manage-list");
+  print("Widget unmerge render OK!");
+}
+
 // Test Theme Preset & Floating Live Preview
 print("Testing Theme Presets and Floating Live Preview...");
 const floatPrev = document.getElementById("theme-floating-preview");
