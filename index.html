@@ -514,11 +514,22 @@
             <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
             <div class="page-heading"><p class="section-kicker">配色とデザイン</p><h2>表示・テーマ</h2></div>
             <section class="settings-card">
-              <!-- 見本スマホ画面プレビュー -->
-              <div class="theme-preview-section">
-                <span class="color-setting-title">配色プレビュー（見本画面）</span>
-                <div class="theme-phone-mockup-wrapper">
+              <!-- 移動可能・スマホ風見本画面（フロートFAB） -->
+              <div id="theme-floating-preview" class="theme-floating-preview is-hidden">
+                <div class="floating-preview-header" id="floating-preview-header">
+                  <div class="floating-preview-drag-handle" title="ドラッグして画面上の好きな場所に移動">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><circle cx="8" cy="6" r="1.6"></circle><circle cx="16" cy="6" r="1.6"></circle><circle cx="8" cy="12" r="1.6"></circle><circle cx="16" cy="12" r="1.6"></circle><circle cx="8" cy="18" r="1.6"></circle><circle cx="16" cy="18" r="1.6"></circle></svg>
+                    <span>見本画面</span>
+                  </div>
+                  <div class="floating-preview-actions">
+                    <button type="button" class="floating-preview-min-btn" id="floating-preview-min-btn" title="最小化/展開" aria-label="プレビュー最小化">
+                      <span class="min-icon">−</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="floating-preview-body" id="floating-preview-body">
                   <div class="theme-phone-mockup" id="theme-phone-mockup">
+                    <div class="phone-speaker-pill"></div>
                     <div class="phone-status-bar">
                       <span class="phone-time">9:41</span>
                       <span class="phone-battery">100%</span>
@@ -562,15 +573,15 @@
                     <!-- ミニボトムナビ -->
                     <div class="phone-mini-nav" id="phone-preview-nav">
                       <div class="phone-mini-nav-item is-active" id="phone-preview-nav-item">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z"></path></svg>
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z"></path></svg>
                         <span>ホーム</span>
                       </div>
                       <div class="phone-mini-nav-item">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line></svg>
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line></svg>
                         <span>履歴</span>
                       </div>
                       <div class="phone-mini-nav-item">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                         <span>レポート</span>
                       </div>
                     </div>

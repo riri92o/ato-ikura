@@ -16,12 +16,22 @@ function createElementMock(tagOrId) {
     children: [],
     style: { display: "", setProperty: function() {}, removeProperty: function() {} },
     dataset: {},
-    classList: {
-      add: function() {},
-      remove: function() {},
-      toggle: function() {},
-      contains: function() { return false; }
-    },
+    classList: (function() {
+      const classes = new Set();
+      return {
+        add: function(c) { classes.add(c); },
+        remove: function(c) { classes.delete(c); },
+        toggle: function(c, force) {
+          if (force === undefined) {
+            if (classes.has(c)) { classes.delete(c); return false; }
+            else { classes.add(c); return true; }
+          }
+          if (force) { classes.add(c); return true; }
+          else { classes.delete(c); return false; }
+        },
+        contains: function(c) { return classes.has(c); }
+      };
+    })(),
     _listeners: {},
     addEventListener: function(event, cb) {
       if (!this._listeners[event]) this._listeners[event] = [];
@@ -229,7 +239,18 @@ if (typeof renderHomeWidgetsManageList === "function") {
 if (typeof resetHomeWidgets === "function") {
   resetHomeWidgets();
 }
-print("Home Widgets configuration tests passed!");
+// Test Theme Preset & Floating Live Preview
+print("Testing Theme Presets and Floating Live Preview...");
+const floatPrev = document.getElementById("theme-floating-preview");
+if (!floatPrev) throw new Error("theme-floating-preview element should exist!");
+
+if (typeof switchSettingsSubView === "function") {
+  switchSettingsSubView("theme");
+  if (floatPrev.classList.contains("is-hidden")) throw new Error("Floating preview should be visible in theme subview!");
+  switchSettingsSubView("menu");
+  if (!floatPrev.classList.contains("is-hidden")) throw new Error("Floating preview should be hidden in menu subview!");
+}
+print("Theme Presets and Floating Live Preview tests passed!");
 
 print("All view, dialog, subscription, and home widget integration tests passed successfully!");
 

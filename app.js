@@ -17,7 +17,7 @@
       borderColor: "#e2e8f0",
       gaugeColor: "#34d399",
       usageColor: "#0284c7",
-      theme: "auto",
+      theme: "light",
     },
     {
       name: "🌸 サクラ・ラテ",
@@ -166,6 +166,7 @@
     bindEvents();
     applyTheme();
     setupHomeWidgetsDragAndDrop();
+    setupFloatingThemePreviewDrag();
     $("history-month").value = currentMonth.slice(0, 7);
     renderAll();
     registerServiceWorker();
@@ -910,6 +911,10 @@
     Object.entries(subviews).forEach(([key, el]) => {
       if (el) el.classList.toggle("is-active", key === viewKey);
     });
+    const floatingPreview = $("theme-floating-preview");
+    if (floatingPreview) {
+      floatingPreview.classList.toggle("is-hidden", viewKey !== "theme");
+    }
     if (viewKey === "widgets") {
       renderHomeWidgetsManageList("settings-widgets-manage-list");
     }
@@ -989,6 +994,11 @@
 
     const todayBtn = $("today-button");
     if (todayBtn) todayBtn.classList.toggle("is-hidden", view !== "calendar");
+
+    const floatingPreview = $("theme-floating-preview");
+    if (floatingPreview && view !== "settings") {
+      floatingPreview.classList.add("is-hidden");
+    }
 
     if (view === "history") renderHistory();
     if (view === "report") renderReport();
@@ -3518,6 +3528,10 @@
     const theme = state.settings.theme || "auto";
     if (theme === "auto") document.documentElement.removeAttribute("data-theme");
     else document.documentElement.setAttribute("data-theme", theme);
+    const themeSelect = $("theme-select");
+    if (themeSelect && themeSelect.value !== theme) {
+      themeSelect.value = theme;
+    }
     applyThemeColors();
   }
 
@@ -3721,8 +3735,10 @@
     let startY = 0;
     let currentDeltaY = 0;
     let lastSwapTarget = null;
+    let activePointerId = null;
+    let initialOrderIds = [];
     const LONG_PRESS_MS = 300;
-    const MOVE_THRESHOLD = 8;
+    const MOVE_THRESHOLD = 12;
 
     const clearLongPress = () => {
       if (longPressTimer) {
@@ -3740,7 +3756,7 @@
       e.preventDefault();
     });
 
-    container.addEventListener("pointerdown", (e) => {
+    const onPointerDown = (e) => {
       if (e.button !== 0 && e.pointerType === "mouse") return;
       const interactive = e.target.closest("button, input, select, textarea, a, summary, [role='button'], [role='tab'], label");
       if (interactive && !interactive.classList.contains("home-widget-block")) return;
@@ -3749,6 +3765,7 @@
       if (!block || block.classList.contains("is-hidden")) return;
 
       draggedBlock = block;
+      activePointerId = e.pointerId ?? null;
       startX = e.clientX;
       startY = e.clientY;
 
@@ -3756,6 +3773,9 @@
 
       longPressTimer = setTimeout(() => {
         isDragging = true;
+        initialOrderIds = Array.from(container.querySelectorAll(".home-widget-block")).map(
+          (el) => el.dataset.widget
+        );
         block.classList.remove("is-drag-ready");
         block.classList.add("is-dragging");
         document.body.classList.add("is-widget-dragging");
@@ -3764,13 +3784,17 @@
           window.getSelection().removeAllRanges();
         }
 
+        if (activePointerId && block.setPointerCapture) {
+          try { block.setPointerCapture(activePointerId); } catch (_) {}
+        }
+
         if (navigator.vibrate) {
           try { navigator.vibrate(45); } catch (_) {}
         }
       }, LONG_PRESS_MS);
-    });
+    };
 
-    window.addEventListener("pointermove", (e) => {
+    const onPointerMove = (e) => {
       if (!draggedBlock) return;
 
       const dx = Math.abs(e.clientX - startX);
@@ -3836,7 +3860,7 @@
         }
         lastSwapTarget = closestTarget;
       }
-    }, { passive: false });
+    };
 
     const finishDrag = () => {
       clearLongPress();
@@ -3846,7 +3870,12 @@
         isDragging = false;
         draggedBlock = null;
         lastSwapTarget = null;
+        activePointerId = null;
         return;
+      }
+
+      if (activePointerId && draggedBlock.releasePointerCapture) {
+        try { draggedBlock.releasePointerCapture(activePointerId); } catch (_) {}
       }
 
       isDragging = false;
@@ -3862,30 +3891,117 @@
         (el) => el.dataset.widget
       );
 
-      const currentWidgets = state.settings.homeWidgets || defaultHomeWidgets();
-      const reordered = [];
-      newOrderIds.forEach((id) => {
-        const item = currentWidgets.find((w) => w.id === id);
-        if (item) reordered.push(item);
-      });
-      currentWidgets.forEach((w) => {
-        if (!reordered.some((rw) => rw.id === w.id)) {
-          reordered.push(w);
-        }
-      });
+      const orderChanged = JSON.stringify(newOrderIds) !== JSON.stringify(initialOrderIds);
+      if (orderChanged) {
+        const currentWidgets = state.settings.homeWidgets || defaultHomeWidgets();
+        const reordered = [];
+        newOrderIds.forEach((id) => {
+          const item = currentWidgets.find((w) => w.id === id);
+          if (item) reordered.push(item);
+        });
+        currentWidgets.forEach((w) => {
+          if (!reordered.some((rw) => rw.id === w.id)) {
+            reordered.push(w);
+          }
+        });
 
-      state.settings.homeWidgets = reordered;
-      saveState();
-      renderHomeWidgetsManageList("settings-widgets-manage-list");
-      renderHomeWidgetsManageList("home-widgets-manage-list");
-      showToast("ウィジェットの配置を更新しました。");
+        state.settings.homeWidgets = reordered;
+        saveState();
+        renderHomeWidgetsManageList("settings-widgets-manage-list");
+        renderHomeWidgetsManageList("home-widgets-manage-list");
+        showToast("ウィジェットの配置を更新しました。");
+      }
 
       draggedBlock = null;
       lastSwapTarget = null;
+      activePointerId = null;
     };
 
+    container.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove, { passive: false });
     window.addEventListener("pointerup", finishDrag);
     window.addEventListener("pointercancel", finishDrag);
+  }
+
+  function setupFloatingThemePreviewDrag() {
+    const preview = $("theme-floating-preview");
+    if (!preview) return;
+
+    const header = $("floating-preview-header") || preview;
+    const minBtn = $("floating-preview-min-btn");
+
+    if (minBtn) {
+      minBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isCollapsed = preview.classList.toggle("is-collapsed");
+        const icon = minBtn.querySelector(".min-icon");
+        if (icon) icon.textContent = isCollapsed ? "+" : "−";
+        minBtn.title = isCollapsed ? "展開する" : "最小化";
+      });
+    }
+
+    let isDragging = false;
+    let startPointerX = 0;
+    let startPointerY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+    let activePointerId = null;
+
+    const onPointerDown = (e) => {
+      if (e.target.closest("button, input, select, a")) return;
+      isDragging = true;
+      activePointerId = e.pointerId ?? null;
+      startPointerX = e.clientX;
+      startPointerY = e.clientY;
+
+      const rect = preview.getBoundingClientRect();
+      startLeft = rect.left;
+      startTop = rect.top;
+
+      preview.style.left = `${startLeft}px`;
+      preview.style.top = `${startTop}px`;
+      preview.style.right = "auto";
+      preview.style.bottom = "auto";
+      preview.classList.add("is-dragging");
+
+      if (activePointerId && preview.setPointerCapture) {
+        try { preview.setPointerCapture(activePointerId); } catch (_) {}
+      }
+    };
+
+    const onPointerMove = (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const dx = e.clientX - startPointerX;
+      const dy = e.clientY - startPointerY;
+
+      let newLeft = startLeft + dx;
+      let newTop = startTop + dy;
+
+      const maxLeft = Math.max(0, window.innerWidth - preview.offsetWidth - 6);
+      const maxTop = Math.max(0, window.innerHeight - preview.offsetHeight - 6);
+
+      newLeft = Math.max(6, Math.min(newLeft, maxLeft));
+      newTop = Math.max(6, Math.min(newTop, maxTop));
+
+      preview.style.left = `${newLeft}px`;
+      preview.style.top = `${newTop}px`;
+    };
+
+    const onPointerUp = (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      preview.classList.remove("is-dragging");
+      if (activePointerId && preview.releasePointerCapture) {
+        try { preview.releasePointerCapture(activePointerId); } catch (_) {}
+      }
+      activePointerId = null;
+    };
+
+    header.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove, { passive: false });
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
   }
 
   function exportData() {
