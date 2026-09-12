@@ -626,10 +626,15 @@ h3 {
   flex-shrink: 0;
 }
 
-.summary-breakdown-wrapper {
-  margin-top: 2px;
-  padding: 6px 12px;
-  border-radius: 14px;
+.summary-breakdown-wrapper.widget-card {
+  margin-top: 1px;
+  padding: 3px 10px !important;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.summary-breakdown-wrapper.widget-card:has(.summary-breakdown-content:not(.is-hidden)) {
+  padding: 6px 10px 8px !important;
 }
 
 .breakdown-toggle-btn {
@@ -638,15 +643,16 @@ h3 {
   justify-content: center;
   gap: 4px;
   width: 100%;
-  min-height: 24px;
-  padding: 2px 4px;
+  min-height: 18px;
+  padding: 1px 4px;
   border: 0;
   background: transparent;
   color: var(--accent-dark);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 750;
   cursor: pointer;
   transition: opacity 0.15s ease;
+  line-height: 1.2;
 }
 
 .breakdown-toggle-btn:hover {
@@ -654,7 +660,7 @@ h3 {
 }
 
 .breakdown-arrow {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   font-weight: 800;
   line-height: 1;
   transition: transform 0.2s ease;
@@ -5298,12 +5304,18 @@ dialog {
 
 .home-widget-block.is-in-merged-card .widget-card,
 .home-widget-block.is-in-merged-card .summary-unified-card,
-.home-widget-block.is-in-merged-card .calendar-card,
-.home-widget-block.is-in-merged-card .summary-breakdown-wrapper {
+.home-widget-block.is-in-merged-card .calendar-card {
   border: none !important;
   box-shadow: none !important;
   background: transparent !important;
   padding: 4px 0 !important;
+}
+
+.home-widget-block.is-in-merged-card .summary-breakdown-wrapper {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 1px 0 !important;
 }
 
 .widget-manage-split-badge {
