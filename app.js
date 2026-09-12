@@ -838,9 +838,14 @@
     document.querySelectorAll(".nav-item").forEach((button) => {
       const active = button.dataset.view === view;
       button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
       if (active) button.setAttribute("aria-current", "page");
       else button.removeAttribute("aria-current");
     });
+
+    if (window.updateNavIndicator) {
+      window.updateNavIndicator(view, true);
+    }
 
     // FAB（＋ボタン）の表示制御（カレンダーのみ表示）
     const quickAddBtn = $("quick-add-button");
@@ -969,55 +974,213 @@
 
   function setupBottomNavSlide() {
     const nav = document.querySelector(".bottom-nav");
+    const indicator = $("bottom-nav-indicator");
     if (!nav) return;
+
     const viewsOrder = ["calendar", "history", "report", "cards", "settings"];
-    let isNavSliding = false;
-    let lastSwitchTime = 0;
+    let isPointerDown = false;
+    let isDragging = false;
+    let pointerId = null;
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let activeIndex = viewsOrder.indexOf(currentView);
+    if (activeIndex === -1) activeIndex = 0;
+    let previewIndex = activeIndex;
+    let rafId = null;
 
-    const handleNavTouch = (e) => {
-      if (e.touches.length !== 1) return;
-      const now = Date.now();
-      if (now - lastSwitchTime < 160) return; // 緩やかに切り替わるようスロットリング
+    function getNavMetrics() {
+      const navRect = (nav && typeof nav.getBoundingClientRect === "function")
+        ? nav.getBoundingClientRect()
+        : { width: 390, left: 0 };
+      const paddingLeft = 8;
+      const width = navRect.width || 390;
+      const trackWidth = Math.max(0, width - paddingLeft * 2);
+      const itemWidth = trackWidth / viewsOrder.length;
+      return { navRect, paddingLeft, trackWidth, itemWidth };
+    }
 
-      const touch = e.touches[0];
-      const navRect = nav.getBoundingClientRect();
-      const relativeX = Math.max(0, Math.min(navRect.width, touch.clientX - navRect.left));
-      const sectionWidth = navRect.width / viewsOrder.length;
-      
-      const rawIndex = relativeX / sectionWidth;
-      const targetIndex = Math.min(viewsOrder.length - 1, Math.max(0, Math.floor(rawIndex)));
-      const offsetWithinSection = rawIndex - targetIndex;
+    function setIndicatorPosition(index, animate = true) {
+      if (!indicator) return;
+      const { itemWidth } = getNavMetrics();
+      if (!animate) {
+        indicator.classList.add("is-dragging");
+      } else {
+        indicator.classList.remove("is-dragging");
+      }
+      const targetX = index * itemWidth;
+      indicator.style.transform = `translate3d(${targetX}px, 0, 0)`;
+    }
 
-      // 境界付近（端15%以内）での過敏なチラつきを防ぐヒステリシス
-      const currentIndex = viewsOrder.indexOf(currentView);
-      if (targetIndex !== currentIndex) {
-        if (targetIndex > currentIndex && offsetWithinSection < 0.15) return;
-        if (targetIndex < currentIndex && offsetWithinSection > 0.85) return;
-        
-        lastSwitchTime = now;
-        const direction = targetIndex > currentIndex ? "next" : "prev";
-        switchView(viewsOrder[targetIndex], direction);
+    function updatePreviewHighlight(index) {
+      const items = nav.querySelectorAll(".nav-item");
+      items.forEach((btn, i) => {
+        btn.classList.toggle("is-preview", i === index);
+      });
+    }
+
+    function clearPreviewHighlight() {
+      const items = nav.querySelectorAll(".nav-item");
+      items.forEach((btn) => {
+        btn.classList.remove("is-preview");
+      });
+    }
+
+    window.updateNavIndicator = (view, animate = true) => {
+      const idx = viewsOrder.indexOf(view);
+      if (idx !== -1) {
+        activeIndex = idx;
+        previewIndex = idx;
+        setIndicatorPosition(idx, animate);
       }
     };
 
-    nav.addEventListener("touchstart", (e) => {
-      isNavSliding = true;
-      lastSwitchTime = Date.now();
-      handleNavTouch(e);
-    }, { passive: true });
+    window.addEventListener("resize", () => {
+      setIndicatorPosition(activeIndex, false);
+    });
 
-    nav.addEventListener("touchmove", (e) => {
-      if (!isNavSliding) return;
-      handleNavTouch(e);
-    }, { passive: true });
+    // キーボード操作（左右矢印・Home・Endキー）
+    nav.addEventListener("keydown", (e) => {
+      const targetBtn = e.target.closest(".nav-item");
+      if (!targetBtn) return;
+      let newIndex = activeIndex;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        newIndex = (activeIndex + 1) % viewsOrder.length;
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        newIndex = (activeIndex - 1 + viewsOrder.length) % viewsOrder.length;
+      } else if (e.key === "Home") {
+        newIndex = 0;
+      } else if (e.key === "End") {
+        newIndex = viewsOrder.length - 1;
+      } else {
+        return;
+      }
+      e.preventDefault();
+      const nextView = viewsOrder[newIndex];
+      const nextBtn = nav.querySelector(`[data-view="${nextView}"]`);
+      if (nextBtn) nextBtn.focus();
+      switchView(nextView);
+    });
 
-    nav.addEventListener("touchend", () => {
-      isNavSliding = false;
-    }, { passive: true });
+    const onPointerDown = (e) => {
+      if (e.button !== undefined && e.button !== 0) return;
+      isPointerDown = true;
+      isDragging = false;
+      pointerId = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      currentX = e.clientX;
+      activeIndex = viewsOrder.indexOf(currentView);
+      if (activeIndex === -1) activeIndex = 0;
+      previewIndex = activeIndex;
+    };
 
-    nav.addEventListener("touchcancel", () => {
-      isNavSliding = false;
-    }, { passive: true });
+    const onPointerMove = (e) => {
+      if (!isPointerDown) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (!isDragging) {
+        // 縦スクロールと判定された場合は操作キャンセル
+        if (Math.abs(dy) > Math.abs(dx) * 1.5 && Math.abs(dy) > 10) {
+          isPointerDown = false;
+          clearPreviewHighlight();
+          setIndicatorPosition(activeIndex, true);
+          return;
+        }
+        // 横方向への一定移動（6px）でスライド操作開始
+        if (Math.abs(dx) > 6) {
+          isDragging = true;
+          if (nav.setPointerCapture && pointerId !== null) {
+            try { nav.setPointerCapture(pointerId); } catch (_) {}
+          }
+        }
+      }
+
+      if (isDragging) {
+        currentX = e.clientX;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          const { navRect, paddingLeft, trackWidth, itemWidth } = getNavMetrics();
+          const relativeX = currentX - navRect.left - paddingLeft;
+          const halfItem = itemWidth / 2;
+          const clampedCenterX = Math.max(halfItem, Math.min(trackWidth - halfItem, relativeX));
+          const targetTranslateX = clampedCenterX - halfItem;
+
+          if (indicator) {
+            indicator.classList.add("is-dragging");
+            indicator.style.transform = `translate3d(${targetTranslateX}px, 0, 0)`;
+          }
+
+          const closestIdx = Math.min(viewsOrder.length - 1, Math.max(0, Math.round((clampedCenterX - halfItem) / itemWidth)));
+          if (closestIdx !== previewIndex) {
+            previewIndex = closestIdx;
+            updatePreviewHighlight(previewIndex);
+          }
+        });
+      }
+    };
+
+    const onPointerUp = (e) => {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+      if (rafId) cancelAnimationFrame(rafId);
+
+      if (isDragging) {
+        isDragging = false;
+        if (nav.releasePointerCapture && pointerId !== null) {
+          try { nav.releasePointerCapture(pointerId); } catch (_) {}
+        }
+        clearPreviewHighlight();
+        suppressClickUntil = Date.now() + 350;
+
+        const { navRect, paddingLeft, trackWidth, itemWidth } = getNavMetrics();
+        const relativeX = e.clientX - navRect.left - paddingLeft;
+        const halfItem = itemWidth / 2;
+        const clampedCenterX = Math.max(halfItem, Math.min(trackWidth - halfItem, relativeX));
+        const finalIdx = Math.min(viewsOrder.length - 1, Math.max(0, Math.round((clampedCenterX - halfItem) / itemWidth)));
+
+        const targetView = viewsOrder[finalIdx];
+        const prevIdx = activeIndex;
+        activeIndex = finalIdx;
+
+        setIndicatorPosition(finalIdx, true);
+
+        // 指を離した時点で1回だけ画面切り替えを実行
+        if (targetView && targetView !== currentView) {
+          const direction = finalIdx > prevIdx ? "next" : "prev";
+          switchView(targetView, direction);
+        }
+      } else {
+        clearPreviewHighlight();
+        const targetBtn = e.target.closest(".nav-item");
+        if (targetBtn && targetBtn.dataset.view) {
+          const tappedIdx = viewsOrder.indexOf(targetBtn.dataset.view);
+          if (tappedIdx !== -1) {
+            activeIndex = tappedIdx;
+            setIndicatorPosition(tappedIdx, true);
+          }
+        }
+      }
+    };
+
+    const onPointerCancel = () => {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+      isDragging = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      clearPreviewHighlight();
+      setIndicatorPosition(activeIndex, true);
+    };
+
+    nav.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerCancel);
+
+    setTimeout(() => {
+      setIndicatorPosition(viewsOrder.indexOf(currentView), false);
+    }, 50);
   }
 
   function switchPaymentsSubview(subview) {
