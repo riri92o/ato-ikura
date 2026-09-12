@@ -5169,7 +5169,6 @@ dialog {
 .home-widget-block.is-dragging {
   z-index: 100 !important;
   opacity: 0.98 !important;
-  transform: scale(1.03) !important;
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.32), 0 0 0 2.5px var(--accent) !important;
   touch-action: none !important;
   transition: box-shadow 0.15s ease !important;

@@ -3734,7 +3734,6 @@
     let startX = 0;
     let startY = 0;
     let currentDeltaY = 0;
-    let lastSwapTarget = null;
     let initialOrderIds = [];
     const LONG_PRESS_MS = 250;
     const MOVE_CANCEL_THRESHOLD = 8;
@@ -3758,6 +3757,7 @@
       container.classList.add("is-dragging-active");
       block.classList.remove("is-drag-ready");
       block.classList.add("is-dragging");
+      block.style.transform = "translate3d(0, 0, 0) scale(1.03)";
       document.body.classList.add("is-widget-dragging");
       document.documentElement.classList.add("is-widget-dragging");
 
@@ -3780,7 +3780,6 @@
       draggedBlock = block;
       startX = clientX;
       startY = clientY;
-      lastSwapTarget = null;
 
       block.classList.add("is-drag-ready");
 
@@ -3820,43 +3819,31 @@
         (el) => el !== draggedBlock
       );
 
-      let closestTarget = null;
-      let minDistance = Infinity;
-
       for (const sib of siblings) {
         const sibRect = sib.getBoundingClientRect();
         const sibCenterY = sibRect.top + sibRect.height / 2;
-        const distance = Math.abs(draggedCenterY - sibCenterY);
 
-        const snapThreshold = Math.max(36, sibRect.height * 0.45);
-        if (distance < snapThreshold && distance < minDistance) {
-          minDistance = distance;
-          closestTarget = sib;
+        const isSibAbove = sib.compareDocumentPosition ? (Boolean(sib.compareDocumentPosition(draggedBlock) & 4)) : false;
+
+        if (isSibAbove && draggedCenterY < sibCenterY) {
+          container.insertBefore(draggedBlock, sib);
+          startY = clientY;
+          currentDeltaY = 0;
+          draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.03)`;
+          if (navigator.vibrate) {
+            try { navigator.vibrate(25); } catch (_) {}
+          }
+          break;
+        } else if (!isSibAbove && draggedCenterY > sibCenterY) {
+          container.insertBefore(draggedBlock, sib.nextSibling);
+          startY = clientY;
+          currentDeltaY = 0;
+          draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.03)`;
+          if (navigator.vibrate) {
+            try { navigator.vibrate(25); } catch (_) {}
+          }
+          break;
         }
-      }
-
-      siblings.forEach((sib) => sib.classList.remove("is-drag-target"));
-
-      if (closestTarget && closestTarget !== lastSwapTarget) {
-        closestTarget.classList.add("is-drag-target");
-        
-        const targetRect = closestTarget.getBoundingClientRect();
-        const targetCenterY = targetRect.top + targetRect.height / 2;
-
-        if (draggedCenterY < targetCenterY) {
-          container.insertBefore(draggedBlock, closestTarget);
-        } else {
-          container.insertBefore(draggedBlock, closestTarget.nextSibling);
-        }
-
-        startY = clientY;
-        currentDeltaY = 0;
-        draggedBlock.style.transform = `translate3d(0, 0, 0) scale(1.03)`;
-
-        if (navigator.vibrate) {
-          try { navigator.vibrate(20); } catch (_) {}
-        }
-        lastSwapTarget = closestTarget;
       }
     };
 
@@ -3869,7 +3856,6 @@
       if (!isDragging || !draggedBlock) {
         isDragging = false;
         draggedBlock = null;
-        lastSwapTarget = null;
         return;
       }
 
@@ -3908,7 +3894,6 @@
       }
 
       draggedBlock = null;
-      lastSwapTarget = null;
     };
 
     // タッチイベント（スマホ実機向け）
