@@ -3108,12 +3108,14 @@ body[data-skin="glass"],
   margin: 0 auto;
   padding: 6px 8px env(safe-area-inset-bottom);
   border-top: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 93%, transparent);
-  box-shadow: 0 -8px 24px rgba(31, 65, 45, 0.07);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   user-select: none;
   -webkit-user-select: none;
-  touch-action: none;
+  touch-action: manipulation;
+  transform: translateZ(0);
 }
 
 .bottom-nav-indicator {
@@ -3128,7 +3130,7 @@ body[data-skin="glass"],
   z-index: 1;
   will-change: transform;
   transform: translate3d(0, 0, 0);
-  transition: transform 0.22s cubic-bezier(0.18, 0.9, 0.32, 1.05);
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .bottom-nav-indicator.is-dragging {
@@ -3140,6 +3142,7 @@ body[data-skin="glass"],
   z-index: 2;
   display: grid;
   min-height: 58px;
+  height: 58px;
   place-items: center;
   align-content: center;
   gap: 1px;
@@ -3150,7 +3153,7 @@ body[data-skin="glass"],
   cursor: pointer;
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.18s ease;
+  transition: color 0.15s ease;
 }
 
 .nav-item > span {
@@ -3158,8 +3161,6 @@ body[data-skin="glass"],
   align-items: center;
   justify-content: center;
   line-height: 1;
-  transition: transform 0.16s cubic-bezier(0.18, 1, 0.3, 1);
-  will-change: transform;
 }
 
 .nav-item svg {
@@ -3171,20 +3172,13 @@ body[data-skin="glass"],
 .nav-item small {
   font-size: 0.66rem;
   font-weight: 750;
-  transition: color 0.18s ease, font-weight 0.18s ease;
+  line-height: 1.2;
+  transition: color 0.15s ease;
 }
 
 .nav-item.is-active,
 .nav-item.is-preview {
-  color: var(--accent-dark);
-}
-
-.nav-item.is-preview > span {
-  transform: scale(1.12);
-}
-
-.nav-item.is-preview small {
-  font-weight: 850;
+  color: var(--accent);
 }
 
 .nav-item:focus-visible {

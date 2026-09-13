@@ -667,11 +667,9 @@
         if (view === "cards" && isAlreadyActive) {
           const nextSubview = currentPaymentsSubview === "cards" ? "subscriptions" : "cards";
           switchPaymentsSubview(nextSubview);
-          if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
         } else if (view === "report" && isAlreadyActive) {
           const nextTab = reportSubTab === "outlook" ? "analysis" : "outlook";
           switchReportSubTab(nextTab);
-          if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
         } else {
           switchView(view);
         }
@@ -1598,8 +1596,8 @@
           setIndicatorPosition(activeIndex, true);
           return;
         }
-        // 横方向への一定移動（6px）でスライド操作開始
-        if (Math.abs(dx) > 6) {
+        // 横方向への明確なスライド移動（18px）でスライド操作開始
+        if (Math.abs(dx) > 18) {
           isDragging = true;
           if (nav.setPointerCapture && pointerId !== null) {
             try { nav.setPointerCapture(pointerId); } catch (_) {}
