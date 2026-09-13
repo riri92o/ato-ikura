@@ -3114,7 +3114,8 @@ body[data-skin="glass"],
   -webkit-backdrop-filter: blur(16px);
   user-select: none;
   -webkit-user-select: none;
-  touch-action: manipulation;
+  touch-action: none;
+  -webkit-touch-callout: none;
   transform: translateZ(0);
 }
 
@@ -3137,12 +3138,12 @@ body[data-skin="glass"],
 /* スライド中・指でなぞっている時のぼやけた光彩（LINE風ソフトグローマーカー） */
 .bottom-nav-indicator.is-dragging {
   transition: none !important;
-  background: color-mix(in srgb, var(--accent) 22%, var(--surface-soft, rgba(255, 255, 255, 0.5)));
-  box-shadow: 0 0 22px 6px color-mix(in srgb, var(--accent) 38%, transparent),
-              0 0 10px 2px color-mix(in srgb, var(--accent) 45%, transparent),
-              inset 0 1px 2px rgba(255, 255, 255, 0.8);
-  filter: blur(0.4px);
-  opacity: 0.96;
+  background: color-mix(in srgb, var(--accent) 26%, var(--surface-soft, rgba(255, 255, 255, 0.5)));
+  box-shadow: 0 0 22px 6px color-mix(in srgb, var(--accent) 42%, transparent),
+              0 0 10px 2px color-mix(in srgb, var(--accent) 50%, transparent),
+              inset 0 1px 2px rgba(255, 255, 255, 0.85);
+  filter: blur(0.3px);
+  opacity: 0.98;
 }
 
 .nav-item {
@@ -3160,6 +3161,10 @@ body[data-skin="glass"],
   color: var(--text-muted);
   cursor: pointer;
   outline: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
   transition: color 0.15s ease;
 }
@@ -3169,18 +3174,21 @@ body[data-skin="glass"],
   align-items: center;
   justify-content: center;
   line-height: 1;
+  pointer-events: none;
 }
 
 .nav-item svg {
   width: 22px;
   height: 22px;
   display: block;
+  pointer-events: none;
 }
 
 .nav-item small {
   font-size: 0.66rem;
   font-weight: 750;
   line-height: 1.2;
+  pointer-events: none;
   transition: color 0.15s ease;
 }
 

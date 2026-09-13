@@ -1486,16 +1486,14 @@
     if (!nav) return;
 
     const viewsOrder = ["calendar", "history", "report", "cards", "settings"];
-    let isPointerDown = false;
+    let isTracking = false;
     let isDragging = false;
-    let pointerId = null;
     let startX = 0;
     let startY = 0;
     let currentX = 0;
-    let activeIndex = viewsOrder.indexOf(currentView);
-    if (activeIndex === -1) activeIndex = 0;
+    let currentY = 0;
+    let activeIndex = Math.max(0, viewsOrder.indexOf(currentView));
     let previewIndex = activeIndex;
-    let rafId = null;
 
     function getNavMetrics() {
       const navRect = (nav && typeof nav.getBoundingClientRect === "function")
@@ -1534,6 +1532,27 @@
       });
     }
 
+    function getClientCoords(e) {
+      if (e.touches && e.touches.length > 0) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+      }
+      return { x: typeof e.clientX === "number" ? e.clientX : 0, y: typeof e.clientY === "number" ? e.clientY : 0 };
+    }
+
+    function getIndicatorTranslateAndIndex(clientX) {
+      const { navRect, paddingLeft, trackWidth, itemWidth } = getNavMetrics();
+      const relativeX = clientX - navRect.left - paddingLeft;
+      const halfItem = itemWidth / 2;
+      const clampedCenterX = Math.max(halfItem, Math.min(trackWidth - halfItem, relativeX));
+      const targetTranslateX = clampedCenterX - halfItem;
+      const rawIdx = Math.floor(relativeX / itemWidth);
+      const closestIdx = Math.max(0, Math.min(viewsOrder.length - 1, rawIdx));
+      return { targetTranslateX, closestIdx };
+    }
+
     window.updateNavIndicator = (view, animate = true) => {
       const idx = viewsOrder.indexOf(view);
       if (idx !== -1) {
@@ -1570,98 +1589,78 @@
       switchView(nextView);
     });
 
-    const onPointerDown = (e) => {
+    const handleStart = (e) => {
       if (e.button !== undefined && e.button !== 0) return;
-      isPointerDown = true;
+      const coords = getClientCoords(e);
+      isTracking = true;
       isDragging = false;
-      pointerId = e.pointerId;
-      startX = e.clientX;
-      startY = e.clientY;
-      currentX = e.clientX;
-      activeIndex = viewsOrder.indexOf(currentView);
-      if (activeIndex === -1) activeIndex = 0;
+      startX = coords.x;
+      startY = coords.y;
+      currentX = coords.x;
+      currentY = coords.y;
+      activeIndex = Math.max(0, viewsOrder.indexOf(currentView));
       previewIndex = activeIndex;
     };
 
-    const onPointerMove = (e) => {
-      if (!isPointerDown) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
+    const handleMove = (e) => {
+      if (!isTracking) return;
+      const coords = getClientCoords(e);
+      const dx = coords.x - startX;
+      const dy = coords.y - startY;
 
       if (!isDragging) {
-        // 縦スクロールと判定された場合は操作キャンセル
-        if (Math.abs(dy) > Math.abs(dx) * 1.5 && Math.abs(dy) > 10) {
-          isPointerDown = false;
-          clearPreviewHighlight();
-          setIndicatorPosition(activeIndex, true);
-          return;
-        }
-        // 指を動かし始めたら即座にスムーズにスライド追従を開始（3px）
+        // 縦スクロールと判定された場合でも、ナビバー上では横スライドを優先
         if (Math.abs(dx) > 3) {
           isDragging = true;
-          if (nav.setPointerCapture && pointerId !== null) {
-            try { nav.setPointerCapture(pointerId); } catch (_) {}
-          }
         }
       }
 
       if (isDragging) {
-        currentX = e.clientX;
-        if (rafId) cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(() => {
-          const { navRect, paddingLeft, trackWidth, itemWidth } = getNavMetrics();
-          const relativeX = currentX - navRect.left - paddingLeft;
-          const halfItem = itemWidth / 2;
-          const clampedCenterX = Math.max(halfItem, Math.min(trackWidth - halfItem, relativeX));
-          const targetTranslateX = clampedCenterX - halfItem;
+        if (e.cancelable) e.preventDefault();
+        currentX = coords.x;
+        currentY = coords.y;
 
-          if (indicator) {
-            indicator.classList.add("is-dragging");
-            indicator.style.transform = `translate3d(${targetTranslateX}px, 0, 0)`;
-          }
+        const { targetTranslateX, closestIdx } = getIndicatorTranslateAndIndex(currentX);
 
-          const closestIdx = Math.min(viewsOrder.length - 1, Math.max(0, Math.round((clampedCenterX - halfItem) / itemWidth)));
-          if (closestIdx !== previewIndex) {
-            previewIndex = closestIdx;
-            updatePreviewHighlight(previewIndex);
-          }
-        });
+        if (indicator) {
+          indicator.classList.add("is-dragging");
+          indicator.style.transform = `translate3d(${targetTranslateX}px, 0, 0)`;
+        }
+
+        if (closestIdx !== previewIndex) {
+          previewIndex = closestIdx;
+          updatePreviewHighlight(previewIndex);
+        }
       }
     };
 
-    const onPointerUp = (e) => {
-      if (!isPointerDown) return;
-      isPointerDown = false;
-      if (rafId) cancelAnimationFrame(rafId);
+    const handleEnd = (e) => {
+      if (!isTracking) return;
+      isTracking = false;
+
+      const coords = getClientCoords(e);
+      const finalX = coords.x > 0 ? coords.x : currentX;
 
       if (isDragging) {
         isDragging = false;
-        if (nav.releasePointerCapture && pointerId !== null) {
-          try { nav.releasePointerCapture(pointerId); } catch (_) {}
-        }
         clearPreviewHighlight();
-        suppressClickUntil = Date.now() + 350;
+        suppressClickUntil = Date.now() + 450;
 
-        const { navRect, paddingLeft, trackWidth, itemWidth } = getNavMetrics();
-        const relativeX = e.clientX - navRect.left - paddingLeft;
-        const halfItem = itemWidth / 2;
-        const clampedCenterX = Math.max(halfItem, Math.min(trackWidth - halfItem, relativeX));
-        const finalIdx = Math.min(viewsOrder.length - 1, Math.max(0, Math.round((clampedCenterX - halfItem) / itemWidth)));
-
-        const targetView = viewsOrder[finalIdx];
+        const { closestIdx } = getIndicatorTranslateAndIndex(finalX);
+        const targetView = viewsOrder[closestIdx];
         const prevIdx = activeIndex;
-        activeIndex = finalIdx;
+        activeIndex = closestIdx;
 
-        setIndicatorPosition(finalIdx, true);
+        setIndicatorPosition(closestIdx, true);
 
-        // 指を離した時点で1回だけ画面切り替えを実行
+        // 指を離した時点で確実に目的の画面へ切り替え
         if (targetView && targetView !== currentView) {
-          const direction = finalIdx > prevIdx ? "next" : "prev";
+          const direction = closestIdx > prevIdx ? "next" : "prev";
           switchView(targetView, direction);
         }
       } else {
         clearPreviewHighlight();
-        const targetBtn = e.target.closest(".nav-item");
+        const targetBtn = (e.target && e.target.closest) ? e.target.closest(".nav-item") : null;
         if (targetBtn && targetBtn.dataset.view) {
           const tappedIdx = viewsOrder.indexOf(targetBtn.dataset.view);
           if (tappedIdx !== -1) {
@@ -1672,19 +1671,40 @@
       }
     };
 
-    const onPointerCancel = () => {
-      if (!isPointerDown) return;
-      isPointerDown = false;
-      isDragging = false;
-      if (rafId) cancelAnimationFrame(rafId);
-      clearPreviewHighlight();
-      setIndicatorPosition(activeIndex, true);
+    const handleCancel = () => {
+      if (!isTracking) return;
+      isTracking = false;
+      if (isDragging) {
+        isDragging = false;
+        suppressClickUntil = Date.now() + 350;
+        clearPreviewHighlight();
+        // キャンセル時も、指が位置していたタブがあればそこへ確定
+        const finalIdx = previewIndex >= 0 ? previewIndex : activeIndex;
+        const targetView = viewsOrder[finalIdx];
+        const prevIdx = activeIndex;
+        activeIndex = finalIdx;
+        setIndicatorPosition(finalIdx, true);
+        if (targetView && targetView !== currentView) {
+          const direction = finalIdx > prevIdx ? "next" : "prev";
+          switchView(targetView, direction);
+        }
+      } else {
+        clearPreviewHighlight();
+        setIndicatorPosition(activeIndex, true);
+      }
     };
 
-    nav.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("pointercancel", onPointerCancel);
+    // Pointer Events（デスクトップ・モダンブラウザ）
+    nav.addEventListener("pointerdown", handleStart);
+    window.addEventListener("pointermove", handleMove, { passive: false });
+    window.addEventListener("pointerup", handleEnd);
+    window.addEventListener("pointercancel", handleCancel);
+
+    // Touch Events（iOS Safari / Android Chrome 直接タッチ追従用）
+    nav.addEventListener("touchstart", handleStart, { passive: true });
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("touchend", handleEnd);
+    window.addEventListener("touchcancel", handleCancel);
 
     setTimeout(() => {
       setIndicatorPosition(viewsOrder.indexOf(currentView), false);
