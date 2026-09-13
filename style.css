@@ -2819,55 +2819,65 @@ textarea {
    スキン装飾パターン（メインアプリ & ミニスマホ連動）
    ============================================================ */
 /* ドット */
-[data-skin="dot"] .app-container,
-[data-skin="dot"] .theme-phone-mockup {
-  background-image: radial-gradient(color-mix(in srgb, var(--accent) 15%, transparent) 1.2px, transparent 1.2px);
-  background-size: 13px 13px;
+html[data-skin="dot"],
+body[data-skin="dot"],
+[data-skin="dot"] .app-shell,
+[data-skin="dot"] #theme-phone-mockup {
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 20%, transparent) 1.5px, transparent 1.5px) !important;
+  background-size: 16px 16px !important;
 }
 
-[data-skin="dot"] .theme-phone-mockup {
-  background-size: 8px 8px;
+[data-skin="dot"] #theme-phone-mockup {
+  background-size: 9px 9px !important;
 }
 
 /* グリッド */
-[data-skin="grid"] .app-container,
-[data-skin="grid"] .theme-phone-mockup {
-  background-image: linear-gradient(to right, color-mix(in srgb, var(--accent) 12%, transparent) 1px, transparent 1px),
-                    linear-gradient(to bottom, color-mix(in srgb, var(--accent) 12%, transparent) 1px, transparent 1px);
-  background-size: 14px 14px;
+html[data-skin="grid"],
+body[data-skin="grid"],
+[data-skin="grid"] .app-shell,
+[data-skin="grid"] #theme-phone-mockup {
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--accent) 16%, transparent) 1px, transparent 1px),
+                    linear-gradient(to bottom, color-mix(in srgb, var(--accent) 16%, transparent) 1px, transparent 1px) !important;
+  background-size: 18px 18px !important;
 }
 
-[data-skin="grid"] .theme-phone-mockup {
-  background-size: 8px 8px;
+[data-skin="grid"] #theme-phone-mockup {
+  background-size: 9px 9px !important;
 }
 
 /* ペーパー */
-[data-skin="paper"] .app-container,
-[data-skin="paper"] .theme-phone-mockup {
-  background-image: radial-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 0),
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
-                    linear-gradient(225deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
-                    linear-gradient(45deg, rgba(0, 0, 0, 0.02) 25%, transparent 25%),
-                    linear-gradient(315deg, rgba(0, 0, 0, 0.02) 25%, transparent 25%);
-  background-size: 8px 8px;
+html[data-skin="paper"],
+body[data-skin="paper"],
+[data-skin="paper"] .app-shell,
+[data-skin="paper"] #theme-phone-mockup {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 0),
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+                    linear-gradient(225deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+                    linear-gradient(45deg, rgba(0, 0, 0, 0.03) 25%, transparent 25%),
+                    linear-gradient(315deg, rgba(0, 0, 0, 0.03) 25%, transparent 25%) !important;
+  background-size: 10px 10px !important;
 }
 
 /* ライン */
-[data-skin="line"] .app-container,
-[data-skin="line"] .theme-phone-mockup {
-  background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, color-mix(in srgb, var(--accent) 11%, transparent) 5px, color-mix(in srgb, var(--accent) 11%, transparent) 6.5px);
+html[data-skin="line"],
+body[data-skin="line"],
+[data-skin="line"] .app-shell,
+[data-skin="line"] #theme-phone-mockup {
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, color-mix(in srgb, var(--accent) 16%, transparent) 6px, color-mix(in srgb, var(--accent) 16%, transparent) 8px) !important;
 }
 
-[data-skin="line"] .theme-phone-mockup {
-  background-image: repeating-linear-gradient(45deg, transparent, transparent 3.5px, color-mix(in srgb, var(--accent) 11%, transparent) 3.5px, color-mix(in srgb, var(--accent) 11%, transparent) 4.5px);
+[data-skin="line"] #theme-phone-mockup {
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 3.5px, color-mix(in srgb, var(--accent) 16%, transparent) 3.5px, color-mix(in srgb, var(--accent) 16%, transparent) 4.5px) !important;
 }
 
 /* ガラス */
-[data-skin="glass"] .app-container,
-[data-skin="glass"] .theme-phone-mockup {
-  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.15) 100%),
-                    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 60%),
-                    radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 60%);
+html[data-skin="glass"],
+body[data-skin="glass"],
+[data-skin="glass"] .app-shell,
+[data-skin="glass"] #theme-phone-mockup {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.04) 45%, rgba(255, 255, 255, 0.18) 100%),
+                    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--accent) 20%, transparent) 0%, transparent 65%),
+                    radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 65%) !important;
 }
 
 .theme-custom-card {
@@ -2935,53 +2945,64 @@ textarea {
   cursor: pointer;
 }
 
-/* テーマを共有（折りたたみアコーディオン） */
-.theme-share-accordion {
+/* テーマを共有 */
+.theme-share-card-panel {
   margin-top: 8px;
   padding-top: 6px;
   border-top: 1px solid var(--border);
 }
 
-.theme-share-summary {
+.theme-share-row-btn {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 2px;
+  padding: 8px 8px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
   cursor: pointer;
-  list-style: none;
-  user-select: none;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  color: var(--text);
+  text-align: left;
 }
 
-.theme-share-summary::-webkit-details-marker {
-  display: none;
+.theme-share-row-btn:hover {
+  background: var(--surface-muted);
+  border-color: var(--accent);
+}
+
+.theme-share-row-btn:active {
+  transform: scale(0.99);
 }
 
 .theme-share-summary-content {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .theme-share-icon {
-  color: var(--text-muted);
+  color: var(--accent);
   flex-shrink: 0;
 }
 
 .theme-share-title {
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   font-weight: 850;
   color: var(--text);
 }
 
 .theme-share-arrow {
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 800;
   color: var(--text-muted);
   transition: transform 0.2s ease;
   line-height: 1;
 }
 
-.theme-share-accordion[open] .theme-share-arrow {
+.theme-share-arrow.is-open {
   transform: rotate(90deg);
 }
 

@@ -905,6 +905,51 @@
       });
     }
 
+    // テーマの共有
+    const themeShareBtn = $("theme-share-btn");
+    if (themeShareBtn) {
+      themeShareBtn.addEventListener("click", async () => {
+        const code = getThemeCode();
+        const codePanel = $("theme-code-panel");
+        const arrow = $("theme-share-arrow");
+        if (codePanel) {
+          const isOpen = !codePanel.classList.contains("is-hidden");
+          if (!isOpen) {
+            codePanel.classList.remove("is-hidden");
+            if (arrow) arrow.classList.add("is-open");
+            themeShareBtn.setAttribute("aria-expanded", "true");
+          }
+        }
+        const codeInput = $("theme-code-input");
+        if (codeInput) codeInput.value = code;
+
+        // Try Web Share API first
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: "あといくら テーマ設定",
+              text: `あといくらのテーマコードです：\n${code}\n\n「表示・テーマ」の設定からコードを読み込んで使えます。`,
+            });
+            showToast("テーマを共有しました。");
+            return;
+          } catch (err) {
+            if (err && err.name === "AbortError") return;
+          }
+        }
+
+        // Fallback to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(code).then(() => {
+            showToast(`テーマコード「${code}」をコピーしました。`);
+          }).catch(() => {
+            showToast(`テーマコード: ${code}`);
+          });
+        } else {
+          showToast(`テーマコード「${code}」をコピーしました。`);
+        }
+      });
+    }
+
     // テーマコードのコピー
     const themeCodeCopyBtn = $("theme-code-copy-btn");
     if (themeCodeCopyBtn) {
@@ -912,12 +957,12 @@
         const code = getThemeCode();
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(code).then(() => {
-            showToast("テーマコードをコピーしました。");
+            showToast(`テーマコード「${code}」をコピーしました。`);
           }).catch(() => {
             showToast("テーマコード: " + code);
           });
         } else {
-          showToast("テーマコードをコピーしました。");
+          showToast(`テーマコード「${code}」をコピーしました。`);
         }
       });
     }

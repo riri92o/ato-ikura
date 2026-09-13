@@ -353,6 +353,12 @@ if (typeof switchSettingsSubView === "function") {
     if (presetGrid.classList.contains("is-hidden")) throw new Error("Preset grid should be visible");
   }
 
+  // Test theme share button
+  const shareBtn = document.getElementById("theme-share-btn");
+  if (shareBtn) {
+    shareBtn.dispatchEvent({ type: "click" });
+  }
+
   switchSettingsSubView("menu");
   if (!floatPrev.classList.contains("is-hidden")) throw new Error("Floating preview should be hidden in menu subview!");
 }

@@ -709,27 +709,27 @@
                   </label>
                 </div>
 
-                <!-- テーマを共有（折りたたみアコーディオン） -->
-                <details class="theme-share-accordion" id="theme-share-accordion">
-                  <summary class="theme-share-summary">
+                <!-- テーマを共有（共有実行 ＆ コード入出力） -->
+                <div class="theme-share-card-panel">
+                  <button id="theme-share-btn" class="theme-share-row-btn" type="button" aria-expanded="false" aria-controls="theme-code-panel">
                     <div class="theme-share-summary-content">
-                      <svg class="theme-share-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg class="theme-share-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
                         <polyline points="16 6 12 2 8 6"></polyline>
                         <line x1="12" y1="2" x2="12" y2="15"></line>
                       </svg>
                       <span class="theme-share-title">テーマを共有</span>
                     </div>
-                    <span class="theme-share-arrow">›</span>
-                  </summary>
-                  <div class="theme-code-panel">
+                    <span class="theme-share-arrow" id="theme-share-arrow">›</span>
+                  </button>
+                  <div class="theme-code-panel" id="theme-code-panel">
                     <div class="theme-code-row">
                       <input id="theme-code-input" class="theme-code-field" type="text" placeholder="#007A78_#FFFFFF_#34D399:none" aria-label="テーマコード" spellcheck="false" autocomplete="off" />
                       <button id="theme-code-copy-btn" class="theme-code-btn" type="button">コピー</button>
                       <button id="theme-code-apply-btn" class="theme-code-btn theme-code-btn-primary" type="button">読込</button>
                     </div>
                   </div>
-                </details>
+                </div>
 
                 <!-- 既存互換用の不可視要素 -->
                 <input id="setting-usage-color" class="is-hidden" type="color" value="#0284c7" />
