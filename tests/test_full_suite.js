@@ -317,26 +317,26 @@ if (typeof switchSettingsSubView === "function") {
     throw new Error("Theme code apply failed to update bgColor");
   }
 
-  // Test 4-part theme code with skin
-  themeCodeInput.value = "#6366F1_#0F172A_#1E293B_#818CF8:dot";
+  // Test 5-part theme code with check skin
+  themeCodeInput.value = "#F472B6_#FDF2F8_#FFFFFF_#FBCFE8_#F472B6:check";
   themeCodeApplyBtn.dispatchEvent({ type: "click" });
-  if (document.documentElement.style.getPropertyValue("--theme-color-1") !== "#6366F1") {
-    throw new Error("Theme code apply (4-part with skin) failed to update themeColor1");
+  if (document.documentElement.style.getPropertyValue("--theme-color-1") !== "#F472B6") {
+    throw new Error("Theme code apply (5-part with skin) failed to update themeColor1");
   }
-  if (document.documentElement.style.getPropertyValue("--bg-color") !== "#0F172A") {
-    throw new Error("Theme code apply (4-part with skin) failed to update bgColor");
+  if (document.documentElement.style.getPropertyValue("--bg-color") !== "#FDF2F8") {
+    throw new Error("Theme code apply (5-part with skin) failed to update bgColor");
   }
-  if (document.documentElement.style.getPropertyValue("--gauge-color") !== "#818CF8") {
-    throw new Error("Theme code apply (4-part with skin) failed to update gaugeColor");
+  if (document.documentElement.style.getPropertyValue("--surface") !== "#FFFFFF") {
+    throw new Error("Theme code apply (5-part with skin) failed to update surface");
   }
-  if (document.documentElement.dataset.skin !== "dot") {
-    throw new Error("Theme code apply with skin failed to update skin to 'dot'");
+  if (document.documentElement.dataset.skin !== "check") {
+    throw new Error("Theme code apply with skin failed to update skin to 'check'");
   }
 
   // Verify combo badge
   const comboLabel = document.getElementById("theme-combo-label");
-  if (!comboLabel || !comboLabel.textContent.includes("ドット")) {
-    throw new Error("Theme combo badge should include skin name 'ドット'");
+  if (!comboLabel || !comboLabel.textContent.includes("チェック")) {
+    throw new Error("Theme combo badge should include skin name 'チェック'");
   }
 
   // Test tab switcher

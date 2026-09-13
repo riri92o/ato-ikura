@@ -1002,6 +1002,12 @@ h3 {
 
 .page-heading {
   padding: 12px 4px 17px;
+  color: var(--page-text, var(--text));
+}
+
+.page-heading h2,
+.app-header h1 {
+  color: var(--page-text, var(--text));
 }
 
 .filter-panel {
@@ -2793,10 +2799,12 @@ textarea {
   height: 100%;
 }
 
+.skin-preview-check,
 .skin-preview-paper {
-  background: repeating-linear-gradient(0deg, transparent, transparent 4px, color-mix(in srgb, var(--accent, #14b8a6) 18%, rgba(0, 0, 0, 0.06)) 4px, color-mix(in srgb, var(--accent, #14b8a6) 18%, rgba(0, 0, 0, 0.06)) 5px),
-              repeating-linear-gradient(90deg, transparent, transparent 4px, color-mix(in srgb, var(--accent, #14b8a6) 16%, rgba(0, 0, 0, 0.06)) 4px, color-mix(in srgb, var(--accent, #14b8a6) 16%, rgba(0, 0, 0, 0.06)) 5px),
-              linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(0, 0, 0, 0.03) 100%);
+  background-image: 
+    linear-gradient(90deg, color-mix(in srgb, var(--accent, #14b8a6) 30%, transparent) 50%, transparent 50%),
+    linear-gradient(color-mix(in srgb, var(--accent, #14b8a6) 30%, transparent) 50%, transparent 50%);
+  background-size: 8px 8px;
   width: 100%;
   height: 100%;
 }
@@ -2846,20 +2854,24 @@ body[data-skin="grid"],
   background-size: 9px 9px !important;
 }
 
-/* ペーパー（上質な和紙・リネン織り目テクスチャ、不快な集合体感を完全排除） */
+/* チェック（上品で可愛いギンガムチェック模様） */
+html[data-skin="check"],
+body[data-skin="check"],
+[data-skin="check"] .app-shell,
+[data-skin="check"] #theme-phone-mockup,
 html[data-skin="paper"],
 body[data-skin="paper"],
 [data-skin="paper"] .app-shell,
 [data-skin="paper"] #theme-phone-mockup {
-  background-image: repeating-linear-gradient(0deg, transparent, transparent 11px, color-mix(in srgb, var(--accent) 12%, rgba(0, 0, 0, 0.03)) 11px, color-mix(in srgb, var(--accent) 12%, rgba(0, 0, 0, 0.03)) 12px),
-                    repeating-linear-gradient(90deg, transparent, transparent 11px, color-mix(in srgb, var(--accent) 10%, rgba(0, 0, 0, 0.03)) 11px, color-mix(in srgb, var(--accent) 10%, rgba(0, 0, 0, 0.03)) 12px),
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(0, 0, 0, 0.02) 50%, rgba(255, 255, 255, 0.1) 100%) !important;
+  background-image: 
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 18%, transparent) 50%, transparent 50%),
+    linear-gradient(color-mix(in srgb, var(--accent) 18%, transparent) 50%, transparent 50%) !important;
+  background-size: 22px 22px !important;
 }
 
+[data-skin="check"] #theme-phone-mockup,
 [data-skin="paper"] #theme-phone-mockup {
-  background-image: repeating-linear-gradient(0deg, transparent, transparent 6px, color-mix(in srgb, var(--accent) 12%, rgba(0, 0, 0, 0.03)) 6px, color-mix(in srgb, var(--accent) 12%, rgba(0, 0, 0, 0.03)) 7px),
-                    repeating-linear-gradient(90deg, transparent, transparent 6px, color-mix(in srgb, var(--accent) 10%, rgba(0, 0, 0, 0.03)) 6px, color-mix(in srgb, var(--accent) 10%, rgba(0, 0, 0, 0.03)) 7px),
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(0, 0, 0, 0.02) 50%, rgba(255, 255, 255, 0.1) 100%) !important;
+  background-size: 11px 11px !important;
 }
 
 /* ライン */
@@ -2892,6 +2904,10 @@ body[data-skin="glass"],
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
+}
+
+.theme-color-item:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
 .theme-color-item {

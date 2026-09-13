@@ -16,6 +16,7 @@
       themeColor1: "#007a78",
       themeColor2: "#26a69a",
       bgColor: "#f2f9f9",
+      cardBgColor: "#ffffff",
       borderColor: "#d1ecea",
       gaugeColor: "#007a78",
       usageColor: "#007a78",
@@ -27,6 +28,7 @@
       themeColor1: "#0284c7",
       themeColor2: "#38bdf8",
       bgColor: "#f0f9ff",
+      cardBgColor: "#ffffff",
       borderColor: "#bae6fd",
       gaugeColor: "#0284c7",
       usageColor: "#0284c7",
@@ -38,6 +40,7 @@
       themeColor1: "#8b5cf6",
       themeColor2: "#c084fc",
       bgColor: "#faf5ff",
+      cardBgColor: "#ffffff",
       borderColor: "#eedcfd",
       gaugeColor: "#8b5cf6",
       usageColor: "#7c3aed",
@@ -46,12 +49,13 @@
     {
       id: "pink",
       name: "ピンク",
-      themeColor1: "#f43f5e",
-      themeColor2: "#fb7185",
-      bgColor: "#fff1f2",
-      borderColor: "#fecdd3",
-      gaugeColor: "#f43f5e",
-      usageColor: "#e11d48",
+      themeColor1: "#f472b6",
+      themeColor2: "#fbcfe8",
+      bgColor: "#fdf2f8",
+      cardBgColor: "#ffffff",
+      borderColor: "#fbcfe8",
+      gaugeColor: "#f472b6",
+      usageColor: "#db2777",
       theme: "light",
     },
     {
@@ -60,6 +64,7 @@
       themeColor1: "#15803d",
       themeColor2: "#4ade80",
       bgColor: "#f0fdf4",
+      cardBgColor: "#ffffff",
       borderColor: "#bbf7d0",
       gaugeColor: "#16a34a",
       usageColor: "#15803d",
@@ -71,6 +76,7 @@
       themeColor1: "#ea580c",
       themeColor2: "#fb923c",
       bgColor: "#fff7ed",
+      cardBgColor: "#ffffff",
       borderColor: "#fed7aa",
       gaugeColor: "#ea580c",
       usageColor: "#c2410c",
@@ -82,6 +88,7 @@
       themeColor1: "#0891b2",
       themeColor2: "#22d3ee",
       bgColor: "#ecfeff",
+      cardBgColor: "#ffffff",
       borderColor: "#a5f3fc",
       gaugeColor: "#0891b2",
       usageColor: "#0e7490",
@@ -93,6 +100,7 @@
       themeColor1: "#d97706",
       themeColor2: "#fbbf24",
       bgColor: "#fffbeb",
+      cardBgColor: "#ffffff",
       borderColor: "#fde68a",
       gaugeColor: "#d97706",
       usageColor: "#b45309",
@@ -104,7 +112,8 @@
       themeColor1: "#6366f1",
       themeColor2: "#a5b4fc",
       bgColor: "#0f172a",
-      borderColor: "#1e293b",
+      cardBgColor: "#1e293b",
+      borderColor: "#334155",
       gaugeColor: "#818cf8",
       usageColor: "#6366f1",
       theme: "dark",
@@ -115,6 +124,7 @@
       themeColor1: "#334155",
       themeColor2: "#64748b",
       bgColor: "#f8fafc",
+      cardBgColor: "#ffffff",
       borderColor: "#e2e8f0",
       gaugeColor: "#475569",
       usageColor: "#1e293b",
@@ -126,7 +136,7 @@
     { id: "none", name: "なし" },
     { id: "dot", name: "ドット" },
     { id: "grid", name: "グリッド" },
-    { id: "paper", name: "ペーパー" },
+    { id: "check", name: "チェック" },
     { id: "line", name: "ライン" },
     { id: "glass", name: "ガラス" },
   ];
@@ -433,10 +443,12 @@
     clean.settings.themeColor1 = /^#[0-9a-f]{6}$/i.test(input.settings?.themeColor1 || "") ? input.settings.themeColor1 : "#185a37";
     clean.settings.themeColor2 = /^#[0-9a-f]{6}$/i.test(input.settings?.themeColor2 || "") ? input.settings.themeColor2 : "#388f5f";
     clean.settings.bgColor = /^#[0-9a-f]{6}$/i.test(input.settings?.bgColor || "") ? input.settings.bgColor : "#ffffff";
+    clean.settings.cardBgColor = /^#[0-9a-f]{6}$/i.test(input.settings?.cardBgColor || "") ? input.settings.cardBgColor : null;
     clean.settings.borderColor = /^#[0-9a-f]{6}$/i.test(input.settings?.borderColor || "") ? input.settings.borderColor : "#e2e8f0";
     clean.settings.gaugeColor = /^#[0-9a-f]{6}$/i.test(input.settings?.gaugeColor || "") ? input.settings.gaugeColor : "#34d399";
     clean.settings.usageColor = /^#[0-9a-f]{6}$/i.test(input.settings?.usageColor || "") ? input.settings.usageColor : "#0284c7";
-    clean.settings.skin = typeof input.settings?.skin === "string" && ["none", "dot", "grid", "paper", "line", "glass"].includes(input.settings.skin) ? input.settings.skin : "none";
+    const skinRaw = input.settings?.skin === "paper" ? "check" : input.settings?.skin;
+    clean.settings.skin = typeof skinRaw === "string" && ["none", "dot", "grid", "check", "paper", "line", "glass"].includes(skinRaw) ? (skinRaw === "paper" ? "check" : skinRaw) : "none";
     clean.settings.budgetMode = ["usage", "outflow"].includes(input.settings?.budgetMode) ? input.settings.budgetMode : "usage";
     const cycleDay = input.settings?.cycleStartDay;
     clean.settings.cycleStartDay = cycleDay === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleDay) || 1));
@@ -874,6 +886,18 @@
       showToast("背景色を保存しました。");
     });
 
+    const settingCardBgEl = $("setting-card-bg-color");
+    if (settingCardBgEl) {
+      settingCardBgEl.addEventListener("input", (e) => {
+        state.settings.cardBgColor = e.target.value;
+        applyThemeColors();
+      });
+      settingCardBgEl.addEventListener("change", () => {
+        saveState();
+        showToast("タブ・カード色を保存しました。");
+      });
+    }
+
     $("setting-border-color").addEventListener("input", (e) => {
       state.settings.borderColor = e.target.value;
       applyThemeColors();
@@ -980,7 +1004,8 @@
       if (raw.includes(":")) {
         const segs = raw.split(":");
         colorRaw = segs[0].trim();
-        const candidateSkin = (segs[1] || "").trim().toLowerCase();
+        let candidateSkin = (segs[1] || "").trim().toLowerCase();
+        if (candidateSkin === "paper") candidateSkin = "check";
         if (SKIN_PRESETS.some((s) => s.id === candidateSkin)) {
           skinId = candidateSkin;
         }
@@ -989,7 +1014,8 @@
       const parts = colorRaw.split(/[_,\-\s]+/).filter(Boolean);
       // If skin is attached at the end without colon
       if (parts.length > 0) {
-        const lastPart = parts[parts.length - 1].toLowerCase();
+        let lastPart = parts[parts.length - 1].toLowerCase();
+        if (lastPart === "paper") lastPart = "check";
         if (SKIN_PRESETS.some((s) => s.id === lastPart)) {
           skinId = lastPart;
           parts.pop();
@@ -998,7 +1024,7 @@
 
       const hexRegex = /^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
       if (parts.length < 3) {
-        showToast("テーマコードの形式が正しくありません。（例: #007A78_#FFFFFF_#34D399:dot）");
+        showToast("テーマコードの形式が正しくありません。（例: #007A78_#FFFFFF_#34D399:check）");
         return;
       }
       const formatted = parts.map((p) => {
@@ -1018,10 +1044,16 @@
       state.settings.themeColor1 = formatted[0];
       state.settings.themeColor2 = formatted[0];
       state.settings.bgColor = formatted[1];
-      if (formatted.length >= 4) {
+      if (formatted.length >= 5) {
+        state.settings.cardBgColor = formatted[2];
+        state.settings.borderColor = formatted[3];
+        state.settings.gaugeColor = formatted[4];
+      } else if (formatted.length === 4) {
+        state.settings.cardBgColor = null;
         state.settings.borderColor = formatted[2];
         state.settings.gaugeColor = formatted[3];
       } else {
+        state.settings.cardBgColor = null;
         state.settings.borderColor = "#e2e8f0";
         state.settings.gaugeColor = formatted[2];
       }
@@ -3458,6 +3490,11 @@
     const themeColor2El = $("theme-color-2");
     if (themeColor2El) themeColor2El.value = state.settings.themeColor2 || state.settings.themeColor1 || "#185a37";
     $("setting-bg-color").value = state.settings.bgColor || "#ffffff";
+    const effectiveCardBg = state.settings.cardBgColor || (getLuminance(state.settings.bgColor || "#ffffff") < 0.45 ? "#1e293b" : "#ffffff");
+    const settingCardBgEl = $("setting-card-bg-color");
+    if (settingCardBgEl) settingCardBgEl.value = effectiveCardBg;
+    const settingCardBgValEl = $("setting-card-bg-color-val");
+    if (settingCardBgValEl) settingCardBgValEl.textContent = effectiveCardBg.toUpperCase();
     $("setting-border-color").value = state.settings.borderColor || "#e2e8f0";
     $("setting-gauge-color").value = state.settings.gaugeColor || "#34d399";
     const usageColor = state.settings.usageColor || "#0284c7";
@@ -3942,21 +3979,35 @@
   function getThemeCode() {
     const c1 = (state.settings.themeColor1 || "#007a78").toUpperCase();
     const bg = (state.settings.bgColor || "#ffffff").toUpperCase();
+    const isDarkBg = getLuminance(bg) < 0.45;
+    const defaultCard = isDarkBg ? "#1E293B" : "#FFFFFF";
+    const card = (state.settings.cardBgColor || defaultCard).toUpperCase();
     const border = (state.settings.borderColor || "#e2e8f0").toUpperCase();
     const gauge = (state.settings.gaugeColor || "#34d399").toUpperCase();
     const skin = state.settings.skin || "none";
-    if (border === "#E2E8F0") {
+    if (border === "#E2E8F0" && (card === defaultCard || card === "#FFFFFF" || card === "#1E293B")) {
       return `${c1}_${bg}_${gauge}:${skin}`;
     }
-    return `${c1}_${bg}_${border}_${gauge}:${skin}`;
+    if (card === defaultCard || card === "#FFFFFF" || card === "#1E293B") {
+      return `${c1}_${bg}_${border}_${gauge}:${skin}`;
+    }
+    return `${c1}_${bg}_${card}_${border}_${gauge}:${skin}`;
   }
 
   function applyThemeColors() {
     const color1 = state.settings.themeColor1 || "#007a78";
     const bgColor = state.settings.bgColor || "#ffffff";
-    const borderColor = state.settings.borderColor || "#e2e8f0";
+    const isDarkBg = getLuminance(bgColor) < 0.45;
+    const effectiveCardBg = state.settings.cardBgColor || (isDarkBg ? "#1e293b" : "#ffffff");
+    const isDarkCard = getLuminance(effectiveCardBg) < 0.48;
+    const borderColor = state.settings.borderColor || (isDarkCard ? "#334155" : "#e2e8f0");
     const gaugeColor = state.settings.gaugeColor || "#34d399";
     const usageColor = state.settings.usageColor || "#0284c7";
+
+    const cardTextColor = isDarkCard ? "#f8fafc" : "#1e293b";
+    const cardTextMuted = isDarkCard ? "#94a3b8" : "#64748b";
+    const pageTextColor = isDarkBg ? "#f8fafc" : "#1e293b";
+    const pageTextMuted = isDarkBg ? "#94a3b8" : "#64748b";
 
     document.documentElement.style.setProperty("--theme-color-1", color1);
     document.documentElement.style.setProperty("--theme-color-2", color1);
@@ -3967,21 +4018,19 @@
     document.documentElement.style.setProperty("--usage-color", usageColor);
     document.documentElement.style.setProperty("--usage-soft", colorWithAlpha(usageColor, 0.15));
 
-    const isDarkBg = getLuminance(bgColor) < 0.45;
-    if (isDarkBg) {
-      document.documentElement.style.setProperty("--text", "#f8fafc");
-      document.documentElement.style.setProperty("--text-muted", "#94a3b8");
+    // Dynamic surface and text colors (high contrast guarantee)
+    document.documentElement.style.setProperty("--surface", effectiveCardBg);
+    document.documentElement.style.setProperty("--surface-soft", isDarkCard ? "color-mix(in srgb, var(--surface) 88%, #ffffff)" : "color-mix(in srgb, var(--surface) 94%, #000000)");
+    document.documentElement.style.setProperty("--surface-muted", isDarkCard ? "color-mix(in srgb, var(--surface) 80%, #ffffff)" : "color-mix(in srgb, var(--surface) 88%, #000000)");
+    document.documentElement.style.setProperty("--text", cardTextColor);
+    document.documentElement.style.setProperty("--text-muted", cardTextMuted);
+    document.documentElement.style.setProperty("--page-text", pageTextColor);
+    document.documentElement.style.setProperty("--page-text-muted", pageTextMuted);
+
+    if (isDarkBg || isDarkCard) {
       document.documentElement.style.setProperty("--accent-dark", "color-mix(in srgb, var(--theme-color-1, #34d399) 70%, #ffffff)");
-      document.documentElement.style.setProperty("--surface", "color-mix(in srgb, var(--bg-color) 70%, #1e293b)");
-      document.documentElement.style.setProperty("--surface-muted", "color-mix(in srgb, var(--bg-color) 85%, #334155)");
-      document.documentElement.style.setProperty("--surface-soft", "color-mix(in srgb, var(--bg-color) 90%, #0f172a)");
     } else {
-      document.documentElement.style.removeProperty("--text");
-      document.documentElement.style.removeProperty("--text-muted");
       document.documentElement.style.removeProperty("--accent-dark");
-      document.documentElement.style.removeProperty("--surface");
-      document.documentElement.style.removeProperty("--surface-muted");
-      document.documentElement.style.removeProperty("--surface-soft");
     }
 
     const val1 = $("theme-color-1-val");
@@ -3994,6 +4043,11 @@
     const bgVal = $("setting-bg-color-val");
     if (bgInput && bgInput.value.toLowerCase() !== bgColor.toLowerCase()) bgInput.value = bgColor;
     if (bgVal) bgVal.textContent = bgColor.toUpperCase();
+
+    const cardBgInput = $("setting-card-bg-color");
+    const cardBgVal = $("setting-card-bg-color-val");
+    if (cardBgInput && cardBgInput.value.toLowerCase() !== effectiveCardBg.toLowerCase()) cardBgInput.value = effectiveCardBg;
+    if (cardBgVal) cardBgVal.textContent = effectiveCardBg.toUpperCase();
 
     const borderInput = $("setting-border-color");
     const borderVal = $("setting-border-color-val");
@@ -4015,6 +4069,8 @@
     if (cCircle1) cCircle1.style.backgroundColor = color1;
     const cCircleBg = $("setting-bg-color-circle");
     if (cCircleBg) cCircleBg.style.backgroundColor = bgColor;
+    const cCircleCardBg = $("setting-card-bg-color-circle");
+    if (cCircleCardBg) cCircleCardBg.style.backgroundColor = effectiveCardBg;
     const cCircleBorder = $("setting-border-color-circle");
     if (cCircleBorder) cCircleBorder.style.backgroundColor = borderColor;
     const cCircleGauge = $("setting-gauge-color-circle");
@@ -4023,35 +4079,52 @@
     // 見本スマホ画面（リアルタイムライブプレビュー）の反映
     const mockup = $("theme-phone-mockup");
     if (mockup) {
-      const isDark = isDarkBg;
-      const phoneCardBg = isDark ? "rgba(255, 255, 255, 0.08)" : "#ffffff";
-      const phoneText = isDark ? "#edf5ef" : "#1e293b";
-      const phoneMuted = isDark ? "#94a3b8" : "#64748b";
-
       mockup.style.backgroundColor = bgColor;
-      mockup.style.color = phoneText;
+      mockup.style.color = pageTextColor;
       mockup.style.borderColor = "#1c1d1f";
 
       const timeEl = mockup.querySelector(".phone-time");
-      if (timeEl) timeEl.style.color = phoneText;
+      if (timeEl) timeEl.style.color = pageTextColor;
       const sigEl = mockup.querySelector(".phone-signal");
-      if (sigEl) sigEl.style.color = phoneText;
+      if (sigEl) sigEl.style.color = pageTextColor;
       const titleEl = mockup.querySelector(".mini-header-title");
-      if (titleEl) titleEl.style.color = phoneText;
+      if (titleEl) titleEl.style.color = pageTextColor;
 
-      const miniSummary = $("phone-preview-summary");
-      if (miniSummary) {
-        miniSummary.style.borderColor = borderColor;
-        miniSummary.style.backgroundColor = phoneCardBg;
-      }
+      // 見本スマホ内の各カード（常に不透明・背景連動）
+      const miniCards = [
+        $("phone-preview-summary"),
+        $("phone-preview-gauge-card"),
+        $("phone-preview-advisor"),
+        $("phone-preview-calendar"),
+      ];
+      miniCards.forEach((cardEl) => {
+        if (cardEl) {
+          cardEl.style.borderColor = borderColor;
+          cardEl.style.backgroundColor = effectiveCardBg;
+          cardEl.style.color = cardTextColor;
+        }
+      });
 
       const miniRemaining = $("phone-preview-remaining");
       if (miniRemaining) miniRemaining.style.color = color1;
 
-      const miniGaugeCard = $("phone-preview-gauge-card");
-      if (miniGaugeCard) {
-        miniGaugeCard.style.borderColor = borderColor;
-        miniGaugeCard.style.backgroundColor = phoneCardBg;
+      const miniKicker = mockup.querySelector(".mini-summary-kicker");
+      if (miniKicker) miniKicker.style.color = cardTextMuted;
+
+      const miniCircleBtn = mockup.querySelector(".mini-summary-circle-btn");
+      if (miniCircleBtn) {
+        miniCircleBtn.style.color = cardTextMuted;
+        miniCircleBtn.style.backgroundColor = isDarkCard ? "rgba(255,255,255,0.1)" : "#f1f5f9";
+        miniCircleBtn.style.borderColor = borderColor;
+      }
+
+      const miniSpent = $("phone-preview-spent");
+      if (miniSpent) miniSpent.style.color = cardTextColor;
+
+      const miniSub = mockup.querySelector(".mini-summary-sub");
+      if (miniSub) {
+        miniSub.style.color = cardTextMuted;
+        miniSub.style.borderTopColor = borderColor;
       }
 
       const miniGauge = $("phone-preview-gauge");
@@ -4060,26 +4133,31 @@
         miniGauge.style.width = "42%";
       }
 
+      const miniGaugeTrack = mockup.querySelector(".phone-mini-gauge-track");
+      if (miniGaugeTrack) {
+        miniGaugeTrack.style.backgroundColor = isDarkCard ? "rgba(255, 255, 255, 0.15)" : "#e2e8f0";
+      }
+
       const miniGaugePercent = $("phone-preview-percent");
       if (miniGaugePercent) {
         miniGaugePercent.textContent = "42%使用";
-        miniGaugePercent.style.color = isDark ? "#edf5ef" : color1;
+        miniGaugePercent.style.color = cardTextMuted;
       }
 
-      const miniAdvisor = $("phone-preview-advisor");
-      if (miniAdvisor) {
-        miniAdvisor.style.borderColor = borderColor;
-        miniAdvisor.style.backgroundColor = phoneCardBg;
-      }
+      const miniAdvisorText = mockup.querySelector(".mini-advisor-text");
+      if (miniAdvisorText) miniAdvisorText.style.color = cardTextColor;
 
-      const miniCalendar = $("phone-preview-calendar");
-      if (miniCalendar) {
-        miniCalendar.style.borderColor = borderColor;
-        miniCalendar.style.backgroundColor = phoneCardBg;
-      }
+      const miniAdvisorArrow = mockup.querySelector(".mini-advisor-arrow");
+      if (miniAdvisorArrow) miniAdvisorArrow.style.color = cardTextMuted;
+
+      mockup.querySelectorAll(".phone-mini-weekdays span").forEach((el) => {
+        if (!el.classList.contains("mini-sun") && !el.classList.contains("mini-sat")) {
+          el.style.color = cardTextMuted;
+        }
+      });
 
       mockup.querySelectorAll(".phone-mini-days span:not(.mini-today)").forEach((el) => {
-        el.style.color = phoneText;
+        el.style.color = cardTextColor;
       });
 
       const miniToday = $("phone-preview-today");
@@ -4097,8 +4175,12 @@
       const miniNav = $("phone-preview-nav");
       if (miniNav) {
         miniNav.style.borderColor = borderColor;
-        miniNav.style.backgroundColor = isDark ? "rgba(24, 32, 25, 0.95)" : "rgba(255, 255, 255, 0.95)";
+        miniNav.style.backgroundColor = effectiveCardBg;
       }
+
+      mockup.querySelectorAll(".mini-nav-item:not(.is-active)").forEach((el) => {
+        el.style.color = cardTextMuted;
+      });
 
       const miniNavActive = $("phone-preview-nav-active");
       if (miniNavActive) miniNavActive.style.color = color1;
@@ -4265,6 +4347,7 @@
       button.dataset.presetId = preset.id;
       button.dataset.themeColor1 = preset.themeColor1;
       button.dataset.bgColor = preset.bgColor;
+      button.dataset.cardBgColor = preset.cardBgColor || "";
       button.dataset.borderColor = preset.borderColor;
       button.dataset.gaugeColor = preset.gaugeColor;
       button.dataset.usageColor = preset.usageColor;
@@ -4288,6 +4371,7 @@
         state.settings.themeColor1 = preset.themeColor1;
         state.settings.themeColor2 = preset.themeColor1;
         state.settings.bgColor = preset.bgColor;
+        state.settings.cardBgColor = preset.cardBgColor || null;
         state.settings.borderColor = preset.borderColor;
         state.settings.gaugeColor = preset.gaugeColor;
         state.settings.usageColor = preset.usageColor;
