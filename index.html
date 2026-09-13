@@ -610,10 +610,15 @@
                         </div>
                       </div>
                     </div>
+                    <!-- 現在の組み合わせバッジ -->
+                    <div class="theme-combo-badge" id="theme-combo-badge">
+                      <span class="combo-dot" id="theme-combo-dot"></span>
+                      <span id="theme-combo-label">ティール × なし</span>
+                    </div>
                   </div>
                 </section>
 
-                <!-- 右側: 表示モード & カラーテーマ -->
+                <!-- 右側: 表示モード & カラー／スキン装飾 -->
                 <div class="theme-controls-right">
                   <!-- 表示モード -->
                   <section class="theme-card theme-mode-card">
@@ -639,11 +644,17 @@
                     </select>
                   </section>
 
-                  <!-- カラーテーマ -->
+                  <!-- カラー／スキン装飾 -->
                   <section class="theme-card theme-palette-card">
-                    <h3 class="theme-section-heading">カラーテーマ</h3>
+                    <div class="theme-sub-tab-nav" role="tablist" aria-label="テーマ選択タブ">
+                      <button type="button" class="theme-sub-tab-btn is-active" id="theme-tab-color" role="tab" aria-selected="true">カラー</button>
+                      <button type="button" class="theme-sub-tab-btn" id="theme-tab-skin" role="tab" aria-selected="false">スキン装飾</button>
+                    </div>
                     <div class="theme-swatches-grid" id="preset-palette-grid">
                       <!-- Dynamic presets rendered here -->
+                    </div>
+                    <div class="theme-skins-grid is-hidden" id="skin-palette-grid">
+                      <!-- Dynamic skins rendered here -->
                     </div>
                   </section>
                 </div>
@@ -698,17 +709,27 @@
                   </label>
                 </div>
 
-                <!-- テーマコード共有・読込 -->
-                <div class="theme-code-panel">
-                  <div class="theme-code-header">
-                    <span class="theme-code-title">テーマコード</span>
+                <!-- テーマを共有（折りたたみアコーディオン） -->
+                <details class="theme-share-accordion" id="theme-share-accordion">
+                  <summary class="theme-share-summary">
+                    <div class="theme-share-summary-content">
+                      <svg class="theme-share-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                        <polyline points="16 6 12 2 8 6"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="15"></line>
+                      </svg>
+                      <span class="theme-share-title">テーマを共有</span>
+                    </div>
+                    <span class="theme-share-arrow">›</span>
+                  </summary>
+                  <div class="theme-code-panel">
+                    <div class="theme-code-row">
+                      <input id="theme-code-input" class="theme-code-field" type="text" placeholder="#007A78_#FFFFFF_#34D399:none" aria-label="テーマコード" spellcheck="false" autocomplete="off" />
+                      <button id="theme-code-copy-btn" class="theme-code-btn" type="button">コピー</button>
+                      <button id="theme-code-apply-btn" class="theme-code-btn theme-code-btn-primary" type="button">読込</button>
+                    </div>
                   </div>
-                  <div class="theme-code-row">
-                    <input id="theme-code-input" class="theme-code-field" type="text" placeholder="#007A78_#FFFFFF_#E2E8F0_#34D399" aria-label="テーマコード" spellcheck="false" autocomplete="off" />
-                    <button id="theme-code-copy-btn" class="theme-code-btn" type="button">コピー</button>
-                    <button id="theme-code-apply-btn" class="theme-code-btn theme-code-btn-primary" type="button">読込</button>
-                  </div>
-                </div>
+                </details>
 
                 <!-- 既存互換用の不可視要素 -->
                 <input id="setting-usage-color" class="is-hidden" type="color" value="#0284c7" />

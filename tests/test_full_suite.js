@@ -103,12 +103,23 @@ const document = {
     }
   },
   documentElement: {
-    setAttribute: function() {},
-    removeAttribute: function() {},
-    style: { setProperty: function() {}, removeProperty: function() {} },
+    dataset: {},
+    setAttribute: function(k, v) { this[k] = v; },
+    removeAttribute: function(k) { delete this[k]; },
+    getAttribute: function(k) { return this[k] || null; },
+    style: {
+      _props: {},
+      setProperty: function(k, v) { this._props[k] = v; },
+      removeProperty: function(k) { delete this._props[k]; },
+      getPropertyValue: function(k) { return this._props[k] || ""; }
+    },
     classList: { add: function() {}, remove: function() {}, toggle: function() {} }
   },
   body: {
+    dataset: {},
+    setAttribute: function(k, v) { this[k] = v; },
+    removeAttribute: function(k) { delete this[k]; },
+    getAttribute: function(k) { return this[k] || null; },
     classList: { add: function() {}, remove: function() {}, toggle: function() {} }
   }
 };
@@ -306,17 +317,40 @@ if (typeof switchSettingsSubView === "function") {
     throw new Error("Theme code apply failed to update bgColor");
   }
 
-  // Test 4-part theme code
-  themeCodeInput.value = "#6366F1_#0F172A_#1E293B_#818CF8";
+  // Test 4-part theme code with skin
+  themeCodeInput.value = "#6366F1_#0F172A_#1E293B_#818CF8:dot";
   themeCodeApplyBtn.dispatchEvent({ type: "click" });
   if (document.documentElement.style.getPropertyValue("--theme-color-1") !== "#6366F1") {
-    throw new Error("Theme code apply (4-part) failed to update themeColor1");
+    throw new Error("Theme code apply (4-part with skin) failed to update themeColor1");
   }
   if (document.documentElement.style.getPropertyValue("--bg-color") !== "#0F172A") {
-    throw new Error("Theme code apply (4-part) failed to update bgColor");
+    throw new Error("Theme code apply (4-part with skin) failed to update bgColor");
   }
   if (document.documentElement.style.getPropertyValue("--gauge-color") !== "#818CF8") {
-    throw new Error("Theme code apply (4-part) failed to update gaugeColor");
+    throw new Error("Theme code apply (4-part with skin) failed to update gaugeColor");
+  }
+  if (document.documentElement.dataset.skin !== "dot") {
+    throw new Error("Theme code apply with skin failed to update skin to 'dot'");
+  }
+
+  // Verify combo badge
+  const comboLabel = document.getElementById("theme-combo-label");
+  if (!comboLabel || !comboLabel.textContent.includes("ドット")) {
+    throw new Error("Theme combo badge should include skin name 'ドット'");
+  }
+
+  // Test tab switcher
+  const tabColor = document.getElementById("theme-tab-color");
+  const tabSkin = document.getElementById("theme-tab-skin");
+  const presetGrid = document.getElementById("preset-palette-grid");
+  const skinGrid = document.getElementById("skin-palette-grid");
+  if (tabColor && tabSkin && presetGrid && skinGrid) {
+    tabSkin.dispatchEvent({ type: "click" });
+    if (!tabSkin.classList.contains("is-active")) throw new Error("Skin tab should be active after click");
+    if (skinGrid.classList.contains("is-hidden")) throw new Error("Skin grid should be visible");
+    tabColor.dispatchEvent({ type: "click" });
+    if (!tabColor.classList.contains("is-active")) throw new Error("Color tab should be active after click");
+    if (presetGrid.classList.contains("is-hidden")) throw new Error("Preset grid should be visible");
   }
 
   switchSettingsSubView("menu");

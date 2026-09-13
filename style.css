@@ -2122,7 +2122,7 @@ textarea {
   display: grid;
   grid-template-columns: 136px 1fr;
   gap: 8px;
-  align-items: stretch;
+  align-items: start;
 }
 
 @media (max-width: 350px) {
@@ -2151,48 +2151,39 @@ textarea {
 .theme-preview-card {
   display: flex;
   flex-direction: column;
-  padding: 6px 4px;
+  padding: 6px 4px 8px;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
-.theme-card-header {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2px;
-}
-
-.theme-card-title {
-  font-size: 0.74rem;
-  font-weight: 850;
-  color: var(--text);
-}
-
-.theme-live-badge {
-  font-size: 0.54rem;
-  font-weight: 800;
-  color: var(--accent);
-  background: var(--accent-soft);
-  padding: 1px 4px;
-  border-radius: var(--radius-pill);
+.theme-combo-badge {
   display: inline-flex;
   align-items: center;
-  gap: 2.5px;
+  gap: 5px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill, 9999px);
+  padding: 3px 7px;
+  margin-top: 6px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: var(--text);
   white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.badge-dot {
-  width: 3.5px;
-  height: 3.5px;
+.combo-dot {
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--accent);
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .theme-phone-wrapper {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
@@ -2589,6 +2580,42 @@ textarea {
   padding: 8px 10px;
 }
 
+.theme-sub-tab-nav {
+  display: flex;
+  background: var(--surface-soft);
+  padding: 2.5px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  gap: 3px;
+  margin-bottom: 7px;
+}
+
+.theme-sub-tab-btn {
+  flex: 1;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 7.5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  text-align: center;
+}
+
+.theme-sub-tab-btn:hover {
+  color: var(--text);
+}
+
+.theme-sub-tab-btn.is-active {
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 850;
+  box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.12);
+}
+
 .theme-swatches-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2664,6 +2691,185 @@ textarea {
   color: var(--text-muted);
 }
 
+/* スキン装飾グリッド (2列) */
+.theme-skins-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+  max-height: 155px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.skin-tile-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 4px 4px;
+  border-radius: 11px;
+  background: var(--surface-soft);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+  min-height: 52px;
+  box-sizing: border-box;
+}
+
+.skin-tile-item:hover {
+  border-color: var(--accent);
+  background: var(--surface-muted);
+}
+
+.skin-tile-item.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.skin-check-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.58rem;
+  font-weight: 900;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  z-index: 2;
+}
+
+.skin-tile-item.is-active .skin-check-badge {
+  display: flex;
+}
+
+.skin-tile-preview {
+  width: 100%;
+  height: 25px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.skin-tile-name {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 2.5px;
+  line-height: 1.1;
+  text-align: center;
+}
+
+/* スキンプレビューサムネイル */
+.skin-preview-none svg {
+  color: var(--text-muted);
+}
+
+.skin-preview-dot {
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 32%, transparent) 1.2px, transparent 1.2px);
+  background-size: 6px 6px;
+  width: 100%;
+  height: 100%;
+}
+
+.skin-preview-grid {
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--accent) 26%, transparent) 1px, transparent 1px),
+                    linear-gradient(to bottom, color-mix(in srgb, var(--accent) 26%, transparent) 1px, transparent 1px);
+  background-size: 6px 6px;
+  width: 100%;
+  height: 100%;
+}
+
+.skin-preview-paper {
+  background: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 0),
+              linear-gradient(135deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+              linear-gradient(225deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%);
+  background-size: 4px 4px;
+  width: 100%;
+  height: 100%;
+}
+
+.skin-preview-line {
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 3px, color-mix(in srgb, var(--accent) 24%, transparent) 3px, color-mix(in srgb, var(--accent) 24%, transparent) 4px);
+  width: 100%;
+  height: 100%;
+}
+
+.skin-preview-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.25) 100%),
+              radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 28%, transparent) 0%, transparent 60%);
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================================================
+   スキン装飾パターン（メインアプリ & ミニスマホ連動）
+   ============================================================ */
+/* ドット */
+[data-skin="dot"] .app-container,
+[data-skin="dot"] .theme-phone-mockup {
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 15%, transparent) 1.2px, transparent 1.2px);
+  background-size: 13px 13px;
+}
+
+[data-skin="dot"] .theme-phone-mockup {
+  background-size: 8px 8px;
+}
+
+/* グリッド */
+[data-skin="grid"] .app-container,
+[data-skin="grid"] .theme-phone-mockup {
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--accent) 12%, transparent) 1px, transparent 1px),
+                    linear-gradient(to bottom, color-mix(in srgb, var(--accent) 12%, transparent) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+[data-skin="grid"] .theme-phone-mockup {
+  background-size: 8px 8px;
+}
+
+/* ペーパー */
+[data-skin="paper"] .app-container,
+[data-skin="paper"] .theme-phone-mockup {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 0),
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
+                    linear-gradient(225deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
+                    linear-gradient(45deg, rgba(0, 0, 0, 0.02) 25%, transparent 25%),
+                    linear-gradient(315deg, rgba(0, 0, 0, 0.02) 25%, transparent 25%);
+  background-size: 8px 8px;
+}
+
+/* ライン */
+[data-skin="line"] .app-container,
+[data-skin="line"] .theme-phone-mockup {
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, color-mix(in srgb, var(--accent) 11%, transparent) 5px, color-mix(in srgb, var(--accent) 11%, transparent) 6.5px);
+}
+
+[data-skin="line"] .theme-phone-mockup {
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 3.5px, color-mix(in srgb, var(--accent) 11%, transparent) 3.5px, color-mix(in srgb, var(--accent) 11%, transparent) 4.5px);
+}
+
+/* ガラス */
+[data-skin="glass"] .app-container,
+[data-skin="glass"] .theme-phone-mockup {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.15) 100%),
+                    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 60%),
+                    radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 60%);
+}
+
 .theme-custom-card {
   padding: 8px 10px;
 }
@@ -2729,26 +2935,61 @@ textarea {
   cursor: pointer;
 }
 
-/* テーマコード共有・読込 */
-.theme-code-panel {
+/* テーマを共有（折りたたみアコーディオン） */
+.theme-share-accordion {
   margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
 }
 
-.theme-code-header {
+.theme-share-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 4px 2px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
 }
 
-.theme-code-title {
+.theme-share-summary::-webkit-details-marker {
+  display: none;
+}
+
+.theme-share-summary-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.theme-share-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.theme-share-title {
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 850;
   color: var(--text);
+}
+
+.theme-share-arrow {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  line-height: 1;
+}
+
+.theme-share-accordion[open] .theme-share-arrow {
+  transform: rotate(90deg);
+}
+
+.theme-code-panel {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .theme-code-row {
@@ -2760,7 +3001,7 @@ textarea {
 .theme-code-field {
   flex: 1;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   padding: 5px 8px;
   border-radius: 8px;

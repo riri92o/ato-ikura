@@ -122,6 +122,15 @@
     },
   ];
 
+  const SKIN_PRESETS = [
+    { id: "none", name: "なし" },
+    { id: "dot", name: "ドット" },
+    { id: "grid", name: "グリッド" },
+    { id: "paper", name: "ペーパー" },
+    { id: "line", name: "ライン" },
+    { id: "glass", name: "ガラス" },
+  ];
+
   const CATEGORIES = ["食費", "日用品", "交通", "娯楽", "旅行", "衣服", "医療", "固定費", "その他"];
   const PAYMENT_METHODS = ["現金", "クレジットカード", "デビットカード", "QR・電子マネー", "口座引き落とし", "その他"];
   const CATEGORY_ICONS = {
@@ -262,6 +271,7 @@
         bgColor: "#ffffff",
         borderColor: "#e2e8f0",
         gaugeColor: "#34d399",
+        skin: "none",
         budgetMode: "usage",
         cycleStartDay: 1,
         homeWidgets: defaultHomeWidgets(),
@@ -426,6 +436,7 @@
     clean.settings.borderColor = /^#[0-9a-f]{6}$/i.test(input.settings?.borderColor || "") ? input.settings.borderColor : "#e2e8f0";
     clean.settings.gaugeColor = /^#[0-9a-f]{6}$/i.test(input.settings?.gaugeColor || "") ? input.settings.gaugeColor : "#34d399";
     clean.settings.usageColor = /^#[0-9a-f]{6}$/i.test(input.settings?.usageColor || "") ? input.settings.usageColor : "#0284c7";
+    clean.settings.skin = typeof input.settings?.skin === "string" && ["none", "dot", "grid", "paper", "line", "glass"].includes(input.settings.skin) ? input.settings.skin : "none";
     clean.settings.budgetMode = ["usage", "outflow"].includes(input.settings?.budgetMode) ? input.settings.budgetMode : "usage";
     const cycleDay = input.settings?.cycleStartDay;
     clean.settings.cycleStartDay = cycleDay === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleDay) || 1));
@@ -917,10 +928,32 @@
       if (!input) return;
       const raw = input.value.trim();
       if (!raw) return;
-      const parts = raw.split(/[_,\-\s]+/).filter(Boolean);
+
+      // Extract skin if specified (e.g. #007A78_#FFFFFF_#34D399:dot or with suffix)
+      let skinId = "none";
+      let colorRaw = raw;
+      if (raw.includes(":")) {
+        const segs = raw.split(":");
+        colorRaw = segs[0].trim();
+        const candidateSkin = (segs[1] || "").trim().toLowerCase();
+        if (SKIN_PRESETS.some((s) => s.id === candidateSkin)) {
+          skinId = candidateSkin;
+        }
+      }
+
+      const parts = colorRaw.split(/[_,\-\s]+/).filter(Boolean);
+      // If skin is attached at the end without colon
+      if (parts.length > 0) {
+        const lastPart = parts[parts.length - 1].toLowerCase();
+        if (SKIN_PRESETS.some((s) => s.id === lastPart)) {
+          skinId = lastPart;
+          parts.pop();
+        }
+      }
+
       const hexRegex = /^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
       if (parts.length < 3) {
-        showToast("テーマコードの形式が正しくありません。（例: #007A78_#FFFFFF_#34D399）");
+        showToast("テーマコードの形式が正しくありません。（例: #007A78_#FFFFFF_#34D399:dot）");
         return;
       }
       const formatted = parts.map((p) => {
@@ -948,8 +981,9 @@
         state.settings.gaugeColor = formatted[2];
       }
       state.settings.usageColor = state.settings.themeColor1;
+      state.settings.skin = skinId;
       saveState();
-      applyThemeColors();
+      applyTheme();
       renderCalendar();
       showToast("テーマコードを適用しました。");
     };
@@ -968,6 +1002,30 @@
       });
     }
 
+    // カラー／スキン装飾タブ切り替え
+    const themeTabColor = $("theme-tab-color");
+    const themeTabSkin = $("theme-tab-skin");
+    const presetGrid = $("preset-palette-grid");
+    const skinGrid = $("skin-palette-grid");
+    if (themeTabColor && themeTabSkin && presetGrid && skinGrid) {
+      themeTabColor.addEventListener("click", () => {
+        themeTabColor.classList.add("is-active");
+        themeTabColor.setAttribute("aria-selected", "true");
+        themeTabSkin.classList.remove("is-active");
+        themeTabSkin.setAttribute("aria-selected", "false");
+        presetGrid.classList.remove("is-hidden");
+        skinGrid.classList.add("is-hidden");
+      });
+      themeTabSkin.addEventListener("click", () => {
+        themeTabSkin.classList.add("is-active");
+        themeTabSkin.setAttribute("aria-selected", "true");
+        themeTabColor.classList.remove("is-active");
+        themeTabColor.setAttribute("aria-selected", "false");
+        skinGrid.classList.remove("is-hidden");
+        presetGrid.classList.add("is-hidden");
+      });
+    }
+
     const themeTopResetBtn = $("theme-top-reset-btn");
     if (themeTopResetBtn) {
       themeTopResetBtn.addEventListener("click", () => {
@@ -980,6 +1038,7 @@
           state.settings.borderColor = def.borderColor;
           state.settings.gaugeColor = def.gaugeColor;
           state.settings.usageColor = def.usageColor;
+          state.settings.skin = "none";
           saveState();
           applyTheme();
           renderCalendar();
@@ -3370,8 +3429,10 @@
     const budgetModeEl = $("setting-budget-mode");
     if (budgetModeEl) budgetModeEl.value = state.settings.budgetMode || "usage";
     renderPresetPalette();
+    renderSkinPalette();
     updatePresetButtons();
     applyThemeColors();
+    applyThemeSkin();
     renderHomeWidgetsManageList("settings-widgets-manage-list");
   }
 
@@ -3820,6 +3881,7 @@
     });
 
     applyThemeColors();
+    applyThemeSkin();
   }
 
   function getLuminance(hexColor) {
@@ -3837,10 +3899,11 @@
     const bg = (state.settings.bgColor || "#ffffff").toUpperCase();
     const border = (state.settings.borderColor || "#e2e8f0").toUpperCase();
     const gauge = (state.settings.gaugeColor || "#34d399").toUpperCase();
+    const skin = state.settings.skin || "none";
     if (border === "#E2E8F0") {
-      return `${c1}_${bg}_${gauge}`;
+      return `${c1}_${bg}_${gauge}:${skin}`;
     }
-    return `${c1}_${bg}_${border}_${gauge}`;
+    return `${c1}_${bg}_${border}_${gauge}:${skin}`;
   }
 
   function applyThemeColors() {
@@ -4008,6 +4071,122 @@
     }
 
     updatePresetButtons();
+    updateThemeComboBadge();
+  }
+
+  function updateThemeComboBadge() {
+    const label = $("theme-combo-label");
+    const dot = $("theme-combo-dot");
+    if (!label) return;
+
+    const c1 = (state.settings.themeColor1 || "").toLowerCase();
+    const gauge = (state.settings.gaugeColor || "").toLowerCase();
+
+    let colorName = "カスタム";
+    const matchedPreset = THEME_PRESETS.find(
+      (p) =>
+        p.themeColor1?.toLowerCase() === c1 &&
+        p.gaugeColor?.toLowerCase() === gauge
+    );
+    if (matchedPreset) {
+      colorName = matchedPreset.name;
+    }
+
+    const currentSkin = state.settings.skin || "none";
+    const skinObj = SKIN_PRESETS.find((s) => s.id === currentSkin);
+    const skinName = skinObj ? skinObj.name : "なし";
+
+    label.textContent = `${colorName} × ${skinName}`;
+    if (dot) {
+      dot.style.background = state.settings.themeColor1 || "#007a78";
+    }
+  }
+
+  function updateSkinTiles() {
+    const currentSkin = state.settings.skin || "none";
+    document.querySelectorAll(".skin-tile-item").forEach((btn) => {
+      const active = btn.dataset.skinId === currentSkin;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-checked", active ? "true" : "false");
+    });
+  }
+
+  function applyThemeSkin() {
+    const skin = state.settings.skin || "none";
+    if (document.documentElement) {
+      document.documentElement.setAttribute("data-skin", skin);
+      if (document.documentElement.dataset) document.documentElement.dataset.skin = skin;
+    }
+    if (document.body) {
+      document.body.setAttribute("data-skin", skin);
+      if (document.body.dataset) document.body.dataset.skin = skin;
+    }
+    const appContainer = document.querySelector(".app-container");
+    if (appContainer) {
+      appContainer.setAttribute("data-skin", skin);
+      if (appContainer.dataset) appContainer.dataset.skin = skin;
+    }
+
+    const mockup = $("theme-phone-mockup");
+    if (mockup) {
+      mockup.setAttribute("data-skin", skin);
+      if (mockup.dataset) mockup.dataset.skin = skin;
+    }
+
+    updateSkinTiles();
+    updateThemeComboBadge();
+  }
+
+  function renderSkinPalette() {
+    const grid = $("skin-palette-grid");
+    if (!grid) return;
+    grid.innerHTML = "";
+
+    SKIN_PRESETS.forEach((skin) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "skin-tile-item";
+      button.dataset.skinId = skin.id;
+      button.setAttribute("role", "radio");
+      button.setAttribute("aria-label", skin.name);
+
+      const checkBadge = document.createElement("span");
+      checkBadge.className = "skin-check-badge";
+      checkBadge.textContent = "✓";
+
+      const preview = document.createElement("div");
+      preview.className = "skin-tile-preview";
+
+      if (skin.id === "none") {
+        preview.classList.add("skin-preview-none");
+        preview.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg>`;
+      } else {
+        const thumb = document.createElement("div");
+        thumb.className = `skin-preview-${skin.id}`;
+        preview.appendChild(thumb);
+      }
+
+      const name = document.createElement("span");
+      name.className = "skin-tile-name";
+      name.textContent = skin.name;
+
+      button.append(checkBadge, preview, name);
+
+      button.addEventListener("click", () => {
+        state.settings.skin = skin.id;
+        saveState();
+        applyThemeSkin();
+        const codeInput = $("theme-code-input");
+        if (codeInput && document.activeElement !== codeInput) {
+          codeInput.value = getThemeCode();
+        }
+        showToast(`スキン「${skin.name}」を適用しました。`);
+      });
+
+      grid.appendChild(button);
+    });
+
+    updateSkinTiles();
   }
 
   function updatePresetButtons() {
