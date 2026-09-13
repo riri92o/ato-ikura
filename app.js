@@ -4042,7 +4042,7 @@
       const miniSummary = $("phone-preview-summary");
       if (miniSummary) {
         miniSummary.style.borderColor = borderColor;
-        miniSummary.style.backgroundColor = isDark ? "rgba(255, 255, 255, 0.06)" : colorWithAlpha(color1, 0.08);
+        miniSummary.style.backgroundColor = phoneCardBg;
       }
 
       const miniRemaining = $("phone-preview-remaining");
