@@ -1596,8 +1596,8 @@
           setIndicatorPosition(activeIndex, true);
           return;
         }
-        // 横方向への明確なスライド移動（18px）でスライド操作開始
-        if (Math.abs(dx) > 18) {
+        // 指を動かし始めたら即座にスムーズにスライド追従を開始（3px）
+        if (Math.abs(dx) > 3) {
           isDragging = true;
           if (nav.setPointerCapture && pointerId !== null) {
             try { nav.setPointerCapture(pointerId); } catch (_) {}
