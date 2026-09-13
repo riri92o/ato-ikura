@@ -359,6 +359,15 @@ if (typeof switchSettingsSubView === "function") {
     shareBtn.dispatchEvent({ type: "click" });
   }
 
+  // Test theme reset button (ensuring cardBgColor is completely reset)
+  const resetBtn = document.getElementById("theme-top-reset-btn");
+  if (resetBtn) {
+    resetBtn.dispatchEvent({ type: "click" });
+    if (document.documentElement.style.getPropertyValue("--surface") !== "#ffffff") {
+      throw new Error("Theme reset should reset surface to #ffffff");
+    }
+  }
+
   switchSettingsSubView("menu");
   if (!floatPrev.classList.contains("is-hidden")) throw new Error("Floating preview should be hidden in menu subview!");
 }

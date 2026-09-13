@@ -11,39 +11,75 @@
 
   const THEME_PRESETS = [
     {
-      id: "teal",
-      name: "ティール",
-      themeColor1: "#007a78",
-      themeColor2: "#26a69a",
-      bgColor: "#f2f9f9",
+      id: "red",
+      name: "レッド",
+      themeColor1: "#ef4444",
+      themeColor2: "#f87171",
+      bgColor: "#fef2f2",
       cardBgColor: "#ffffff",
-      borderColor: "#d1ecea",
-      gaugeColor: "#007a78",
-      usageColor: "#007a78",
+      borderColor: "#fecaca",
+      gaugeColor: "#ef4444",
+      usageColor: "#dc2626",
+      theme: "light",
+    },
+    {
+      id: "orange",
+      name: "オレンジ",
+      themeColor1: "#f97316",
+      themeColor2: "#fb923c",
+      bgColor: "#fff7ed",
+      cardBgColor: "#ffffff",
+      borderColor: "#fed7aa",
+      gaugeColor: "#f97316",
+      usageColor: "#ea580c",
+      theme: "light",
+    },
+    {
+      id: "yellow",
+      name: "イエロー",
+      themeColor1: "#eab308",
+      themeColor2: "#facc15",
+      bgColor: "#fefce8",
+      cardBgColor: "#ffffff",
+      borderColor: "#fef08a",
+      gaugeColor: "#eab308",
+      usageColor: "#ca8a04",
+      theme: "light",
+    },
+    {
+      id: "green",
+      name: "グリーン",
+      themeColor1: "#22c55e",
+      themeColor2: "#4ade80",
+      bgColor: "#f0fdf4",
+      cardBgColor: "#ffffff",
+      borderColor: "#bbf7d0",
+      gaugeColor: "#22c55e",
+      usageColor: "#16a34a",
       theme: "light",
     },
     {
       id: "blue",
       name: "ブルー",
-      themeColor1: "#0284c7",
-      themeColor2: "#38bdf8",
-      bgColor: "#f0f9ff",
+      themeColor1: "#3b82f6",
+      themeColor2: "#60a5fa",
+      bgColor: "#eff6ff",
       cardBgColor: "#ffffff",
-      borderColor: "#bae6fd",
-      gaugeColor: "#0284c7",
-      usageColor: "#0284c7",
+      borderColor: "#bfdbfe",
+      gaugeColor: "#3b82f6",
+      usageColor: "#2563eb",
       theme: "light",
     },
     {
-      id: "lavender",
-      name: "ラベンダー",
-      themeColor1: "#8b5cf6",
+      id: "purple",
+      name: "パープル",
+      themeColor1: "#a855f7",
       themeColor2: "#c084fc",
       bgColor: "#faf5ff",
       cardBgColor: "#ffffff",
-      borderColor: "#eedcfd",
-      gaugeColor: "#8b5cf6",
-      usageColor: "#7c3aed",
+      borderColor: "#e9d5ff",
+      gaugeColor: "#a855f7",
+      usageColor: "#9333ea",
       theme: "light",
     },
     {
@@ -56,6 +92,30 @@
       borderColor: "#fbcfe8",
       gaugeColor: "#f472b6",
       usageColor: "#db2777",
+      theme: "light",
+    },
+    {
+      id: "teal",
+      name: "ティール",
+      themeColor1: "#007a78",
+      themeColor2: "#26a69a",
+      bgColor: "#f2f9f9",
+      cardBgColor: "#ffffff",
+      borderColor: "#d1ecea",
+      gaugeColor: "#007a78",
+      usageColor: "#007a78",
+      theme: "light",
+    },
+    {
+      id: "lavender",
+      name: "ラベンダー",
+      themeColor1: "#8b5cf6",
+      themeColor2: "#c084fc",
+      bgColor: "#faf5ff",
+      cardBgColor: "#ffffff",
+      borderColor: "#eedcfd",
+      gaugeColor: "#8b5cf6",
+      usageColor: "#7c3aed",
       theme: "light",
     },
     {
@@ -1107,11 +1167,12 @@
     if (themeTopResetBtn) {
       themeTopResetBtn.addEventListener("click", () => {
         if (confirm("テーマと配色を初期設定に戻しますか？")) {
-          const def = THEME_PRESETS[0];
+          const def = THEME_PRESETS.find((p) => p.id === "teal") || THEME_PRESETS[0];
           state.settings.theme = "auto";
           state.settings.themeColor1 = def.themeColor1;
-          state.settings.themeColor2 = def.themeColor1;
+          state.settings.themeColor2 = def.themeColor2 || def.themeColor1;
           state.settings.bgColor = def.bgColor;
+          state.settings.cardBgColor = null;
           state.settings.borderColor = def.borderColor;
           state.settings.gaugeColor = def.gaugeColor;
           state.settings.usageColor = def.usageColor;
@@ -1135,13 +1196,16 @@
     });
 
     $("reset-colors-button").addEventListener("click", () => {
+      const def = THEME_PRESETS.find((p) => p.id === "teal") || THEME_PRESETS[0];
       state.settings.theme = "auto";
-      state.settings.themeColor1 = "#007a78";
-      state.settings.themeColor2 = "#007a78";
-      state.settings.bgColor = "#f2f9f9";
-      state.settings.borderColor = "#e0f2f1";
-      state.settings.gaugeColor = "#26a69a";
-      state.settings.usageColor = "#007a78";
+      state.settings.themeColor1 = def.themeColor1;
+      state.settings.themeColor2 = def.themeColor2 || def.themeColor1;
+      state.settings.bgColor = def.bgColor;
+      state.settings.cardBgColor = null;
+      state.settings.borderColor = def.borderColor;
+      state.settings.gaugeColor = def.gaugeColor;
+      state.settings.usageColor = def.usageColor;
+      state.settings.skin = "none";
       saveState();
       applyTheme();
       renderCalendar();
