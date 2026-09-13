@@ -3114,8 +3114,9 @@ body[data-skin="glass"],
   -webkit-backdrop-filter: blur(16px);
   user-select: none;
   -webkit-user-select: none;
-  touch-action: none;
+  touch-action: none !important;
   -webkit-touch-callout: none;
+  overscroll-behavior: none !important;
   transform: translateZ(0);
 }
 
