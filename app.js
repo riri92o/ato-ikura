@@ -744,7 +744,9 @@
         const isAlreadyActive = (currentView === view);
 
         if (view === "cards" && isAlreadyActive) {
-          const nextSubview = currentPaymentsSubview === "cards" ? "subscriptions" : "cards";
+          const order = ["cards", "emoney", "subscriptions"];
+          const curIdx = order.indexOf(currentPaymentsSubview || "cards");
+          const nextSubview = order[(curIdx + 1) % order.length];
           switchPaymentsSubview(nextSubview);
         } else if (view === "report" && isAlreadyActive) {
           const nextTab = reportSubTab === "outlook" ? "analysis" : "outlook";
@@ -758,6 +760,8 @@
       });
     });
     $("quick-add-button").addEventListener("click", () => openExpenseDialog(Core.todayKey()));
+    const addEmoneyFab = $("add-emoney-fab");
+    if (addEmoneyFab) addEmoneyFab.addEventListener("click", () => openEmoneyDialog());
     $("add-card-button").addEventListener("click", () => openCardDialog());
     $("open-balance-settings").addEventListener("click", () => {
       switchView("settings");
@@ -931,10 +935,6 @@
     $("setting-reserve").addEventListener("blur", formatMoneyInput);
     $("expense-payment").addEventListener("change", () => {
       updateExpensePaymentFields();
-      if ($("expense-payment").value === Core.CREDIT_PAYMENT || $("expense-payment").value === "QR・電子マネー") {
-        const accordion = $("expense-details-accordion");
-        if (accordion) accordion.open = true;
-      }
     });
     $("expense-card").addEventListener("change", updateCalculatedPaymentDate);
     $("expense-date").addEventListener("change", () => {
@@ -1486,12 +1486,7 @@
       window.updateNavIndicator(view, true);
     }
 
-    // FAB（＋ボタン）の表示制御（カレンダーのみ表示）
-    const quickAddBtn = $("quick-add-button");
-    if (quickAddBtn) {
-      quickAddBtn.style.display = view === "calendar" ? "inline-flex" : "none";
-      quickAddBtn.classList.toggle("is-hidden", view !== "calendar");
-    }
+    updateFabs();
 
     const todayBtn = $("today-button");
     if (todayBtn) todayBtn.classList.toggle("is-hidden", view !== "calendar");
@@ -1511,6 +1506,22 @@
       renderSettings();
     }
     if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function updateFabs() {
+    const quickAddBtn = $("quick-add-button");
+    if (quickAddBtn) {
+      const showQuickAdd = currentView === "calendar";
+      quickAddBtn.style.display = showQuickAdd ? "inline-flex" : "none";
+      quickAddBtn.classList.toggle("is-hidden", !showQuickAdd);
+    }
+
+    const emoneyFab = $("add-emoney-fab");
+    if (emoneyFab) {
+      const showEmoneyFab = (currentView === "cards" && currentPaymentsSubview === "emoney");
+      emoneyFab.style.display = showEmoneyFab ? "inline-flex" : "none";
+      emoneyFab.classList.toggle("is-hidden", !showEmoneyFab);
+    }
   }
 
   let suppressClickUntil = 0;
@@ -1780,7 +1791,9 @@
         lastNavTapView = targetView;
 
         if (targetView === "cards" && isAlreadyActive) {
-          const nextSubview = currentPaymentsSubview === "cards" ? "subscriptions" : "cards";
+          const order = ["cards", "emoney", "subscriptions"];
+          const curIdx = order.indexOf(currentPaymentsSubview || "cards");
+          const nextSubview = order[(curIdx + 1) % order.length];
           switchPaymentsSubview(nextSubview);
         } else if (targetView === "report" && isAlreadyActive) {
           const nextTab = reportSubTab === "outlook" ? "analysis" : "outlook";
@@ -1910,6 +1923,7 @@
     } else {
       renderSubscriptionsView();
     }
+    updateFabs();
   }
 
   function renderAll() {
@@ -4463,13 +4477,6 @@
     refreshExpenseCardOptions(expense ? expense.cardId : "");
     refreshExpenseEmoneyOptions(expense ? expense.emoneyId : (defaultEmoney ? defaultEmoney.id : ""));
     updateExpensePaymentFields();
-
-    const accordion = $("expense-details-accordion");
-    if (accordion) {
-      accordion.open = Boolean(
-        expense && (expense.memo || expense.paymentDateOverride || expense.paymentMethod === Core.CREDIT_PAYMENT || expense.paymentMethod === "QR・電子マネー")
-      );
-    }
 
     renderDayRecords($("expense-date").value);
     showDialog($("expense-dialog"));

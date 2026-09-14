@@ -388,11 +388,18 @@ if (navCalendarBtn && navCardsBtn && navReportBtn) {
 
   navCardsBtn.dispatchEvent({ type: "click" }); // switch from calendar to cards (cards subview)
   const cardsSub1 = document.getElementById("cards-payment-subview");
+  const emoneySub1 = document.getElementById("emoney-payment-subview");
   const subsSub1 = document.getElementById("subscriptions-payment-subview");
   if (!cardsSub1.classList.contains("is-active")) throw new Error("Cards subview should be active on first tap");
 
+  navCardsBtn.dispatchEvent({ type: "click" }); // tap again -> toggle to emoney
+  if (!emoneySub1.classList.contains("is-active")) throw new Error("Emoney subview should be active on second tap");
+
   navCardsBtn.dispatchEvent({ type: "click" }); // tap again -> toggle to subscriptions
-  if (!subsSub1.classList.contains("is-active")) throw new Error("Subscriptions subview should be active on double-tap");
+  if (!subsSub1.classList.contains("is-active")) throw new Error("Subscriptions subview should be active on third tap");
+
+  navCardsBtn.dispatchEvent({ type: "click" }); // tap again -> cycle back to cards
+  if (!cardsSub1.classList.contains("is-active")) throw new Error("Cards subview should cycle back to cards on fourth tap");
 
   navReportBtn.dispatchEvent({ type: "click" }); // switch to report (outlook pane)
   const outlookPane1 = document.getElementById("report-pane-outlook");

@@ -375,9 +375,8 @@
 
           <!-- サブビュー2: QR・電子マネー管理 -->
           <div id="emoney-payment-subview" class="payments-subview">
-            <div class="page-heading-row">
-              <div class="page-heading"><h2 id="emoney-title">QR・電子マネー</h2></div>
-              <button id="add-emoney-button" class="button button-primary" type="button">＋ 追加</button>
+            <div class="page-heading">
+              <h2 id="emoney-title">QR・電子マネー</h2>
             </div>
 
             <!-- 合計残高サマリーカード -->
@@ -895,6 +894,10 @@
         <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </button>
 
+      <button id="add-emoney-fab" class="fab is-hidden" type="button" aria-label="QR・電子マネーを追加">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
+
       <nav class="bottom-nav" aria-label="メインメニュー" role="tablist">
         <div class="bottom-nav-indicator" id="bottom-nav-indicator" aria-hidden="true"></div>
         <button id="nav-calendar" class="nav-item is-active" type="button" role="tab" data-view="calendar" aria-selected="true" aria-controls="view-calendar" aria-current="page" aria-label="ホーム">
@@ -971,45 +974,34 @@
 
         <input id="expense-id" type="hidden" />
 
-        <!-- メイン入力項目（優先4項目） -->
-        <div class="form-grid primary-form-grid">
-          <label class="field-large">金額<span class="required">必須</span>
+        <!-- メイン入力項目（無駄な余白を削減したコンパクトフォーム） -->
+        <div class="form-grid expense-compact-grid">
+          <label class="field-large full-span">金額<span class="required">必須</span>
             <div class="money-input"><span>¥</span><input id="expense-amount" type="text" inputmode="numeric" autocomplete="off" placeholder="0" required /></div>
             <small id="expense-amount-error" class="field-error"></small>
           </label>
           <label>利用日<span class="required">必須</span><input id="expense-date" type="date" required /></label>
           <label>支払い方法<select id="expense-payment"></select></label>
           <label>カテゴリ<select id="expense-category"></select></label>
-        </div>
-
-        <!-- 詳細設定（折りたたみ） -->
-        <details id="expense-details-accordion" class="expense-details-accordion">
-          <summary class="expense-details-summary">
-            <span>詳細設定（カード選択・メモなど）</span>
-            <span class="details-chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div class="form-grid details-form-grid">
-            <label id="expense-card-field" class="full-span is-hidden">使用したカード<select id="expense-card"></select></label>
-            <label id="expense-emoney-field" class="full-span is-hidden">使用したQR・電子マネー<select id="expense-emoney"></select></label>
-            <div id="payment-date-section" class="payment-date-box full-span is-hidden">
-              <p>自動計算の支払日：<strong id="calculated-payment-date">—</strong></p>
-              <label>この支出だけ支払日を変更<input id="expense-payment-date" type="date" /></label>
-            </div>
-            <div id="expense-withdrawal-toggle-row" class="withdrawal-toggle-box full-span is-hidden">
-              <label class="withdrawal-toggle-label">
-                <input id="expense-include-withdrawal" type="checkbox" checked />
-                <span class="withdrawal-toggle-text">引き落とし予定に含める</span>
-              </label>
-              <p class="withdrawal-toggle-hint">※ OFFにすると「使った額」には記録されますが、口座からの引落予定には加算されません（立替・即時精算用）</p>
-            </div>
-            <label class="full-span">メモ<textarea id="expense-memo" rows="2" maxlength="200" placeholder="例：ランチ、日用品など"></textarea></label>
-            <div class="favorite-save-row full-span">
-              <button id="add-to-favorites-btn" class="text-button favorite-save-btn" type="button">
-                <span>★</span> 現在の内容をお気に入りに登録
-              </button>
-            </div>
+          <label>メモ<input id="expense-memo" type="text" maxlength="200" placeholder="例：ランチ、日用品など" /></label>
+          <label id="expense-card-field" class="full-span is-hidden">使用したカード<select id="expense-card"></select></label>
+          <label id="expense-emoney-field" class="full-span is-hidden">使用したQR・電子マネー<select id="expense-emoney"></select></label>
+          <div id="payment-date-section" class="payment-date-box full-span is-hidden">
+            <p>自動計算の支払日：<strong id="calculated-payment-date">—</strong></p>
+            <label>この支出だけ支払日を変更<input id="expense-payment-date" type="date" /></label>
           </div>
-        </details>
+          <div id="expense-withdrawal-toggle-row" class="withdrawal-toggle-box full-span is-hidden">
+            <label class="withdrawal-toggle-label">
+              <input id="expense-include-withdrawal" type="checkbox" checked />
+              <span class="withdrawal-toggle-text">引き落とし予定に含める</span>
+            </label>
+          </div>
+          <div class="favorite-save-row full-span">
+            <button id="add-to-favorites-btn" class="text-button favorite-save-btn" type="button">
+              <span>★</span> お気に入りに登録
+            </button>
+          </div>
+        </div>
 
         <div id="day-records-section" class="day-records-section">
           <h3>この日の支出一覧</h3>

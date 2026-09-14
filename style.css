@@ -88,7 +88,7 @@ textarea:focus-visible {
   width: min(100%, 760px);
   min-height: 100dvh;
   margin: 0 auto;
-  padding: env(safe-area-inset-top) 14px calc(var(--bottom-nav-height) + 34px + env(safe-area-inset-bottom));
+  padding: max(2px, env(safe-area-inset-top, 0px)) 14px calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom, 0px));
 }
 
 .app-header {
@@ -4165,7 +4165,7 @@ dialog {
   }
 
   .bottom-sheet-dialog form {
-    padding: 8px 18px 24px !important;
+    padding: 6px 14px 18px !important;
   }
 }
 
@@ -4180,44 +4180,76 @@ dialog {
   }
 }
 
-/* 詳細アコーディオン */
-.expense-details-accordion {
-  margin-top: 14px;
-  border-top: 1px dashed var(--border);
-  padding-top: 10px;
+/* コンパクトな支出フォームスタイル（余白を削減しスクロールを抑制） */
+.expense-compact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 8px;
 }
 
-.expense-details-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 0;
-  font-size: 0.82rem;
+.expense-compact-grid label {
+  gap: 2px;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.expense-compact-grid input[type="text"],
+.expense-compact-grid input[type="date"],
+.expense-compact-grid select {
+  min-height: 38px;
+  padding: 5px 8px;
+  font-size: 0.86rem;
+  border-radius: 10px;
+}
+
+.expense-compact-grid .money-input {
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 12px;
+}
+
+.expense-compact-grid .money-input span {
+  font-size: 1.15rem;
+}
+
+.expense-compact-grid .money-input input {
+  min-height: 40px;
+  font-size: 1.35rem;
+  padding: 2px 4px;
+}
+
+.expense-compact-grid .payment-date-box {
+  padding: 7px 9px;
+  border-radius: 10px;
+  margin: 1px 0;
+}
+
+.expense-compact-grid .payment-date-box p {
+  margin: 0 0 4px;
+  font-size: 0.74rem;
+}
+
+.expense-compact-grid .withdrawal-toggle-box {
+  padding: 5px 8px;
+  border-radius: 10px;
+  margin: 1px 0;
+}
+
+.expense-compact-grid .withdrawal-toggle-label {
+  gap: 6px;
+  font-size: 0.78rem;
+}
+
+.favorite-save-row {
+  margin-top: 2px;
+  text-align: right;
+}
+
+.favorite-save-btn {
+  font-size: 0.74rem;
   font-weight: 750;
   color: var(--accent);
-  cursor: pointer;
-  list-style: none;
-  user-select: none;
-}
-
-.expense-details-summary::-webkit-details-marker {
-  display: none;
-}
-
-.details-chevron {
-  font-size: 0.75rem;
-  transition: transform 0.2s ease;
-}
-
-.expense-details-accordion[open] .details-chevron {
-  transform: rotate(180deg);
-}
-
-.expense-details-content {
-  display: grid;
-  gap: 12px;
-  padding-top: 8px;
-  animation: fadeIn 0.18s ease-out;
+  padding: 2px 4px;
 }
 
 /* 初回オンボーディング */
