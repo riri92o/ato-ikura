@@ -224,12 +224,15 @@
               <div class="widget-card emoney-widget-card" id="home-emoney-widget-card" role="button" tabindex="0" aria-label="QR・電子マネー残高（タップで支払い画面へ）">
                 <div class="widget-card-header">
                   <div class="emoney-widget-title-row">
-                    <span class="emoney-widget-icon">📱</span>
+                    <span class="emoney-widget-icon">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </span>
                     <h3 class="widget-title">QR・電子マネー残高</h3>
                   </div>
-                  <strong id="home-emoney-total-badge" class="emoney-total-badge">0円</strong>
+                  <strong id="home-emoney-total-balance" class="emoney-total-badge">0円</strong>
                 </div>
-                <div id="home-emoney-chips-list" class="emoney-chips-scroll"></div>
+                <div id="home-emoney-services-chips" class="emoney-chips-scroll"></div>
+                <p id="home-emoney-empty-text" class="empty-inline is-hidden" style="font-size: 0.76rem; margin: 4px 0 0;">未登録（タップして追加）</p>
               </div>
             </section>
           </div>
@@ -374,33 +377,34 @@
           <div id="emoney-payment-subview" class="payments-subview">
             <div id="emoney-main-subview" class="emoney-subview is-active">
               <div class="page-heading-row">
-                <div class="page-heading"><p class="section-kicker">残高とチャージを管理</p><h2 id="emoney-title">QR・電子マネー</h2></div>
+                <div class="page-heading"><h2 id="emoney-title">QR・電子マネー</h2></div>
                 <button id="add-emoney-button" class="button button-primary" type="button">＋ 追加</button>
               </div>
 
               <!-- 合計残高サマリーカード -->
               <div class="emoney-summary-card">
                 <div class="emoney-summary-left">
-                  <span class="emoney-summary-kicker">電子マネー合計残高</span>
+                  <span class="emoney-summary-kicker">合計残高</span>
                   <div class="emoney-summary-amount-row">
-                    <strong id="emoney-summary-total" class="emoney-summary-total">0円</strong>
+                    <strong id="emoney-total-balance-val" class="emoney-summary-total">0円</strong>
                   </div>
                 </div>
                 <div class="emoney-summary-right">
-                  <span class="emoney-stat-label">登録サービス数</span>
-                  <strong id="emoney-stat-count" class="emoney-stat-value">0件</strong>
+                  <span class="emoney-stat-label">登録数</span>
+                  <strong id="emoney-total-services-count" class="emoney-stat-value">0件</strong>
                 </div>
               </div>
 
               <!-- サービス一覧 -->
-              <div id="emoney-list" class="emoney-card-list"></div>
+              <div id="emoney-services-list" class="emoney-card-list"></div>
 
               <!-- 未登録・空状態 -->
               <div id="emoney-empty-state" class="sub-empty-card is-hidden">
-                <div class="sub-empty-icon">📱</div>
-                <h3>QR・電子マネーを登録</h3>
-                <p>PayPayやSuicaなどを登録すると、<br>残高の管理やチャージ記録ができます。</p>
-                <button id="emoney-empty-add-btn" class="button button-primary" type="button">サービスを追加する</button>
+                <div class="sub-empty-icon">
+                  <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </div>
+                <h3>QR・電子マネーの残高管理</h3>
+                <button id="emoney-empty-add-btn" class="button button-primary" type="button">＋ サービスを追加</button>
               </div>
             </div>
 
@@ -409,28 +413,27 @@
               <button id="back-to-emoney-btn" class="back-link-btn" type="button">‹ 一覧に戻る</button>
               <div class="emoney-detail-header-card" id="emoney-detail-header-card">
                 <div class="emoney-detail-top-row">
-                  <div class="emoney-detail-icon-wrap" id="emoney-detail-icon-wrap">
-                    <span id="emoney-detail-icon">📱</span>
-                  </div>
+                  <div class="emoney-detail-icon-wrap" id="emoney-detail-icon-box"></div>
                   <div class="emoney-detail-info">
-                    <h2 id="emoney-detail-name">PayPay</h2>
-                    <p class="emoney-detail-init-text">初期残高: <span id="emoney-detail-initial">0円</span></p>
+                    <div class="emoney-detail-name-row">
+                      <h2 id="emoney-detail-name">PayPay</h2>
+                      <span id="emoney-detail-default-badge" class="emoney-default-badge is-hidden">初期選択</span>
+                    </div>
+                    <p class="emoney-detail-init-text">初期残高: <span id="emoney-detail-initial-balance">0円</span></p>
                   </div>
-                  <div class="emoney-detail-badge-box" id="emoney-detail-default-badge"></div>
                 </div>
                 <div class="emoney-detail-balance-box">
                   <span class="emoney-detail-balance-label">現在残高</span>
-                  <strong id="emoney-detail-current-balance" class="emoney-detail-current-balance">0円</strong>
+                  <strong id="emoney-detail-balance" class="emoney-detail-current-balance">0円</strong>
                 </div>
                 <div class="emoney-detail-actions-row">
-                  <button id="emoney-detail-charge-btn" class="button button-primary" type="button">＋ チャージを登録</button>
+                  <button id="emoney-detail-charge-btn" class="button button-primary" type="button">＋ チャージ</button>
                   <button id="emoney-detail-adjust-btn" class="button button-secondary" type="button">残高調整</button>
                   <button id="emoney-detail-edit-btn" class="button button-ghost" type="button">編集</button>
                 </div>
               </div>
 
-              <div class="page-heading" style="margin-top: 18px;">
-                <p class="section-kicker">利用・チャージ・調整</p>
+              <div class="page-heading" style="margin-top: 14px;">
                 <h3>取引履歴</h3>
               </div>
               <div id="emoney-history-list" class="record-list emoney-transaction-list"></div>
@@ -1432,13 +1435,13 @@
       <form id="emoney-form" method="dialog" novalidate>
         <div class="dialog-sheet-handle" aria-hidden="true"></div>
         <div class="dialog-header">
-          <div><p class="section-kicker">決済サービス</p><h2 id="emoney-dialog-title">QR・電子マネーを追加</h2></div>
+          <div><h2 id="emoney-dialog-title">QR・電子マネーを追加</h2></div>
           <button class="dialog-close icon-button" type="button" data-close-dialog="emoney-dialog" aria-label="閉じる">×</button>
         </div>
         <input id="emoney-id" type="hidden" />
         <div class="form-grid">
           <label class="full-span">サービス名称<span class="required">必須</span>
-            <input id="emoney-name" type="text" maxlength="40" placeholder="例：PayPay、Suica、楽天ペイなど" required />
+            <input id="emoney-name" type="text" maxlength="40" placeholder="PayPay、Suica、楽天ペイなど" required />
             <small id="emoney-name-error" class="field-error"></small>
           </label>
           <label>初期残高
@@ -1446,27 +1449,25 @@
           </label>
           <label>アイコン
             <select id="emoney-icon">
-              <option value="qr">📱 QRコード・スマホ決済</option>
-              <option value="wallet">👛 お財布・電子マネー</option>
-              <option value="train">🚃 交通系（Suica/PASMO等）</option>
-              <option value="card">💳 タッチ決済（iD/QUICPay等）</option>
-              <option value="shop">🛒 ショップ系（WAON/nanaco等）</option>
-              <option value="point">🅿️ ポイント系（楽天/d払い等）</option>
-              <option value="star">⭐ その他</option>
+              <option value="qr">QRコード</option>
+              <option value="wallet">ウォレット</option>
+              <option value="train">交通系</option>
+              <option value="card">タッチ決済</option>
+              <option value="phone">スマホ</option>
+              <option value="shop">ショップ系</option>
+              <option value="star">その他</option>
             </select>
           </label>
-          <label class="full-span">テーマカラー
+          <label class="full-span">表示カラー
             <div class="color-picker-row">
-              <input id="emoney-color" type="color" value="#ff0033" />
+              <input id="emoney-color" type="color" value="#e60012" />
               <div class="preset-color-chips" id="emoney-color-presets">
-                <button type="button" class="color-chip" data-color="#ff0033" style="background: #ff0033;" title="PayPayレッド"></button>
-                <button type="button" class="color-chip" data-color="#009944" style="background: #009944;" title="Suicaグリーン"></button>
-                <button type="button" class="color-chip" data-color="#bf0000" style="background: #bf0000;" title="楽天クリムゾン"></button>
-                <button type="button" class="color-chip" data-color="#06c755" style="background: #06c755;" title="LINEグリーン"></button>
-                <button type="button" class="color-chip" data-color="#ff9900" style="background: #ff9900;" title="オレンジ"></button>
-                <button type="button" class="color-chip" data-color="#0088cc" style="background: #0088cc;" title="スカイブルー"></button>
-                <button type="button" class="color-chip" data-color="#6c5ce7" style="background: #6c5ce7;" title="パープル"></button>
-                <button type="button" class="color-chip" data-color="#2d3436" style="background: #2d3436;" title="ダーク"></button>
+                <button type="button" class="color-preset-chip" data-color="#e60012" style="background: #e60012;" title="レッド"></button>
+                <button type="button" class="color-preset-chip" data-color="#009944" style="background: #009944;" title="グリーン"></button>
+                <button type="button" class="color-preset-chip" data-color="#0088cc" style="background: #0088cc;" title="ブルー"></button>
+                <button type="button" class="color-preset-chip" data-color="#ff9900" style="background: #ff9900;" title="オレンジ"></button>
+                <button type="button" class="color-preset-chip" data-color="#6c5ce7" style="background: #6c5ce7;" title="パープル"></button>
+                <button type="button" class="color-preset-chip" data-color="#2d3436" style="background: #2d3436;" title="ダーク"></button>
               </div>
             </div>
           </label>
@@ -1475,7 +1476,6 @@
               <input id="emoney-is-default" type="checkbox" />
               <span class="withdrawal-toggle-text">支出登録時の初期選択にする</span>
             </label>
-            <p class="field-hint">※ ONにすると「＋」ボタンで支出を入力する際、この電子マネーが初期選択されます（1サービスのみ有効）。</p>
           </div>
         </div>
         <div class="dialog-actions">
@@ -1492,31 +1492,28 @@
       <form id="charge-form" method="dialog" novalidate>
         <div class="dialog-sheet-handle" aria-hidden="true"></div>
         <div class="dialog-header">
-          <div><p class="section-kicker">残高を増やす</p><h2 id="charge-dialog-title">チャージを登録</h2></div>
+          <div><h2 id="charge-dialog-title">チャージを登録</h2></div>
           <button class="dialog-close icon-button" type="button" data-close-dialog="charge-dialog" aria-label="閉じる">×</button>
         </div>
         <input id="charge-id" type="hidden" />
         <input id="charge-emoney-id" type="hidden" />
         <div class="form-grid">
-          <label class="full-span">チャージ先サービス
-            <input id="charge-emoney-name-display" type="text" readonly class="input-readonly" />
+          <label class="full-span">チャージ先
+            <input id="charge-target-service" type="text" readonly class="input-readonly" />
           </label>
-          <label class="field-large">チャージ金額<span class="required">必須</span>
+          <label class="field-large">金額<span class="required">必須</span>
             <div class="money-input"><span>¥</span><input id="charge-amount" type="text" inputmode="numeric" placeholder="0" required /></div>
             <small id="charge-amount-error" class="field-error"></small>
           </label>
           <label>チャージ日<span class="required">必須</span><input id="charge-date" type="date" required /></label>
           <label class="full-span">チャージ元<select id="charge-source"></select></label>
-          <div class="full-span info-callout-box">
-            <p class="info-callout-text">💡 <strong>二重計上防止の安心設計</strong>：チャージは「資金移動」として保存されるため、通常の支出・予算集計には二重計上されません。クレジットカードを選択した場合は、そのカードの口座引き落とし予定に自動で合算されます。</p>
-          </div>
-          <label class="full-span">メモ（任意）<textarea id="charge-memo" rows="2" maxlength="200" placeholder="例：ポイント還元、ボーナスチャージなど"></textarea></label>
+          <label class="full-span">メモ（任意）<textarea id="charge-memo" rows="2" maxlength="200" placeholder="メモを入力"></textarea></label>
         </div>
         <div class="dialog-actions">
           <button id="delete-charge-btn" class="button button-danger is-hidden" type="button">削除</button>
           <span class="action-spacer"></span>
           <button class="button button-secondary" type="button" data-close-dialog="charge-dialog">キャンセル</button>
-          <button class="button button-primary" type="submit">チャージを保存</button>
+          <button class="button button-primary" type="submit">保存する</button>
         </div>
       </form>
     </dialog>
@@ -1526,22 +1523,22 @@
       <form id="emoney-adjust-form" method="dialog" novalidate>
         <div class="dialog-sheet-handle" aria-hidden="true"></div>
         <div class="dialog-header">
-          <div><p class="section-kicker">残高のズレを修正</p><h2 id="adjust-dialog-title">残高調整</h2></div>
+          <div><h2 id="adjust-dialog-title">残高調整</h2></div>
           <button class="dialog-close icon-button" type="button" data-close-dialog="emoney-adjust-dialog" aria-label="閉じる">×</button>
         </div>
         <input id="adjust-id" type="hidden" />
         <input id="adjust-emoney-id" type="hidden" />
         <div class="form-grid">
-          <label class="full-span">現在の計算上残高
-            <input id="adjust-current-calc-balance" type="text" readonly class="input-readonly" />
+          <label class="full-span">現在の残高
+            <input id="adjust-current-balance-display" type="text" readonly class="input-readonly" />
           </label>
-          <label class="field-large">実際の残高を入力<span class="required">必須</span>
+          <label class="field-large">実際の残高<span class="required">必須</span>
             <div class="money-input"><span>¥</span><input id="adjust-target-balance" type="text" inputmode="numeric" placeholder="0" required /></div>
             <small id="adjust-target-error" class="field-error"></small>
           </label>
-          <p id="adjust-diff-preview" class="full-span field-hint" style="font-weight: 700; color: var(--accent);"></p>
+          <p id="adjust-diff-preview" class="full-span field-hint" style="font-weight: 700; color: var(--accent); margin: 0;"></p>
           <label>調整日<span class="required">必須</span><input id="adjust-date" type="date" required /></label>
-          <label class="full-span">メモ（任意）<textarea id="adjust-memo" rows="2" maxlength="200" placeholder="例：端数調整、ポイント加算など"></textarea></label>
+          <label class="full-span">メモ（任意）<textarea id="adjust-memo" rows="2" maxlength="200" placeholder="メモを入力"></textarea></label>
         </div>
         <div class="dialog-actions">
           <button class="button button-secondary" type="button" data-close-dialog="emoney-adjust-dialog">キャンセル</button>

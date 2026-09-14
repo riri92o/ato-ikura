@@ -238,13 +238,34 @@
   };
 
   const EMONEY_ICONS = {
-    qr: "📱",
-    wallet: "👛",
-    train: "🚃",
-    card: "💳",
-    shop: "🛒",
-    point: "🅿️",
-    star: "⭐",
+    qr: {
+      name: "QRコード",
+      svg: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="6" y="6" width="1" height="1" fill="currentColor"></rect><rect x="17" y="6" width="1" height="1" fill="currentColor"></rect><rect x="17" y="17" width="1" height="1" fill="currentColor"></rect><rect x="6" y="17" width="1" height="1" fill="currentColor"></rect></svg>`,
+    },
+    wallet: {
+      name: "ウォレット",
+      svg: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg>`,
+    },
+    train: {
+      name: "交通系",
+      svg: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="15" rx="3"></rect><path d="M4 11h16"></path><path d="M12 3v8"></path><circle cx="8" cy="15" r="1.5"></circle><circle cx="16" cy="15" r="1.5"></circle><path d="m6 19-2 2"></path><path d="m18 19 2 2"></path></svg>`,
+    },
+    card: {
+      name: "タッチ決済",
+      svg: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line><circle cx="6" cy="15" r="1"></circle></svg>`,
+    },
+    phone: {
+      name: "スマホ",
+      svg: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`,
+    },
+    shop: {
+      name: "ショップ系",
+      svg: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>`,
+    },
+    star: {
+      name: "その他",
+      svg: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
+    },
   };
 
   const DEFAULT_HOME_WIDGETS = [
@@ -1912,6 +1933,7 @@
     renderReport();
     renderCards();
     renderEmoneyList();
+    renderHomeEmoneySummary();
     renderSubscriptionsView();
     renderSettings();
   }
@@ -3170,21 +3192,20 @@
     const totalValEl = $("emoney-total-balance-val");
     const totalCountEl = $("emoney-total-services-count");
     const emptyStateEl = $("emoney-empty-state");
-    const listContainerEl = $("emoney-list-container");
     const listEl = $("emoney-services-list");
 
     const totalBal = getTotalEmoneyBalance();
     if (totalValEl) totalValEl.textContent = formatYen(totalBal);
-    if (totalCountEl) totalCountEl.textContent = `${(state.emoneys || []).length}件登録`;
+    if (totalCountEl) totalCountEl.textContent = `${(state.emoneys || []).length}件`;
 
     if (!state.emoneys || !state.emoneys.length) {
       if (emptyStateEl) emptyStateEl.classList.remove("is-hidden");
-      if (listContainerEl) listContainerEl.classList.add("is-hidden");
+      if (listEl) listEl.classList.add("is-hidden");
       return;
     }
 
     if (emptyStateEl) emptyStateEl.classList.add("is-hidden");
-    if (listContainerEl) listContainerEl.classList.remove("is-hidden");
+    if (listEl) listEl.classList.remove("is-hidden");
 
     if (!listEl) return;
 
@@ -3195,42 +3216,46 @@
       const card = createElement("article", "emoney-service-card");
       card.style.setProperty("--emoney-color", em.color || "#e60012");
 
-      const head = createElement("div", "emoney-card-head");
-      const brand = createElement("div", "emoney-card-brand");
+      const top = createElement("div", "emoney-service-top");
+      const brand = createElement("div", "emoney-service-brand");
       const iconBox = createElement("div", "emoney-icon-box");
+      iconBox.style.backgroundColor = em.color || "#e60012";
       iconBox.innerHTML = iconDef.svg;
-      const title = createElement("h3", "emoney-card-title", em.name);
-      brand.append(iconBox, title);
+
+      const nameCol = createElement("div", "emoney-name-col");
+      const title = createElement("h3", "emoney-service-name", em.name);
+      nameCol.append(title);
 
       if (em.isDefault) {
-        brand.append(createElement("span", "emoney-default-badge", "★ 初期選択"));
+        nameCol.append(createElement("span", "emoney-default-badge", "初期選択"));
       }
-      head.append(brand);
+      brand.append(iconBox, nameCol);
 
-      const balBlock = createElement("div", "emoney-balance-block");
-      balBlock.append(
+      const balBox = createElement("div", "emoney-balance-box");
+      balBox.append(
         createElement("span", "emoney-balance-label", "現在残高"),
-        createElement("strong", `emoney-balance-val${balance < 0 ? " is-negative" : ""}`, formatYen(balance))
+        createElement("strong", `emoney-current-balance${balance < 0 ? " is-negative" : ""}`, formatYen(balance))
       );
+      top.append(brand, balBox);
 
-      const actions = createElement("div", "emoney-card-actions");
-      const chargeBtn = createElement("button", "small-button button-primary", "＋ チャージ");
+      const actions = createElement("div", "emoney-service-actions");
+      const chargeBtn = createElement("button", "button button-primary emoney-charge-action-btn", "＋ チャージ");
       chargeBtn.type = "button";
       chargeBtn.addEventListener("click", () => openChargeDialog(em.id));
 
-      const histBtn = createElement("button", "small-button", "履歴");
+      const histBtn = createElement("button", "button button-secondary emoney-history-action-btn", "履歴");
       histBtn.type = "button";
       histBtn.addEventListener("click", () => {
         renderEmoneyDetail(em.id);
         switchEmoneySubView("history");
       });
 
-      const editBtn = createElement("button", "small-button", "編集");
+      const editBtn = createElement("button", "button button-ghost emoney-icon-btn", "編集");
       editBtn.type = "button";
       editBtn.addEventListener("click", () => openEmoneyDialog(em));
 
       actions.append(chargeBtn, histBtn, editBtn);
-      card.append(head, balBlock, actions);
+      card.append(top, actions);
       return card;
     });
 
@@ -3252,8 +3277,8 @@
     const iconEl = $("emoney-detail-icon-box");
     if (iconEl) {
       iconEl.innerHTML = iconDef.svg;
-      iconEl.style.backgroundColor = colorWithAlpha(em.color || "#e60012", 0.12);
-      iconEl.style.color = em.color || "#e60012";
+      iconEl.style.backgroundColor = em.color || "#e60012";
+      iconEl.style.color = "#ffffff";
     }
 
     const nameEl = $("emoney-detail-name");
@@ -3334,40 +3359,41 @@
     }
 
     const rowEls = items.map((item) => {
-      const row = createElement("button", "emoney-tx-item");
-      row.type = "button";
+      const row = createElement("div", "emoney-tx-item");
 
       const left = createElement("div", "emoney-tx-left");
-      const dateEl = createElement("span", "emoney-tx-date", formatDate(item.date, { month: "numeric", day: "numeric", weekday: "short" }));
-      left.append(dateEl);
+      
+      let badgeClass = "emoney-tx-badge";
+      let badgeSvg = "";
+      if (item.type === "charge") {
+        badgeClass += " is-charge";
+        badgeSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 11 12 6 7 11"></polyline><line x1="12" y1="18" x2="12" y2="6"></line></svg>';
+      } else if (item.type === "adjustment") {
+        badgeClass += " is-adjust";
+        badgeSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line><circle cx="9" cy="8" r="2" fill="currentColor"></circle><circle cx="15" cy="16" r="2" fill="currentColor"></circle></svg>';
+      } else {
+        badgeClass += " is-expense";
+        badgeSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>';
+      }
+      const badgeEl = createElement("div", badgeClass);
+      badgeEl.innerHTML = badgeSvg;
 
-      const titleRow = createElement("div", "emoney-tx-title-row");
+      const info = createElement("div", "emoney-tx-info");
       const titleEl = createElement("strong", "emoney-tx-title", item.title);
-      titleRow.append(titleEl);
+      const sub = createElement("div", "emoney-tx-sub");
+      sub.append(createElement("span", "", formatDate(item.date, { month: "numeric", day: "numeric", weekday: "short" })));
 
       if (item.type === "charge") {
-        const iconSpan = createElement("span", "emoney-tx-icon", "⚡");
-        left.append(iconSpan);
-        titleRow.append(
-          createElement("span", "transfer-badge", "資金移動"),
-          createElement("span", "badge-no-expense", "支出に含めない")
-        );
-        if (item.memo) {
-          titleRow.append(createElement("small", "emoney-tx-memo", `（${item.memo}）`));
-        }
+        sub.append(createElement("span", "transfer-badge", "資金移動"));
+        if (item.memo) sub.append(createElement("span", "", `（${item.memo}）`));
       } else if (item.type === "adjustment") {
-        const iconSpan = createElement("span", "emoney-tx-icon", "⚖️");
-        left.append(iconSpan);
-        titleRow.append(createElement("span", "badge-adjust", "残高調整"));
-        if (item.memo) {
-          titleRow.append(createElement("small", "emoney-tx-memo", `（${item.memo}）`));
-        }
+        sub.append(createElement("span", "transfer-badge", "残高調整"));
+        if (item.memo) sub.append(createElement("span", "", `（${item.memo}）`));
       } else {
-        const iconSpan = createElement("span", "emoney-tx-icon", CATEGORY_ICONS[item.category] || "🛍️");
-        left.append(iconSpan);
-        titleRow.append(createElement("span", "badge-expense", item.category));
+        sub.append(createElement("span", "", item.category));
       }
-      left.append(titleRow);
+      info.append(titleEl, sub);
+      left.append(badgeEl, info);
 
       const right = createElement("div", "emoney-tx-right");
       let amtText = "";
@@ -3385,11 +3411,19 @@
         isMinus = true;
       }
 
-      const amtEl = createElement("strong", `emoney-tx-amount${isPlus ? " is-positive" : ""}${isMinus ? " is-negative" : ""}`, amtText);
-      const arrow = createElement("span", "emoney-tx-arrow", "›");
-      right.append(amtEl, arrow);
+      const amtEl = createElement("strong", `emoney-tx-amount${isPlus ? " is-plus" : ""}${isMinus ? " is-minus" : ""}`, amtText);
+      const actionsEl = createElement("div", "emoney-tx-actions");
+      const editLink = createElement("button", "emoney-tx-action-link", item.type === "adjustment" ? "削除" : "詳細");
+      editLink.type = "button";
+      editLink.addEventListener("click", (e) => {
+        e.stopPropagation();
+        item.onClick();
+      });
+      actionsEl.append(editLink);
+      right.append(amtEl, actionsEl);
 
       row.append(left, right);
+      row.style.cursor = "pointer";
       row.addEventListener("click", item.onClick);
       return row;
     });
@@ -3422,6 +3456,7 @@
       chip.style.setProperty("--emoney-chip-color", em.color || "#e60012");
 
       const iconBox = createElement("span", "emoney-mini-chip-icon");
+      iconBox.style.backgroundColor = em.color || "#e60012";
       iconBox.innerHTML = iconDef.svg;
 
       const name = createElement("span", "emoney-mini-chip-name", em.name);

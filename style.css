@@ -6444,6 +6444,11 @@ body.is-widget-dragging {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
+.emoney-icon-box svg {
+  width: 24px;
+  height: 24px;
+}
+
 .emoney-name-col {
   display: flex;
   flex-direction: column;
@@ -6555,6 +6560,11 @@ body.is-widget-dragging {
   color: #ffffff;
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.emoney-detail-icon-wrap svg {
+  width: 28px;
+  height: 28px;
 }
 
 .emoney-detail-info {
@@ -6781,14 +6791,44 @@ body.is-widget-dragging {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 5px 11px;
   border-radius: var(--radius-pill);
   background: var(--surface-soft);
   border: 1px solid var(--border);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 750;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.emoney-mini-chip-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.emoney-mini-chip-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.emoney-mini-chip-name {
+  font-weight: 750;
+  color: var(--text);
+}
+
+.emoney-mini-chip-bal {
+  font-weight: 850;
+  color: var(--text);
+}
+
+.emoney-mini-chip-bal.is-negative {
+  color: var(--danger, #e60012);
 }
 
 .emoney-chip-dot {
@@ -6825,11 +6865,50 @@ body.is-widget-dragging {
   border-style: dashed !important;
 }
 
+/* カラーピッカー & プリセット */
+.color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-picker-row input[type="color"] {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  background: transparent;
+  flex-shrink: 0;
+}
+
 .preset-color-chips {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.color-preset-chip {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.color-preset-chip:hover {
+  transform: scale(1.15);
+}
+
+.color-preset-chip.is-active {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  transform: scale(1.1);
 }
 
 .color-chip {
