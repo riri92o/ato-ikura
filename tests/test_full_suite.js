@@ -495,6 +495,13 @@ if (payEmoneyTab) {
   }
 }
 
+// 5. Test Emoney History Dialog existence & elements
+const emoneyHistDialog = document.getElementById("emoney-history-dialog");
+if (!emoneyHistDialog) {
+  throw new Error("emoney-history-dialog element missing!");
+}
+
 print("All view, dialog, subscription, home widget, and QR / e-money integration tests passed successfully!");
+
 
 

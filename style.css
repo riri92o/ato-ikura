@@ -6530,17 +6530,51 @@ body.is-widget-dragging {
   color: var(--text-muted);
 }
 
-/* 詳細・履歴ヘッダーカード */
-.emoney-detail-header-card {
-  padding: 20px;
-  border-radius: 22px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-  margin-top: 8px;
+.emoney-empty-inline {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.emoney-empty-inline p {
+  margin: 0;
+}
+
+/* 取引履歴モーダルダイアログ */
+.emoney-history-dialog-body {
+  padding: 0 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  max-height: 72dvh;
+  overflow-y: auto;
+}
+
+.emoney-history-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.emoney-history-section-header h3 {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+/* 詳細・履歴ヘッダーカード */
+.emoney-detail-header-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .emoney-detail-top-row {

@@ -775,25 +775,11 @@
     // QR・電子マネー 操作
     const addEmoneyBtn = $("add-emoney-button");
     if (addEmoneyBtn) addEmoneyBtn.addEventListener("click", () => openEmoneyDialog());
-    const emptyAddEmoneyBtn = $("emoney-empty-add-btn");
-    if (emptyAddEmoneyBtn) emptyAddEmoneyBtn.addEventListener("click", () => openEmoneyDialog());
-    const backToEmoneyBtn = $("back-to-emoney-btn");
-    if (backToEmoneyBtn) backToEmoneyBtn.addEventListener("click", () => {
-      switchEmoneySubView("main");
-      renderEmoneyList();
-    });
 
     const emoneyDetailChargeBtn = $("emoney-detail-charge-btn");
     if (emoneyDetailChargeBtn) emoneyDetailChargeBtn.addEventListener("click", () => openChargeDialog(selectedDetailEmoneyId));
     const emoneyDetailAdjustBtn = $("emoney-detail-adjust-btn");
     if (emoneyDetailAdjustBtn) emoneyDetailAdjustBtn.addEventListener("click", () => openEmoneyAdjustDialog(selectedDetailEmoneyId));
-    const emoneyDetailEditBtn = $("emoney-detail-edit-btn");
-    if (emoneyDetailEditBtn) {
-      emoneyDetailEditBtn.addEventListener("click", () => {
-        const em = state.emoneys.find((e) => e.id === selectedDetailEmoneyId);
-        if (em) openEmoneyDialog(em);
-      });
-    }
 
     const emoneyForm = $("emoney-form");
     if (emoneyForm) emoneyForm.addEventListener("submit", saveEmoneyFromForm);
@@ -1920,7 +1906,6 @@
       switchCardSubView("main");
       renderCards();
     } else if (subview === "emoney") {
-      switchEmoneySubView("main");
       renderEmoneyList();
     } else {
       renderSubscriptionsView();
@@ -3181,13 +3166,6 @@
     return (state.emoneys || []).reduce((total, em) => total + getEmoneyBalance(em.id), 0);
   }
 
-  function switchEmoneySubView(subview) {
-    const mainView = $("emoney-main-subview");
-    const histView = $("emoney-history-subview");
-    if (mainView) mainView.classList.toggle("is-active", subview === "main");
-    if (histView) histView.classList.toggle("is-active", subview === "history");
-  }
-
   function renderEmoneyList() {
     const totalValEl = $("emoney-total-balance-val");
     const totalCountEl = $("emoney-total-services-count");
@@ -3245,10 +3223,7 @@
 
       const histBtn = createElement("button", "button button-secondary emoney-history-action-btn", "履歴");
       histBtn.type = "button";
-      histBtn.addEventListener("click", () => {
-        renderEmoneyDetail(em.id);
-        switchEmoneySubView("history");
-      });
+      histBtn.addEventListener("click", () => openEmoneyHistoryDialog(em.id));
 
       const editBtn = createElement("button", "button button-ghost emoney-icon-btn", "編集");
       editBtn.type = "button";
@@ -3262,14 +3237,25 @@
     listEl.replaceChildren(...cards);
   }
 
+  function openEmoneyHistoryDialog(emoneyId) {
+    selectedDetailEmoneyId = emoneyId;
+    const em = (state.emoneys || []).find((e) => e.id === emoneyId);
+    if (!em) return;
+    renderEmoneyDetail(emoneyId);
+    showDialog($("emoney-history-dialog"));
+  }
+
   function renderEmoneyDetail(emoneyId) {
     selectedDetailEmoneyId = emoneyId;
     const em = (state.emoneys || []).find((e) => e.id === emoneyId);
     if (!em) {
-      switchEmoneySubView("main");
+      closeDialog($("emoney-history-dialog"));
       renderEmoneyList();
       return;
     }
+
+    const titleEl = $("emoney-history-dialog-title");
+    if (titleEl) titleEl.textContent = `${em.name}の取引履歴`;
 
     const iconDef = EMONEY_ICONS[em.icon] || EMONEY_ICONS.qr;
     const currentBal = getEmoneyBalance(em.id);
@@ -3319,16 +3305,17 @@
           isCard: Boolean(card),
           onClick: () => openChargeDialog(em.id, tx.id),
         });
-      } else if (tx.type === "adjustment") {
-        const diff = Number(tx.diff || 0);
+      } else if (tx.type === "adjustment" || tx.type === "adjust") {
+        const diff = tx.diff !== undefined ? Number(tx.diff) : Number(tx.amount || 0);
+        const targetBal = tx.targetBalance !== undefined ? Number(tx.targetBalance) : (currentBal);
         items.push({
           type: "adjustment",
           id: tx.id,
           date: tx.date,
           createdAt: tx.createdAt || tx.date,
           diff: diff,
-          targetBalance: Number(tx.targetBalance || 0),
-          title: `残高調整（${formatYen(tx.targetBalance)}に修正）`,
+          targetBalance: targetBal,
+          title: `残高調整（${diff >= 0 ? "+" : ""}${formatYen(diff)}）`,
           memo: tx.memo || "",
           onClick: () => deleteEmoneyTransaction(tx.id),
         });
@@ -3560,8 +3547,7 @@
 
     saveState();
     closeDialog($("emoney-dialog"));
-    closeDialog($("subscription-detail-dialog"));
-    switchEmoneySubView("main");
+    closeDialog($("emoney-history-dialog"));
     renderAll();
     showToast(`「${em.name}」を削除しました。`);
   }

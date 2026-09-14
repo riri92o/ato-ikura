@@ -375,68 +375,31 @@
 
           <!-- サブビュー2: QR・電子マネー管理 -->
           <div id="emoney-payment-subview" class="payments-subview">
-            <div id="emoney-main-subview" class="emoney-subview is-active">
-              <div class="page-heading-row">
-                <div class="page-heading"><h2 id="emoney-title">QR・電子マネー</h2></div>
-                <button id="add-emoney-button" class="button button-primary" type="button">＋ 追加</button>
-              </div>
+            <div class="page-heading-row">
+              <div class="page-heading"><h2 id="emoney-title">QR・電子マネー</h2></div>
+              <button id="add-emoney-button" class="button button-primary" type="button">＋ 追加</button>
+            </div>
 
-              <!-- 合計残高サマリーカード -->
-              <div class="emoney-summary-card">
-                <div class="emoney-summary-left">
-                  <span class="emoney-summary-kicker">合計残高</span>
-                  <div class="emoney-summary-amount-row">
-                    <strong id="emoney-total-balance-val" class="emoney-summary-total">0円</strong>
-                  </div>
-                </div>
-                <div class="emoney-summary-right">
-                  <span class="emoney-stat-label">登録数</span>
-                  <strong id="emoney-total-services-count" class="emoney-stat-value">0件</strong>
+            <!-- 合計残高サマリーカード -->
+            <div class="emoney-summary-card">
+              <div class="emoney-summary-left">
+                <span class="emoney-summary-kicker">合計残高</span>
+                <div class="emoney-summary-amount-row">
+                  <strong id="emoney-total-balance-val" class="emoney-summary-total">0円</strong>
                 </div>
               </div>
-
-              <!-- サービス一覧 -->
-              <div id="emoney-services-list" class="emoney-card-list"></div>
-
-              <!-- 未登録・空状態 -->
-              <div id="emoney-empty-state" class="sub-empty-card is-hidden">
-                <div class="sub-empty-icon">
-                  <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                </div>
-                <h3>QR・電子マネーの残高管理</h3>
-                <button id="emoney-empty-add-btn" class="button button-primary" type="button">＋ サービスを追加</button>
+              <div class="emoney-summary-right">
+                <span class="emoney-stat-label">登録数</span>
+                <strong id="emoney-total-services-count" class="emoney-stat-value">0件</strong>
               </div>
             </div>
 
-            <!-- QR・電子マネー詳細・取引履歴サブビュー -->
-            <div id="emoney-history-subview" class="emoney-subview">
-              <button id="back-to-emoney-btn" class="back-link-btn" type="button">‹ 一覧に戻る</button>
-              <div class="emoney-detail-header-card" id="emoney-detail-header-card">
-                <div class="emoney-detail-top-row">
-                  <div class="emoney-detail-icon-wrap" id="emoney-detail-icon-box"></div>
-                  <div class="emoney-detail-info">
-                    <div class="emoney-detail-name-row">
-                      <h2 id="emoney-detail-name">PayPay</h2>
-                      <span id="emoney-detail-default-badge" class="emoney-default-badge is-hidden">初期選択</span>
-                    </div>
-                    <p class="emoney-detail-init-text">初期残高: <span id="emoney-detail-initial-balance">0円</span></p>
-                  </div>
-                </div>
-                <div class="emoney-detail-balance-box">
-                  <span class="emoney-detail-balance-label">現在残高</span>
-                  <strong id="emoney-detail-balance" class="emoney-detail-current-balance">0円</strong>
-                </div>
-                <div class="emoney-detail-actions-row">
-                  <button id="emoney-detail-charge-btn" class="button button-primary" type="button">＋ チャージ</button>
-                  <button id="emoney-detail-adjust-btn" class="button button-secondary" type="button">残高調整</button>
-                  <button id="emoney-detail-edit-btn" class="button button-ghost" type="button">編集</button>
-                </div>
-              </div>
+            <!-- サービス一覧 -->
+            <div id="emoney-services-list" class="emoney-card-list"></div>
 
-              <div class="page-heading" style="margin-top: 14px;">
-                <h3>取引履歴</h3>
-              </div>
-              <div id="emoney-history-list" class="record-list emoney-transaction-list"></div>
+            <!-- 未登録・空状態 -->
+            <div id="emoney-empty-state" class="emoney-empty-inline is-hidden">
+              <p>登録されているQR・電子マネーはありません。「＋ 追加」から登録できます。</p>
             </div>
           </div>
 
@@ -1441,7 +1404,7 @@
         <input id="emoney-id" type="hidden" />
         <div class="form-grid">
           <label class="full-span">サービス名称<span class="required">必須</span>
-            <input id="emoney-name" type="text" maxlength="40" placeholder="PayPay、Suica、楽天ペイなど" required />
+            <input id="emoney-name" type="text" maxlength="40" placeholder="例: 〇〇Pay、交通系ICなど" required />
             <small id="emoney-name-error" class="field-error"></small>
           </label>
           <label>初期残高
@@ -1545,6 +1508,42 @@
           <button class="button button-primary" type="submit">残高を合わせる</button>
         </div>
       </form>
+    </dialog>
+
+    <!-- QR・電子マネー詳細・取引履歴モーダルダイアログ -->
+    <dialog id="emoney-history-dialog" class="app-dialog bottom-sheet-dialog">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header">
+        <div><h2 id="emoney-history-dialog-title">取引履歴</h2></div>
+        <button class="dialog-close icon-button" type="button" data-close-dialog="emoney-history-dialog" aria-label="閉じる">×</button>
+      </div>
+      <div class="emoney-history-dialog-body">
+        <div class="emoney-detail-header-card" id="emoney-detail-header-card">
+          <div class="emoney-detail-top-row">
+            <div class="emoney-detail-icon-wrap" id="emoney-detail-icon-box"></div>
+            <div class="emoney-detail-info">
+              <div class="emoney-detail-name-row">
+                <h2 id="emoney-detail-name"></h2>
+                <span id="emoney-detail-default-badge" class="emoney-default-badge is-hidden">初期選択</span>
+              </div>
+              <p class="emoney-detail-init-text">初期残高: <span id="emoney-detail-initial-balance">0円</span></p>
+            </div>
+          </div>
+          <div class="emoney-detail-balance-box">
+            <span class="emoney-detail-balance-label">現在残高</span>
+            <strong id="emoney-detail-balance" class="emoney-detail-current-balance">0円</strong>
+          </div>
+          <div class="emoney-detail-actions-row">
+            <button id="emoney-detail-charge-btn" class="button button-primary" type="button">＋ チャージ</button>
+            <button id="emoney-detail-adjust-btn" class="button button-secondary" type="button">残高調整</button>
+          </div>
+        </div>
+
+        <div class="emoney-history-section-header">
+          <h3>明細一覧</h3>
+        </div>
+        <div id="emoney-history-list" class="record-list emoney-transaction-list"></div>
+      </div>
     </dialog>
 
     <!-- ホーム画面ウィジェット管理ダイアログ -->
