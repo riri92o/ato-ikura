@@ -237,12 +237,23 @@
     other: { name: "その他", svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>` },
   };
 
+  const EMONEY_ICONS = {
+    qr: "📱",
+    wallet: "👛",
+    train: "🚃",
+    card: "💳",
+    shop: "🛒",
+    point: "🅿️",
+    star: "⭐",
+  };
+
   const DEFAULT_HOME_WIDGETS = [
     { id: "budget-summary", name: "予算・残額サマリー", enabled: true },
     { id: "budget-gauge", name: "予算進捗ゲージ", enabled: true },
     { id: "smart-advisor", name: "スマートアドバイザー", enabled: true },
     { id: "breakdown", name: "出金・カード内訳", enabled: true },
     { id: "calendar", name: "月間カレンダー", enabled: true },
+    { id: "emoney-summary", name: "QR・電子マネー残高", enabled: true },
     { id: "balance-outlook", name: "口座残高・見通し", enabled: false },
     { id: "upcoming-withdrawals", name: "直近のカード引落予定", enabled: false },
     { id: "category-top3", name: "今月の支出TOP3", enabled: false },
@@ -259,6 +270,7 @@
   let subscriptionMonth = currentMonth;
   let currentView = "calendar";
   let currentPaymentsSubview = "cards";
+  let selectedDetailEmoneyId = "";
   let subscriptionScope = "month";
   let subscriptionFilterPay = "all";
   let subscriptionFilterType = "all";
@@ -330,6 +342,8 @@
       cards: [],
       manualPayments: [],
       subscriptions: [],
+      emoneys: [],
+      emoneyTransactions: [],
       favorites: defaultFavorites(),
       budgets: {},
       settings: {
@@ -381,6 +395,7 @@
         category: CATEGORIES.includes(item.category) ? item.category : "その他",
         paymentMethod: PAYMENT_METHODS.includes(item.paymentMethod) ? item.paymentMethod : "その他",
         cardId: typeof item.cardId === "string" ? item.cardId : "",
+        emoneyId: typeof item.emoneyId === "string" ? item.emoneyId : "",
         includeInWithdrawal: item.includeInWithdrawal !== false,
         paymentDateOverride: Core.parseDateKey(item.paymentDateOverride) ? item.paymentDateOverride : "",
         calculatedPaymentDate: Core.parseDateKey(item.calculatedPaymentDate) ? item.calculatedPaymentDate : "",
@@ -404,6 +419,49 @@
         createdAt: String(item.createdAt || new Date().toISOString()),
         isSample: Boolean(item.isSample),
       }));
+
+    if (Array.isArray(input.emoneys)) {
+      let defaultAssigned = false;
+      clean.emoneys = input.emoneys
+        .filter((item) => item && typeof item === "object" && String(item.name || "").trim())
+        .map((item) => {
+          const isDef = Boolean(item.isDefault);
+          const keepDefault = isDef && !defaultAssigned;
+          if (keepDefault) defaultAssigned = true;
+          return {
+            id: String(item.id || uid("emoney")),
+            name: String(item.name).trim().slice(0, 40),
+            initialBalance: Core.normalizeAmount(item.initialBalance),
+            color: /^#[0-9a-f]{6}$/i.test(item.color || "") ? item.color : "#ff0033",
+            icon: EMONEY_ICONS[item.icon] ? item.icon : "qr",
+            isDefault: keepDefault,
+            createdAt: String(item.createdAt || new Date().toISOString()),
+            updatedAt: String(item.updatedAt || item.createdAt || new Date().toISOString()),
+            isSample: Boolean(item.isSample),
+          };
+        });
+    } else {
+      clean.emoneys = [];
+    }
+
+    if (Array.isArray(input.emoneyTransactions)) {
+      clean.emoneyTransactions = input.emoneyTransactions
+        .filter((item) => item && typeof item === "object" && Core.parseDateKey(item.date) && Math.abs(Number(item.amount) || 0) > 0)
+        .map((item) => ({
+          id: String(item.id || uid("emoney_tx")),
+          emoneyId: String(item.emoneyId || ""),
+          type: ["charge", "adjust"].includes(item.type) ? item.type : "charge",
+          amount: item.type === "adjust" ? (Number(item.amount) || 0) : Core.normalizeAmount(item.amount),
+          date: item.date,
+          sourceType: ["cash", "card", "bank", "other"].includes(item.sourceType) ? item.sourceType : "cash",
+          cardId: typeof item.cardId === "string" ? item.cardId : "",
+          memo: String(item.memo || "").slice(0, 200),
+          createdAt: String(item.createdAt || new Date().toISOString()),
+          isSample: Boolean(item.isSample),
+        }));
+    } else {
+      clean.emoneyTransactions = [];
+    }
 
     if (Array.isArray(input.subscriptions)) {
       clean.subscriptions = input.subscriptions
@@ -685,11 +743,77 @@
       switchSettingsSubView("balance");
     });
 
-    // 支払い画面（カード / 固定費・サブスク）切り替え
+    // 支払い画面（カード / QR・電子マネー / 固定費・サブスク）切り替え
     const payTabCards = $("payments-tab-cards");
     if (payTabCards) payTabCards.addEventListener("click", () => switchPaymentsSubview("cards"));
+    const payTabEmoney = $("payments-tab-emoney");
+    if (payTabEmoney) payTabEmoney.addEventListener("click", () => switchPaymentsSubview("emoney"));
     const payTabSubs = $("payments-tab-subscriptions");
     if (payTabSubs) payTabSubs.addEventListener("click", () => switchPaymentsSubview("subscriptions"));
+
+    // QR・電子マネー 操作
+    const addEmoneyBtn = $("add-emoney-button");
+    if (addEmoneyBtn) addEmoneyBtn.addEventListener("click", () => openEmoneyDialog());
+    const emptyAddEmoneyBtn = $("emoney-empty-add-btn");
+    if (emptyAddEmoneyBtn) emptyAddEmoneyBtn.addEventListener("click", () => openEmoneyDialog());
+    const backToEmoneyBtn = $("back-to-emoney-btn");
+    if (backToEmoneyBtn) backToEmoneyBtn.addEventListener("click", () => {
+      switchEmoneySubView("main");
+      renderEmoneyList();
+    });
+
+    const emoneyDetailChargeBtn = $("emoney-detail-charge-btn");
+    if (emoneyDetailChargeBtn) emoneyDetailChargeBtn.addEventListener("click", () => openChargeDialog(selectedDetailEmoneyId));
+    const emoneyDetailAdjustBtn = $("emoney-detail-adjust-btn");
+    if (emoneyDetailAdjustBtn) emoneyDetailAdjustBtn.addEventListener("click", () => openEmoneyAdjustDialog(selectedDetailEmoneyId));
+    const emoneyDetailEditBtn = $("emoney-detail-edit-btn");
+    if (emoneyDetailEditBtn) {
+      emoneyDetailEditBtn.addEventListener("click", () => {
+        const em = state.emoneys.find((e) => e.id === selectedDetailEmoneyId);
+        if (em) openEmoneyDialog(em);
+      });
+    }
+
+    const emoneyForm = $("emoney-form");
+    if (emoneyForm) emoneyForm.addEventListener("submit", saveEmoneyFromForm);
+    const deleteEmoneyBtn = $("delete-emoney-btn");
+    if (deleteEmoneyBtn) deleteEmoneyBtn.addEventListener("click", deleteCurrentEmoney);
+    const emoneyInitialBal = $("emoney-initial-balance");
+    if (emoneyInitialBal) emoneyInitialBal.addEventListener("blur", formatMoneyInput);
+
+    const chargeForm = $("charge-form");
+    if (chargeForm) chargeForm.addEventListener("submit", saveChargeFromForm);
+    const deleteChargeBtn = $("delete-charge-btn");
+    if (deleteChargeBtn) deleteChargeBtn.addEventListener("click", deleteCurrentCharge);
+    const chargeAmtInput = $("charge-amount");
+    if (chargeAmtInput) chargeAmtInput.addEventListener("blur", formatMoneyInput);
+
+    const adjustForm = $("emoney-adjust-form");
+    if (adjustForm) adjustForm.addEventListener("submit", saveEmoneyAdjustFromForm);
+    const adjustTargetInput = $("adjust-target-balance");
+    if (adjustTargetInput) {
+      adjustTargetInput.addEventListener("blur", formatMoneyInput);
+      adjustTargetInput.addEventListener("input", updateAdjustDiffPreview);
+    }
+
+    document.querySelectorAll("#emoney-color-presets .color-preset-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const color = chip.dataset.color;
+        const input = $("emoney-color");
+        if (input) input.value = color;
+        document.querySelectorAll("#emoney-color-presets .color-preset-chip").forEach((c) => {
+          c.classList.toggle("is-active", c.dataset.color === color);
+        });
+      });
+    });
+
+    const homeEmoneyWidget = $("home-emoney-widget-card");
+    if (homeEmoneyWidget) {
+      homeEmoneyWidget.addEventListener("click", () => {
+        switchView("cards");
+        switchPaymentsSubview("emoney");
+      });
+    }
 
     // 固定費・サブスク ツールバー＆フィルター
     const subPrev = $("sub-prev-month");
@@ -780,6 +904,12 @@
     if (closeManualBtn) closeManualBtn.addEventListener("click", () => closeDialog($("manual-payment-dialog")));
     const closeBudgetBtn = $("close-budget-dialog");
     if (closeBudgetBtn) closeBudgetBtn.addEventListener("click", () => closeDialog($("budget-dialog")));
+    const closeEmoneyBtn = $("close-emoney-dialog");
+    if (closeEmoneyBtn) closeEmoneyBtn.addEventListener("click", () => closeDialog($("emoney-dialog")));
+    const closeChargeBtn = $("close-charge-dialog");
+    if (closeChargeBtn) closeChargeBtn.addEventListener("click", () => closeDialog($("charge-dialog")));
+    const closeAdjustBtn = $("close-emoney-adjust-dialog");
+    if (closeAdjustBtn) closeAdjustBtn.addEventListener("click", () => closeDialog($("emoney-adjust-dialog")));
 
     document.querySelectorAll(".app-dialog").forEach((dialog) => {
       dialog.addEventListener("click", (event) => {
@@ -794,7 +924,7 @@
     $("setting-reserve").addEventListener("blur", formatMoneyInput);
     $("expense-payment").addEventListener("change", () => {
       updateExpensePaymentFields();
-      if ($("expense-payment").value === Core.CREDIT_PAYMENT) {
+      if ($("expense-payment").value === Core.CREDIT_PAYMENT || $("expense-payment").value === "QR・電子マネー") {
         const accordion = $("expense-details-accordion");
         if (accordion) accordion.open = true;
       }
@@ -1739,27 +1869,38 @@
   }
 
   function switchPaymentsSubview(subview) {
-    if (!["cards", "subscriptions"].includes(subview)) return;
+    if (!["cards", "emoney", "subscriptions"].includes(subview)) return;
     currentPaymentsSubview = subview;
     const cardsTab = $("payments-tab-cards");
+    const emoneyTab = $("payments-tab-emoney");
     const subTab = $("payments-tab-subscriptions");
     const cardsView = $("cards-payment-subview");
+    const emoneyView = $("emoney-payment-subview");
     const subView = $("subscriptions-payment-subview");
 
     if (cardsTab) {
       cardsTab.classList.toggle("is-active", subview === "cards");
       cardsTab.setAttribute("aria-selected", subview === "cards" ? "true" : "false");
     }
+    if (emoneyTab) {
+      emoneyTab.classList.toggle("is-active", subview === "emoney");
+      emoneyTab.setAttribute("aria-selected", subview === "emoney" ? "true" : "false");
+    }
     if (subTab) {
       subTab.classList.toggle("is-active", subview === "subscriptions");
       subTab.setAttribute("aria-selected", subview === "subscriptions" ? "true" : "false");
     }
+
     if (cardsView) cardsView.classList.toggle("is-active", subview === "cards");
+    if (emoneyView) emoneyView.classList.toggle("is-active", subview === "emoney");
     if (subView) subView.classList.toggle("is-active", subview === "subscriptions");
 
     if (subview === "cards") {
       switchCardSubView("main");
       renderCards();
+    } else if (subview === "emoney") {
+      switchEmoneySubView("main");
+      renderEmoneyList();
     } else {
       renderSubscriptionsView();
     }
@@ -1770,6 +1911,7 @@
     renderHistory();
     renderReport();
     renderCards();
+    renderEmoneyList();
     renderSubscriptionsView();
     renderSettings();
   }
@@ -1914,6 +2056,8 @@
         renderHomeCategoryTop3();
       } else if (w.id === "weekly-summary") {
         renderHomeWeeklySummary();
+      } else if (w.id === "emoney-summary") {
+        renderHomeEmoneySummary();
       }
     });
   }
@@ -1921,7 +2065,7 @@
   function renderHomeBalanceOutlook() {
     const current = state.settings.currentBalance;
     const reserve = state.settings.minimumReserve;
-    const upcoming = Core.getUpcomingCardTotal(Core.todayKey(), 30, state.expenses, state.cards, state.manualPayments, state.subscriptions);
+    const upcoming = Core.getUpcomingCardTotal(Core.todayKey(), 30, state.expenses, state.cards, state.manualPayments, state.subscriptions, state.emoneyTransactions);
 
     const elCurrent = $("home-balance-current");
     const elUpcoming = $("home-balance-upcoming");
@@ -1946,7 +2090,7 @@
 
     const today = Core.todayKey();
     const next30 = Core.addDays(today, 30);
-    const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments, state.subscriptions);
+    const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments, state.subscriptions, undefined, state.emoneyTransactions);
 
     const withdrawalDays = [];
     dailyTotals.forEach((val, dateKey) => {
@@ -1987,7 +2131,7 @@
 
     const monthKey = currentMonth.slice(0, 7);
     const cycleDay = state.settings.cycleStartDay || 1;
-    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions, state.emoneyTransactions);
     const entries = Object.entries(summary.categories).sort((a, b) => b[1] - a[1]);
 
     if (!entries.length) {
@@ -2209,7 +2353,7 @@
     const cycleDay = state.settings.cycleStartDay || 1;
     const cycleRange = Core.getCycleRange(monthKey, cycleDay);
     const start = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1 - monthDate.getDay(), 12);
-    const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments, state.subscriptions);
+    const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments, state.subscriptions, undefined, state.emoneyTransactions);
     const today = Core.todayKey();
     const nodes = [];
 
@@ -2302,7 +2446,17 @@
       }
     });
 
-    return expenseTotal + subscriptionTotal;
+    let emoneyChargeTotal = 0;
+    (state.emoneyTransactions || []).forEach((tx) => {
+      if (tx.type !== "charge" || tx.cardId !== cardId) return;
+      const fakeExp = { paymentMethod: Core.CREDIT_PAYMENT, cardId: tx.cardId, date: tx.date };
+      const paymentDate = Core.getExpensePaymentDate(fakeExp, state.cards);
+      if (paymentDate === dateKey) {
+        emoneyChargeTotal += Core.normalizeAmount(tx.amount);
+      }
+    });
+
+    return expenseTotal + subscriptionTotal + emoneyChargeTotal;
   }
 
   function colorWithAlpha(hexColor, alpha) {
@@ -2369,7 +2523,7 @@
     const isFutureMonth = monthKey > todayMonthKey;
 
     const cycleDay = state.settings.cycleStartDay || 1;
-    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions, state.emoneyTransactions);
     const mode = state.settings.budgetMode || "usage";
     const isUsage = mode === "usage";
 
@@ -2526,7 +2680,7 @@
     $("summary-direct").textContent = formatYen(summary.direct);
     $("summary-card").textContent = formatYen(summary.cardWithdrawal);
     $("summary-outflow").textContent = formatYen(summary.outflow);
-    const next = Core.getNextCardWithdrawal(Core.todayKey(), state.expenses, state.cards, state.manualPayments, state.subscriptions);
+    const next = Core.getNextCardWithdrawal(Core.todayKey(), state.expenses, state.cards, state.manualPayments, state.subscriptions, state.emoneyTransactions);
     $("summary-next-card").textContent = next ? `${formatShortDate(next.date)}・${formatYen(next.amount)}` : "予定なし";
   }
 
@@ -2642,7 +2796,7 @@
     if (!container) return;
     const monthKey = reportMonth.slice(0, 7);
     const cycleDay = state.settings.cycleStartDay || 1;
-    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions, state.emoneyTransactions);
     const entries = Object.entries(summary.categories).sort((a, b) => b[1] - a[1]);
     if (!entries.length) {
       container.replaceChildren(createElement("p", "empty-inline", "この月の支出はまだありません。"));
@@ -2789,6 +2943,7 @@
       .filter((e) => e.cardId === card.id && e.date >= range.startDate && e.date <= range.endDate)
       .map((e) => ({
         isSubscription: false,
+        isCharge: false,
         id: e.id,
         date: e.date,
         name: e.memo || e.category,
@@ -2804,6 +2959,7 @@
       if (usageDate && usageDate >= range.startDate && usageDate <= range.endDate) {
         cardSubscriptions.push({
           isSubscription: true,
+          isCharge: false,
           id: sub.id,
           date: usageDate,
           name: sub.name,
@@ -2816,7 +2972,23 @@
       }
     });
 
-    const allCardItems = [...cardExpenses, ...cardSubscriptions].sort((a, b) => b.date.localeCompare(a.date));
+    const cardCharges = (state.emoneyTransactions || [])
+      .filter((tx) => tx.type === "charge" && tx.cardId === card.id && tx.date >= range.startDate && tx.date <= range.endDate)
+      .map((tx) => {
+        const em = (state.emoneys || []).find((e) => e.id === tx.emoneyId);
+        return {
+          isSubscription: false,
+          isCharge: true,
+          id: tx.id,
+          emoneyId: tx.emoneyId,
+          date: tx.date,
+          name: `${em ? em.name : "QR・電子マネー"}へチャージ`,
+          memo: tx.memo || "",
+          amount: Core.normalizeAmount(tx.amount),
+        };
+      });
+
+    const allCardItems = [...cardExpenses, ...cardSubscriptions, ...cardCharges].sort((a, b) => b.date.localeCompare(a.date));
     const currentMonthUsage = allCardItems.reduce((sum, e) => sum + e.amount, 0);
 
     // --- 1. クレジットカード券面風UI (Card Face) ---
@@ -2913,6 +3085,13 @@
           left.append(iconSpan, nameEl, subBadge);
           row.title = `タップして${badgeType}「${item.name}」の詳細を表示`;
           row.addEventListener("click", () => openSubscriptionDetailDialog(item.id));
+        } else if (item.isCharge) {
+          const iconSpan = createElement("span", "card-expense-cat-icon", "⚡");
+          const nameEl = createElement("span", "card-expense-memo", item.name);
+          const chargeBadge = createElement("span", "badge-card-subscription", "チャージ");
+          left.append(iconSpan, nameEl, chargeBadge);
+          row.title = "タップしてチャージを編集";
+          row.addEventListener("click", () => openChargeDialog(item.emoneyId, item.id));
         } else {
           const catIcon = createElement("span", "card-expense-cat-icon", CATEGORY_ICONS[item.category] || "💳");
           const memoEl = createElement("span", "card-expense-memo", item.name);
@@ -2966,6 +3145,599 @@
 
   function countCardExpenses(cardId) {
     return state.expenses.filter((expense) => expense.cardId === cardId).length;
+  }
+
+  /* ==========================================================================
+     QR・電子マネー管理ロジック
+     ========================================================================== */
+
+  function getEmoneyBalance(emoneyId) {
+    return Core.calculateEmoneyBalance(emoneyId, state.emoneys, state.emoneyTransactions, state.expenses);
+  }
+
+  function getTotalEmoneyBalance() {
+    return (state.emoneys || []).reduce((total, em) => total + getEmoneyBalance(em.id), 0);
+  }
+
+  function switchEmoneySubView(subview) {
+    const mainView = $("emoney-main-subview");
+    const histView = $("emoney-history-subview");
+    if (mainView) mainView.classList.toggle("is-active", subview === "main");
+    if (histView) histView.classList.toggle("is-active", subview === "history");
+  }
+
+  function renderEmoneyList() {
+    const totalValEl = $("emoney-total-balance-val");
+    const totalCountEl = $("emoney-total-services-count");
+    const emptyStateEl = $("emoney-empty-state");
+    const listContainerEl = $("emoney-list-container");
+    const listEl = $("emoney-services-list");
+
+    const totalBal = getTotalEmoneyBalance();
+    if (totalValEl) totalValEl.textContent = formatYen(totalBal);
+    if (totalCountEl) totalCountEl.textContent = `${(state.emoneys || []).length}件登録`;
+
+    if (!state.emoneys || !state.emoneys.length) {
+      if (emptyStateEl) emptyStateEl.classList.remove("is-hidden");
+      if (listContainerEl) listContainerEl.classList.add("is-hidden");
+      return;
+    }
+
+    if (emptyStateEl) emptyStateEl.classList.add("is-hidden");
+    if (listContainerEl) listContainerEl.classList.remove("is-hidden");
+
+    if (!listEl) return;
+
+    const cards = state.emoneys.map((em) => {
+      const balance = getEmoneyBalance(em.id);
+      const iconDef = EMONEY_ICONS[em.icon] || EMONEY_ICONS.qr;
+
+      const card = createElement("article", "emoney-service-card");
+      card.style.setProperty("--emoney-color", em.color || "#e60012");
+
+      const head = createElement("div", "emoney-card-head");
+      const brand = createElement("div", "emoney-card-brand");
+      const iconBox = createElement("div", "emoney-icon-box");
+      iconBox.innerHTML = iconDef.svg;
+      const title = createElement("h3", "emoney-card-title", em.name);
+      brand.append(iconBox, title);
+
+      if (em.isDefault) {
+        brand.append(createElement("span", "emoney-default-badge", "★ 初期選択"));
+      }
+      head.append(brand);
+
+      const balBlock = createElement("div", "emoney-balance-block");
+      balBlock.append(
+        createElement("span", "emoney-balance-label", "現在残高"),
+        createElement("strong", `emoney-balance-val${balance < 0 ? " is-negative" : ""}`, formatYen(balance))
+      );
+
+      const actions = createElement("div", "emoney-card-actions");
+      const chargeBtn = createElement("button", "small-button button-primary", "＋ チャージ");
+      chargeBtn.type = "button";
+      chargeBtn.addEventListener("click", () => openChargeDialog(em.id));
+
+      const histBtn = createElement("button", "small-button", "履歴");
+      histBtn.type = "button";
+      histBtn.addEventListener("click", () => {
+        renderEmoneyDetail(em.id);
+        switchEmoneySubView("history");
+      });
+
+      const editBtn = createElement("button", "small-button", "編集");
+      editBtn.type = "button";
+      editBtn.addEventListener("click", () => openEmoneyDialog(em));
+
+      actions.append(chargeBtn, histBtn, editBtn);
+      card.append(head, balBlock, actions);
+      return card;
+    });
+
+    listEl.replaceChildren(...cards);
+  }
+
+  function renderEmoneyDetail(emoneyId) {
+    selectedDetailEmoneyId = emoneyId;
+    const em = (state.emoneys || []).find((e) => e.id === emoneyId);
+    if (!em) {
+      switchEmoneySubView("main");
+      renderEmoneyList();
+      return;
+    }
+
+    const iconDef = EMONEY_ICONS[em.icon] || EMONEY_ICONS.qr;
+    const currentBal = getEmoneyBalance(em.id);
+
+    const iconEl = $("emoney-detail-icon-box");
+    if (iconEl) {
+      iconEl.innerHTML = iconDef.svg;
+      iconEl.style.backgroundColor = colorWithAlpha(em.color || "#e60012", 0.12);
+      iconEl.style.color = em.color || "#e60012";
+    }
+
+    const nameEl = $("emoney-detail-name");
+    if (nameEl) nameEl.textContent = em.name;
+
+    const badgeEl = $("emoney-detail-default-badge");
+    if (badgeEl) badgeEl.classList.toggle("is-hidden", !em.isDefault);
+
+    const balEl = $("emoney-detail-balance");
+    if (balEl) {
+      balEl.textContent = formatYen(currentBal);
+      balEl.classList.toggle("is-negative", currentBal < 0);
+    }
+
+    const initBalEl = $("emoney-detail-initial-balance");
+    if (initBalEl) initBalEl.textContent = formatYen(em.initialBalance);
+
+    // 履歴アイテム生成（支出、チャージ、残高調整）
+    const listEl = $("emoney-history-list");
+    if (!listEl) return;
+
+    const items = [];
+
+    // 1. チャージ & 残高調整
+    (state.emoneyTransactions || []).forEach((tx) => {
+      if (tx.emoneyId !== em.id) return;
+      if (tx.type === "charge") {
+        const card = tx.cardId ? (state.cards || []).find((c) => c.id === tx.cardId) : null;
+        items.push({
+          type: "charge",
+          id: tx.id,
+          date: tx.date,
+          createdAt: tx.createdAt || tx.date,
+          amount: Core.normalizeAmount(tx.amount),
+          title: card ? `${card.name}からチャージ` : "チャージ（現金・他）",
+          memo: tx.memo || "",
+          cardName: card ? card.name : "",
+          isCard: Boolean(card),
+          onClick: () => openChargeDialog(em.id, tx.id),
+        });
+      } else if (tx.type === "adjustment") {
+        const diff = Number(tx.diff || 0);
+        items.push({
+          type: "adjustment",
+          id: tx.id,
+          date: tx.date,
+          createdAt: tx.createdAt || tx.date,
+          diff: diff,
+          targetBalance: Number(tx.targetBalance || 0),
+          title: `残高調整（${formatYen(tx.targetBalance)}に修正）`,
+          memo: tx.memo || "",
+          onClick: () => deleteEmoneyTransaction(tx.id),
+        });
+      }
+    });
+
+    // 2. 支出
+    (state.expenses || []).forEach((exp) => {
+      if (exp.paymentMethod === "QR・電子マネー" && exp.emoneyId === em.id) {
+        items.push({
+          type: "expense",
+          id: exp.id,
+          date: exp.date,
+          createdAt: exp.createdAt || exp.date,
+          amount: Core.normalizeAmount(exp.amount),
+          title: exp.memo || exp.category,
+          category: exp.category,
+          onClick: () => openExpenseDialog(exp.date, exp.id),
+        });
+      }
+    });
+
+    items.sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt || "").localeCompare(a.createdAt || ""));
+
+    if (!items.length) {
+      listEl.replaceChildren(emptyState("取引履歴はありません", "チャージまたはQR・電子マネーでの支出を登録するとここに表示されます。"));
+      return;
+    }
+
+    const rowEls = items.map((item) => {
+      const row = createElement("button", "emoney-tx-item");
+      row.type = "button";
+
+      const left = createElement("div", "emoney-tx-left");
+      const dateEl = createElement("span", "emoney-tx-date", formatDate(item.date, { month: "numeric", day: "numeric", weekday: "short" }));
+      left.append(dateEl);
+
+      const titleRow = createElement("div", "emoney-tx-title-row");
+      const titleEl = createElement("strong", "emoney-tx-title", item.title);
+      titleRow.append(titleEl);
+
+      if (item.type === "charge") {
+        const iconSpan = createElement("span", "emoney-tx-icon", "⚡");
+        left.append(iconSpan);
+        titleRow.append(
+          createElement("span", "transfer-badge", "資金移動"),
+          createElement("span", "badge-no-expense", "支出に含めない")
+        );
+        if (item.memo) {
+          titleRow.append(createElement("small", "emoney-tx-memo", `（${item.memo}）`));
+        }
+      } else if (item.type === "adjustment") {
+        const iconSpan = createElement("span", "emoney-tx-icon", "⚖️");
+        left.append(iconSpan);
+        titleRow.append(createElement("span", "badge-adjust", "残高調整"));
+        if (item.memo) {
+          titleRow.append(createElement("small", "emoney-tx-memo", `（${item.memo}）`));
+        }
+      } else {
+        const iconSpan = createElement("span", "emoney-tx-icon", CATEGORY_ICONS[item.category] || "🛍️");
+        left.append(iconSpan);
+        titleRow.append(createElement("span", "badge-expense", item.category));
+      }
+      left.append(titleRow);
+
+      const right = createElement("div", "emoney-tx-right");
+      let amtText = "";
+      let isPlus = false;
+      let isMinus = false;
+      if (item.type === "charge") {
+        amtText = `+${formatYen(item.amount)}`;
+        isPlus = true;
+      } else if (item.type === "adjustment") {
+        amtText = `${item.diff >= 0 ? "+" : ""}${formatYen(item.diff)}`;
+        isPlus = item.diff > 0;
+        isMinus = item.diff < 0;
+      } else {
+        amtText = `-${formatYen(item.amount)}`;
+        isMinus = true;
+      }
+
+      const amtEl = createElement("strong", `emoney-tx-amount${isPlus ? " is-positive" : ""}${isMinus ? " is-negative" : ""}`, amtText);
+      const arrow = createElement("span", "emoney-tx-arrow", "›");
+      right.append(amtEl, arrow);
+
+      row.append(left, right);
+      row.addEventListener("click", item.onClick);
+      return row;
+    });
+
+    listEl.replaceChildren(...rowEls);
+  }
+
+  function renderHomeEmoneySummary() {
+    const totalBalEl = $("home-emoney-total-balance");
+    const chipsContainer = $("home-emoney-services-chips");
+    const emptyHint = $("home-emoney-empty-text");
+
+    const totalBal = getTotalEmoneyBalance();
+    if (totalBalEl) totalBalEl.textContent = formatYen(totalBal);
+
+    if (!state.emoneys || !state.emoneys.length) {
+      if (chipsContainer) chipsContainer.replaceChildren();
+      if (emptyHint) emptyHint.classList.remove("is-hidden");
+      return;
+    }
+
+    if (emptyHint) emptyHint.classList.add("is-hidden");
+    if (!chipsContainer) return;
+
+    const chips = state.emoneys.map((em) => {
+      const bal = getEmoneyBalance(em.id);
+      const iconDef = EMONEY_ICONS[em.icon] || EMONEY_ICONS.qr;
+
+      const chip = createElement("div", "emoney-mini-chip");
+      chip.style.setProperty("--emoney-chip-color", em.color || "#e60012");
+
+      const iconBox = createElement("span", "emoney-mini-chip-icon");
+      iconBox.innerHTML = iconDef.svg;
+
+      const name = createElement("span", "emoney-mini-chip-name", em.name);
+      const balSpan = createElement("strong", `emoney-mini-chip-bal${bal < 0 ? " is-negative" : ""}`, formatYen(bal));
+
+      chip.append(iconBox, name, balSpan);
+      return chip;
+    });
+
+    chipsContainer.replaceChildren(...chips);
+  }
+
+  function openEmoneyDialog(emoney = null) {
+    $("emoney-form").reset();
+    $("emoney-id").value = emoney ? emoney.id : "";
+    $("emoney-dialog-title").textContent = emoney ? "QR・電子マネーを編集" : "QR・電子マネーを追加";
+    $("emoney-name").value = emoney ? emoney.name : "";
+    $("emoney-initial-balance").value = emoney ? formatNumber(emoney.initialBalance) : "0";
+    $("emoney-color").value = emoney ? emoney.color : "#e60012";
+    $("emoney-icon").value = emoney ? emoney.icon : "qr";
+    $("emoney-is-default").checked = emoney ? Boolean(emoney.isDefault) : (state.emoneys.length === 0);
+
+    // カラープリセットのアクティブ状態更新
+    const activeColor = (emoney ? emoney.color : "#e60012").toLowerCase();
+    document.querySelectorAll("#emoney-color-presets .color-preset-chip").forEach((c) => {
+      c.classList.toggle("is-active", (c.dataset.color || "").toLowerCase() === activeColor);
+    });
+
+    $("delete-emoney-btn").classList.toggle("is-hidden", !emoney);
+    showDialog($("emoney-dialog"));
+  }
+
+  function saveEmoneyFromForm(event) {
+    event.preventDefault();
+    const name = $("emoney-name").value.trim();
+    if (!name) {
+      showToast("名称を入力してください。");
+      $("emoney-name").focus();
+      return;
+    }
+
+    const id = $("emoney-id").value;
+    const existing = state.emoneys.find((e) => e.id === id);
+    const isDefault = $("emoney-is-default").checked;
+
+    // 初期選択にできるのは1つだけ
+    if (isDefault) {
+      state.emoneys.forEach((e) => {
+        if (!existing || e.id !== existing.id) e.isDefault = false;
+      });
+    }
+
+    const record = {
+      id: existing ? existing.id : uid("emoney"),
+      name: name.slice(0, 40),
+      initialBalance: Core.normalizeAmount($("emoney-initial-balance").value),
+      color: $("emoney-color").value || "#e60012",
+      icon: EMONEY_ICONS[$("emoney-icon").value] ? $("emoney-icon").value : "qr",
+      isDefault: isDefault,
+      createdAt: existing ? existing.createdAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (existing) {
+      Object.assign(existing, record);
+    } else {
+      state.emoneys.push(record);
+    }
+
+    saveState();
+    closeDialog($("emoney-dialog"));
+    renderAll();
+    if (selectedDetailEmoneyId) renderEmoneyDetail(selectedDetailEmoneyId);
+    showToast(existing ? "QR・電子マネーを更新しました。" : "QR・電子マネーを追加しました。");
+  }
+
+  async function deleteCurrentEmoney() {
+    const id = $("emoney-id").value;
+    if (id) deleteEmoney(id);
+  }
+
+  async function deleteEmoney(id) {
+    const em = state.emoneys.find((e) => e.id === id);
+    if (!em) return;
+
+    const txCount = (state.emoneyTransactions || []).filter((t) => t.emoneyId === id).length;
+    const expCount = (state.expenses || []).filter((e) => e.paymentMethod === "QR・電子マネー" && e.emoneyId === id).length;
+
+    const confirmed = await confirmAction(
+      `「${em.name}」を削除しますか？`,
+      `関連するチャージ・取引履歴（${txCount}件）も削除されます。支出データ（${expCount}件）は残りますが紐付けが解除されます。`,
+      "削除する"
+    );
+    if (!confirmed) return;
+
+    state.emoneys = state.emoneys.filter((e) => e.id !== id);
+    state.emoneyTransactions = (state.emoneyTransactions || []).filter((t) => t.emoneyId !== id);
+    (state.expenses || []).forEach((e) => {
+      if (e.emoneyId === id) e.emoneyId = "";
+    });
+
+    saveState();
+    closeDialog($("emoney-dialog"));
+    closeDialog($("subscription-detail-dialog"));
+    switchEmoneySubView("main");
+    renderAll();
+    showToast(`「${em.name}」を削除しました。`);
+  }
+
+  function openChargeDialog(emoneyId, chargeId = "") {
+    const em = (state.emoneys || []).find((e) => e.id === emoneyId) || state.emoneys[0];
+    if (!em) {
+      showToast("先にQR・電子マネーを登録してください。");
+      return;
+    }
+
+    const charge = chargeId ? (state.emoneyTransactions || []).find((t) => t.id === chargeId) : null;
+
+    $("charge-form").reset();
+    $("charge-id").value = charge ? charge.id : "";
+    $("charge-emoney-id").value = em.id;
+    $("charge-dialog-title").textContent = charge ? "チャージを編集" : "チャージを登録";
+    $("charge-target-service").textContent = em.name;
+    $("charge-amount").value = charge ? formatNumber(charge.amount) : "";
+    $("charge-date").value = charge ? charge.date : Core.todayKey();
+
+    // チャージ元セレクト生成（現金・銀行口座・他 ＋ 登録カード一覧）
+    const sourceOptions = [{ value: "cash", label: "現金・銀行口座・他" }];
+    (state.cards || []).forEach((c) => {
+      sourceOptions.push({ value: `card_${c.id}`, label: `クレジットカード: ${c.name}` });
+    });
+    fillSelect($("charge-source"), sourceOptions);
+    $("charge-source").value = charge && charge.cardId ? `card_${charge.cardId}` : "cash";
+
+    $("charge-memo").value = charge ? charge.memo || "" : "";
+    $("delete-charge-btn").classList.toggle("is-hidden", !charge);
+
+    showDialog($("charge-dialog"));
+    window.setTimeout(() => $("charge-amount").focus(), 40);
+  }
+
+  function saveChargeFromForm(event) {
+    event.preventDefault();
+    const amount = Core.normalizeAmount($("charge-amount").value);
+    const date = $("charge-date").value;
+    const emoneyId = $("charge-emoney-id").value;
+    const sourceVal = $("charge-source").value;
+    const cardId = sourceVal.startsWith("card_") ? sourceVal.replace("card_", "") : "";
+
+    if (amount <= 0) {
+      showToast("1円以上の金額を入力してください。");
+      $("charge-amount").focus();
+      return;
+    }
+    if (!Core.parseDateKey(date)) {
+      showToast("正しい日付を入力してください。");
+      $("charge-date").focus();
+      return;
+    }
+
+    const id = $("charge-id").value;
+    const existing = (state.emoneyTransactions || []).find((t) => t.id === id);
+
+    const record = {
+      id: existing ? existing.id : uid("emoney_tx"),
+      type: "charge",
+      emoneyId: emoneyId,
+      amount: amount,
+      date: date,
+      cardId: cardId,
+      memo: $("charge-memo").value.trim().slice(0, 200),
+      createdAt: existing ? existing.createdAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (existing) {
+      Object.assign(existing, record);
+    } else {
+      if (!state.emoneyTransactions) state.emoneyTransactions = [];
+      state.emoneyTransactions.push(record);
+    }
+
+    saveState();
+    closeDialog($("charge-dialog"));
+    renderAll();
+    if (selectedDetailEmoneyId === emoneyId) {
+      renderEmoneyDetail(emoneyId);
+    }
+    showToast(existing ? "チャージを更新しました。" : "チャージを登録しました。");
+  }
+
+  async function deleteCurrentCharge() {
+    const id = $("charge-id").value;
+    if (id) deleteCharge(id);
+  }
+
+  async function deleteCharge(id) {
+    const tx = (state.emoneyTransactions || []).find((t) => t.id === id);
+    if (!tx) return;
+
+    const confirmed = await confirmAction(
+      "チャージ履歴を削除しますか？",
+      `${formatDate(tx.date)}の${formatYen(tx.amount)}チャージを削除し、残高とカード請求を再計算します。`,
+      "削除する"
+    );
+    if (!confirmed) return;
+
+    state.emoneyTransactions = state.emoneyTransactions.filter((t) => t.id !== id);
+    saveState();
+    closeDialog($("charge-dialog"));
+    renderAll();
+    if (selectedDetailEmoneyId) {
+      renderEmoneyDetail(selectedDetailEmoneyId);
+    }
+    showToast("チャージ履歴を削除しました。");
+  }
+
+  function openEmoneyAdjustDialog(emoneyId) {
+    const em = (state.emoneys || []).find((e) => e.id === emoneyId);
+    if (!em) return;
+
+    const currentBal = getEmoneyBalance(em.id);
+    $("emoney-adjust-form").reset();
+    $("adjust-emoney-id").value = em.id;
+    $("adjust-current-balance-display").textContent = formatYen(currentBal);
+    $("adjust-target-balance").value = formatNumber(currentBal);
+    $("adjust-date").value = Core.todayKey();
+    $("adjust-memo").value = "";
+    updateAdjustDiffPreview();
+
+    showDialog($("emoney-adjust-dialog"));
+  }
+
+  function updateAdjustDiffPreview() {
+    const emoneyId = $("adjust-emoney-id").value;
+    const currentBal = getEmoneyBalance(emoneyId);
+    const targetVal = $("adjust-target-balance").value;
+    const targetBal = targetVal === "" ? currentBal : Core.normalizeAmount(targetVal);
+    const diff = targetBal - currentBal;
+
+    const previewEl = $("adjust-diff-preview");
+    if (previewEl) {
+      if (diff === 0) {
+        previewEl.textContent = "±0円";
+        previewEl.className = "adjust-diff-val";
+      } else if (diff > 0) {
+        previewEl.textContent = `+${formatYen(diff)}`;
+        previewEl.className = "adjust-diff-val is-positive";
+      } else {
+        previewEl.textContent = `-${formatYen(Math.abs(diff))}`;
+        previewEl.className = "adjust-diff-val is-negative";
+      }
+    }
+  }
+
+  function saveEmoneyAdjustFromForm(event) {
+    event.preventDefault();
+    const emoneyId = $("adjust-emoney-id").value;
+    const currentBal = getEmoneyBalance(emoneyId);
+    const targetBal = Core.normalizeAmount($("adjust-target-balance").value);
+    const date = $("adjust-date").value;
+    const diff = targetBal - currentBal;
+
+    if (!Core.parseDateKey(date)) {
+      showToast("正しい日付を入力してください。");
+      return;
+    }
+
+    if (diff === 0) {
+      showToast("残高に変更はありません。");
+      closeDialog($("emoney-adjust-dialog"));
+      return;
+    }
+
+    const record = {
+      id: uid("emoney_tx"),
+      type: "adjustment",
+      emoneyId: emoneyId,
+      diff: diff,
+      targetBalance: targetBal,
+      date: date,
+      memo: $("adjust-memo").value.trim().slice(0, 200),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (!state.emoneyTransactions) state.emoneyTransactions = [];
+    state.emoneyTransactions.push(record);
+
+    saveState();
+    closeDialog($("emoney-adjust-dialog"));
+    renderAll();
+    if (selectedDetailEmoneyId === emoneyId) {
+      renderEmoneyDetail(emoneyId);
+    }
+    showToast(`残高を${formatYen(targetBal)}に調整しました。`);
+  }
+
+  async function deleteEmoneyTransaction(id) {
+    const tx = (state.emoneyTransactions || []).find((t) => t.id === id);
+    if (!tx) return;
+
+    const confirmed = await confirmAction(
+      "この残高調整を削除しますか？",
+      "削除すると残高が調整前の状態に再計算されます。",
+      "削除する"
+    );
+    if (!confirmed) return;
+
+    state.emoneyTransactions = state.emoneyTransactions.filter((t) => t.id !== id);
+    saveState();
+    renderAll();
+    if (selectedDetailEmoneyId) {
+      renderEmoneyDetail(selectedDetailEmoneyId);
+    }
+    showToast("残高調整を削除しました。");
   }
 
   /* ==========================================================================
@@ -3648,12 +4420,17 @@
 
   function openExpenseDialog(dateKey, expenseId = "") {
     const expense = expenseId ? state.expenses.find((item) => item.id === expenseId) : null;
+    const defaultEmoney = (state.emoneys || []).find((e) => e.isDefault);
+    const initialPaymentMethod = expense
+      ? expense.paymentMethod
+      : (defaultEmoney ? "QR・電子マネー" : "現金");
+
     $("expense-id").value = expense ? expense.id : "";
     $("expense-dialog-title").textContent = expense ? "支出を編集" : "支出を追加";
     $("expense-amount").value = expense ? formatNumber(expense.amount) : "";
     $("expense-date").value = expense ? expense.date : dateKey;
     $("expense-category").value = expense ? expense.category : "食費";
-    $("expense-payment").value = expense ? expense.paymentMethod : "現金";
+    $("expense-payment").value = initialPaymentMethod;
     $("expense-memo").value = expense ? expense.memo : "";
     $("expense-payment-date").value = expense ? expense.paymentDateOverride || "" : "";
     const includeWithdrawalInput = $("expense-include-withdrawal");
@@ -3663,11 +4440,14 @@
     $("expense-amount-error").textContent = "";
     $("delete-expense-button").classList.toggle("is-hidden", !expense);
     refreshExpenseCardOptions(expense ? expense.cardId : "");
+    refreshExpenseEmoneyOptions(expense ? expense.emoneyId : (defaultEmoney ? defaultEmoney.id : ""));
     updateExpensePaymentFields();
 
     const accordion = $("expense-details-accordion");
     if (accordion) {
-      accordion.open = Boolean(expense && (expense.memo || expense.paymentDateOverride || expense.paymentMethod === Core.CREDIT_PAYMENT));
+      accordion.open = Boolean(
+        expense && (expense.memo || expense.paymentDateOverride || expense.paymentMethod === Core.CREDIT_PAYMENT || expense.paymentMethod === "QR・電子マネー")
+      );
     }
 
     renderDayRecords($("expense-date").value);
@@ -3682,9 +4462,27 @@
     $("expense-card").value = state.cards.some((card) => card.id === selectedId) ? selectedId : "";
   }
 
+  function refreshExpenseEmoneyOptions(selectedId) {
+    const options = [{ value: "", label: (state.emoneys || []).length ? "QR・電子マネーを選択" : "先にQR・電子マネーを登録してください" }];
+    (state.emoneys || []).forEach((em) => options.push({ value: em.id, label: em.name }));
+    fillSelect($("expense-emoney"), options);
+    const emSelect = $("expense-emoney");
+    if (emSelect) {
+      emSelect.value = (state.emoneys || []).some((em) => em.id === selectedId)
+        ? selectedId
+        : ((state.emoneys || [])[0]?.id || "");
+    }
+  }
+
   function updateExpensePaymentFields() {
-    const credit = $("expense-payment").value === Core.CREDIT_PAYMENT;
+    const payment = $("expense-payment").value;
+    const credit = payment === Core.CREDIT_PAYMENT;
+    const emoney = payment === "QR・電子マネー";
+
     $("expense-card-field").classList.toggle("is-hidden", !credit);
+    const emField = $("expense-emoney-field");
+    if (emField) emField.classList.toggle("is-hidden", !emoney);
+
     $("payment-date-section").classList.toggle("is-hidden", !credit);
     const toggleRow = $("expense-withdrawal-toggle-row");
     if (toggleRow) toggleRow.classList.toggle("is-hidden", !credit);
@@ -3719,10 +4517,15 @@
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
     expenseItems.forEach((expense) => {
+      let payName = expense.paymentMethod;
+      if (expense.paymentMethod === "QR・電子マネー" && expense.emoneyId) {
+        const em = (state.emoneys || []).find((e) => e.id === expense.emoneyId);
+        if (em) payName = em.name;
+      }
       dayRecords.push({
         type: "expense",
         title: expense.memo || expense.category,
-        subTitle: `${expense.category}・${expense.paymentMethod}`,
+        subTitle: `${expense.category}・${payName}`,
         amount: Core.normalizeAmount(expense.amount),
         onClick: () => openExpenseDialog(expense.date, expense.id),
       });
@@ -3822,6 +4625,7 @@
     const date = $("expense-date").value;
     const paymentMethod = $("expense-payment").value;
     const cardId = paymentMethod === Core.CREDIT_PAYMENT ? $("expense-card").value : "";
+    const emoneyId = paymentMethod === "QR・電子マネー" ? $("expense-emoney").value : "";
     if (amount <= 0) {
       $("expense-amount-error").textContent = "1円以上の金額を入力してください。";
       $("expense-amount").focus();
@@ -3835,6 +4639,11 @@
     if (paymentMethod === Core.CREDIT_PAYMENT && !state.cards.some((card) => card.id === cardId)) {
       showToast("使用したカードを選択してください。先にカード登録が必要です。");
       $("expense-card").focus();
+      return;
+    }
+    if (paymentMethod === "QR・電子マネー" && !(state.emoneys || []).some((em) => em.id === emoneyId)) {
+      showToast("使用したQR・電子マネーを選択してください。先にQR・電子マネーの登録が必要です。");
+      $("expense-emoney").focus();
       return;
     }
     const override = $("expense-payment-date").value;
@@ -3854,6 +4663,8 @@
       category: CATEGORIES.includes($("expense-category").value) ? $("expense-category").value : "その他",
       paymentMethod,
       cardId,
+      emoneyId,
+      includeInWithdrawal,
       paymentDateOverride: paymentMethod === Core.CREDIT_PAYMENT ? override : "",
       calculatedPaymentDate: paymentMethod === Core.CREDIT_PAYMENT
         ? Core.calculatePaymentDate(date, state.cards.find((card) => card.id === cardId))
@@ -5447,7 +6258,7 @@
 
     const today = Core.todayKey();
     const next60 = Core.addDays(today, 60);
-    const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments);
+    const dailyTotals = Core.buildDailyTotals(state.expenses, state.cards, state.manualPayments, state.subscriptions, undefined, state.emoneyTransactions);
     
     const withdrawalDays = [];
     dailyTotals.forEach((val, dateKey) => {
@@ -5494,8 +6305,8 @@
     const prevDate = new Date(curDate.getFullYear(), curDate.getMonth() - 1, 1, 12);
     const prevMonthKey = Core.toDateKey(prevDate).slice(0, 7);
 
-    const curSummary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
-    const prevSummary = Core.summarizeMonth(prevMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
+    const curSummary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions, state.emoneyTransactions);
+    const prevSummary = Core.summarizeMonth(prevMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions, state.emoneyTransactions);
 
     const mode = state.settings.budgetMode || "usage";
     const curSpent = mode === "usage" ? curSummary.usage : curSummary.outflow;
@@ -5767,8 +6578,8 @@
     const prevMonthKey = Core.toDateKey(prevDate).slice(0, 7);
     const cycleDay = state.settings.cycleStartDay || 1;
 
-    const curSum = Core.summarizeMonth(curMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
-    const prevSum = Core.summarizeMonth(prevMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
+    const curSum = Core.summarizeMonth(curMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions, state.emoneyTransactions);
+    const prevSum = Core.summarizeMonth(prevMonthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions, state.emoneyTransactions);
 
     const curUsage = curSum.usage;
     const prevUsage = prevSum.usage;
@@ -5913,7 +6724,7 @@
   function renderCategoryDoughnutChart(textColor, textMutedColor) {
     const monthKey = reportMonth.slice(0, 7);
     const cycleDay = state.settings.cycleStartDay || 1;
-    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
+    const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions, state.emoneyTransactions);
     const entries = Object.entries(summary.categories).sort((a, b) => b[1] - a[1]);
     const legendContainer = $("category-chart-legend");
     const chartCanvas = $("category-chart");
@@ -5999,7 +6810,7 @@
     const outflowData = [];
 
     months.forEach((monthKey) => {
-      const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions);
+      const summary = Core.summarizeMonth(monthKey, state.expenses, state.cards, state.manualPayments, cycleDay, state.subscriptions, state.emoneyTransactions);
       usageData.push(summary.usage);
       outflowData.push(summary.outflow);
     });

@@ -404,5 +404,97 @@ if (navCalendarBtn && navCardsBtn && navReportBtn) {
   print("Bottom Nav double-tap toggle passed!");
 }
 
-print("All view, dialog, subscription, and home widget integration tests passed successfully!");
+// ============================================================================
+// QR・電子マネー残高管理 & 二重計上防止テスト
+// ============================================================================
+print("Testing QR・電子マネー balance calculation and double-counting prevention...");
+
+// 1. Balance Calculation
+const testEmoneys = [
+  { id: "emoney_paypay", name: "PayPay", initialBalance: 3000, color: "#ff0033", icon: "paypay", isDefault: true },
+  { id: "emoney_suica", name: "Suica", initialBalance: 1000, color: "#008000", icon: "suica", isDefault: false },
+];
+
+const testEmoneyTx = [
+  { id: "tx1", type: "charge", emoneyId: "emoney_paypay", amount: 5000, date: "2026-09-05", cardId: "card_rakuten" },
+  { id: "tx2", type: "charge", emoneyId: "emoney_paypay", amount: 2000, date: "2026-09-10", cardId: "" }, // cash charge
+  { id: "tx3", type: "adjustment", emoneyId: "emoney_paypay", diff: -300, targetBalance: 7700, date: "2026-09-12" },
+];
+
+const testExpenses = [
+  { id: "exp1", amount: 1500, date: "2026-09-06", paymentMethod: "QR・電子マネー", emoneyId: "emoney_paypay", category: "食費" },
+  { id: "exp2", amount: 800, date: "2026-09-08", paymentMethod: "QR・電子マネー", emoneyId: "emoney_suica", category: "日用品" },
+  { id: "exp3", amount: 3000, date: "2026-09-15", paymentMethod: "クレジットカード", cardId: "card_rakuten", category: "交際費" },
+];
+
+const paypayBal = AtoIkuraCore.calculateEmoneyBalance("emoney_paypay", testEmoneys, testEmoneyTx, testExpenses);
+// Initial: 3000 + Charge: 5000 + Charge: 2000 + Adjust: -300 - Expense: 1500 = 8200
+if (paypayBal !== 8200) {
+  throw new Error(`PayPay balance mismatch! Expected 8200, got ${paypayBal}`);
+}
+
+const suicaBal = AtoIkuraCore.calculateEmoneyBalance("emoney_suica", testEmoneys, testEmoneyTx, testExpenses);
+// Initial: 1000 - Expense: 800 = 200
+if (suicaBal !== 200) {
+  throw new Error(`Suica balance mismatch! Expected 200, got ${suicaBal}`);
+}
+print("QR / E-Money balance calculation tests passed!");
+
+// 2. Double-counting prevention & Card withdrawal reflection
+// Card: Rakuten (closing: end of month, payment: 27th of next month)
+const testCards = [
+  { id: "card_rakuten", name: "楽天カード", closingDay: "end", paymentDay: 27, paymentMonth: 1, weekendAdjustment: "none", color: "#bf0000" }
+];
+
+// September summary:
+// Usage should include exp1 (1500) + exp2 (800) + exp3 (3000) = 5300.
+// Charges (tx1: 5000, tx2: 2000) must NOT be added to September usage!
+const emoneySepSummary = AtoIkuraCore.summarizeMonth("2026-09", testExpenses, testCards, [], 1, [], testEmoneyTx);
+if (emoneySepSummary.usage !== 5300) {
+  throw new Error(`Usage double-counting error! Expected 5300, got ${emoneySepSummary.usage}`);
+}
+
+// Rakuten card withdrawal in October (2026-10-27) should include:
+// exp3 (3000) + tx1 (5000 card charge) = 8000!
+const emoneyOctSummary = AtoIkuraCore.summarizeMonth("2026-10", testExpenses, testCards, [], 1, [], testEmoneyTx);
+if (emoneyOctSummary.cardWithdrawal !== 8000) {
+  throw new Error(`Card withdrawal mismatch! Expected 8000 (3000 card exp + 5000 card charge), got ${emoneyOctSummary.cardWithdrawal}`);
+}
+if (emoneyOctSummary.outflow !== 8000) {
+  throw new Error(`October outflow mismatch! Expected 8000, got ${emoneyOctSummary.outflow}`);
+}
+print("QR / E-Money double-counting prevention & Card withdrawal tests passed!");
+
+// 3. Dynamic balance reconciliation when an expense or charge is deleted/edited
+const modifiedExpenses = testExpenses.filter(e => e.id !== "exp1"); // remove 1500 expense
+const paypayBalAfterDelete = AtoIkuraCore.calculateEmoneyBalance("emoney_paypay", testEmoneys, testEmoneyTx, modifiedExpenses);
+if (paypayBalAfterDelete !== 9700) {
+  throw new Error(`PayPay balance after expense deletion failed! Expected 9700, got ${paypayBalAfterDelete}`);
+}
+
+const modifiedTx = testEmoneyTx.filter(t => t.id !== "tx1"); // remove 5000 card charge
+const paypayBalAfterTxDelete = AtoIkuraCore.calculateEmoneyBalance("emoney_paypay", testEmoneys, modifiedTx, testExpenses);
+if (paypayBalAfterTxDelete !== 3200) {
+  throw new Error(`PayPay balance after charge deletion failed! Expected 3200, got ${paypayBalAfterTxDelete}`);
+}
+
+// Oct withdrawal after removing card charge should only be exp3 (3000)
+const octSummaryAfterTxDelete = AtoIkuraCore.summarizeMonth("2026-10", testExpenses, testCards, [], 1, [], modifiedTx);
+if (octSummaryAfterTxDelete.cardWithdrawal !== 3000) {
+  throw new Error(`Oct withdrawal after card charge deletion failed! Expected 3000, got ${octSummaryAfterTxDelete.cardWithdrawal}`);
+}
+print("Dynamic reconciliation on edit/delete tests passed!");
+
+// 4. Test UI Subview switching to emoney
+const payEmoneyTab = document.getElementById("payments-tab-emoney");
+if (payEmoneyTab) {
+  payEmoneyTab.dispatchEvent({ type: "click" });
+  const emoneySub = document.getElementById("emoney-payment-subview");
+  if (!emoneySub.classList.contains("is-active")) {
+    throw new Error("Emoney payment subview should be active after clicking tab!");
+  }
+}
+
+print("All view, dialog, subscription, home widget, and QR / e-money integration tests passed successfully!");
+
 

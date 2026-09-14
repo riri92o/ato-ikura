@@ -272,7 +272,7 @@
     return `${year}-${pad2(monthIndex + 1)}-${pad2(day)}`;
   }
 
-  function buildDailyTotals(expenses, cards, manualPayments, subscriptions, baseMonthKeys) {
+  function buildDailyTotals(expenses, cards, manualPayments, subscriptions, baseMonthKeys, emoneyTransactions) {
     const totals = new Map();
     const ensure = (dateKey) => {
       if (!totals.has(dateKey)) {
@@ -367,6 +367,27 @@
       paymentDay.outflow += amount;
     });
 
+    // 4. QR・電子マネーへのカードチャージ（資金移動だがカード引き落とし予定には加算）
+    (emoneyTransactions || []).forEach((tx) => {
+      if (tx.type !== "charge" || !tx.cardId || !parseDateKey(tx.date)) return;
+      const amount = normalizeAmount(tx.amount);
+      if (amount <= 0) return;
+      const card = (cards || []).find((c) => c.id === tx.cardId);
+      if (!card) return;
+      const paymentDate = calculatePaymentDate(tx.date, card);
+      if (paymentDate) {
+        const paymentMonth = paymentDate.slice(0, 7);
+        const hasManual = (manualPayments || []).some(
+          (m) => m.cardId === tx.cardId && m.date.startsWith(paymentMonth)
+        );
+        if (!hasManual) {
+          const paymentDay = ensure(paymentDate);
+          paymentDay.cardWithdrawal += amount;
+          paymentDay.outflow += amount;
+        }
+      }
+    });
+
     return totals;
   }
 
@@ -446,9 +467,9 @@
     }
   }
 
-  function summarizeMonth(monthKey, expenses, cards, manualPayments, cycleStartDay = 1, subscriptions = []) {
+  function summarizeMonth(monthKey, expenses, cards, manualPayments, cycleStartDay = 1, subscriptions = [], emoneyTransactions = []) {
     const range = getCycleRange(monthKey, cycleStartDay);
-    const daily = buildDailyTotals(expenses, cards, manualPayments, subscriptions, [monthKey]);
+    const daily = buildDailyTotals(expenses, cards, manualPayments, subscriptions, [monthKey], emoneyTransactions);
     const summary = {
       usage: 0,
       direct: 0,
@@ -491,10 +512,10 @@
     return summary;
   }
 
-  function getUpcomingCardTotal(startDateKey, days, expenses, cards, manualPayments, subscriptions) {
+  function getUpcomingCardTotal(startDateKey, days, expenses, cards, manualPayments, subscriptions, emoneyTransactions) {
     const endDateKey = addDays(startDateKey, days);
     if (!endDateKey) return 0;
-    const daily = buildDailyTotals(expenses, cards, manualPayments, subscriptions);
+    const daily = buildDailyTotals(expenses, cards, manualPayments, subscriptions, undefined, emoneyTransactions);
     let total = 0;
     daily.forEach((value, dateKey) => {
       if (dateKey >= startDateKey && dateKey <= endDateKey) total += value.cardWithdrawal;
@@ -502,8 +523,8 @@
     return total;
   }
 
-  function getNextCardWithdrawal(startDateKey, expenses, cards, manualPayments, subscriptions) {
-    const daily = buildDailyTotals(expenses, cards, manualPayments, subscriptions);
+  function getNextCardWithdrawal(startDateKey, expenses, cards, manualPayments, subscriptions, emoneyTransactions) {
+    const daily = buildDailyTotals(expenses, cards, manualPayments, subscriptions, undefined, emoneyTransactions);
     const candidates = [];
     daily.forEach((value, dateKey) => {
       if (dateKey >= startDateKey && value.cardWithdrawal > 0) {
@@ -514,6 +535,26 @@
     return candidates[0] || null;
   }
 
+  function calculateEmoneyBalance(emoneyId, emoneys, emoneyTransactions, expenses) {
+    const emoney = (emoneys || []).find((e) => e && e.id === emoneyId);
+    if (!emoney) return 0;
+    let balance = normalizeAmount(emoney.initialBalance);
+    (emoneyTransactions || []).forEach((tx) => {
+      if (!tx || tx.emoneyId !== emoneyId) return;
+      if (tx.type === "charge") {
+        balance += normalizeAmount(tx.amount);
+      } else if (tx.type === "adjustment" || tx.type === "adjust") {
+        const diff = tx.diff !== undefined ? Number(tx.diff) : Number(tx.amount);
+        balance += (Number.isFinite(diff) ? diff : 0);
+      }
+    });
+    (expenses || []).forEach((exp) => {
+      if (!exp || exp.paymentMethod !== "QR・電子マネー" || exp.emoneyId !== emoneyId) return;
+      balance -= normalizeAmount(exp.amount);
+    });
+    return balance;
+  }
+
   function isValidStateShape(data) {
     if (!data || typeof data !== "object") return false;
     return (
@@ -521,6 +562,8 @@
       Array.isArray(data.cards) &&
       Array.isArray(data.manualPayments) &&
       (!data.subscriptions || Array.isArray(data.subscriptions)) &&
+      (!data.emoneys || Array.isArray(data.emoneys)) &&
+      (!data.emoneyTransactions || Array.isArray(data.emoneyTransactions)) &&
       data.settings &&
       typeof data.settings === "object"
     );
@@ -531,6 +574,7 @@
     addDays,
     addMonths,
     buildDailyTotals,
+    calculateEmoneyBalance,
     calculatePaymentDate,
     calculateScheduledPaymentDate,
     daysInMonth,
