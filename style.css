@@ -2834,8 +2834,8 @@ textarea {
 }
 
 .skin-preview-leopard {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cg fill='%23888888' fill-opacity='0.25'%3E%3Cpath d='M12,12 c-3,3 -2,7 2,8 c4,0 6,-4 5,-7 c-1,-3 -4,-4 -7,-1 z'/%3E%3Cpath d='M26,24 c-2,3 0,6 3,6 c3,0 4,-3 3,-6 c-1,-2 -3,-2 -6,0 z'/%3E%3C/g%3E%3Cg fill='%23888888' fill-opacity='0.65'%3E%3Cpath d='M8,11 c-2,2 -1,5 1,7 c1,1 2,0 2,-1 c-1,-2 -1,-4 0,-5 c1,-1 1,-2 -1,-2 c-1,0 -1,0 -2,1 z'/%3E%3Cpath d='M13,9 c2,-1 5,0 6,2 c0,1 0,2 -1,1 c-1,-1 -3,-1 -4,0 c-1,0 -1,0 -1,-1 z'/%3E%3Cpath d='M14,19 c3,0 5,-1 5,-4 c0,-1 -1,-1 -1,0 c0,2 -2,3 -4,2 c-1,0 -1,1 0,2 z'/%3E%3Cpath d='M24,23 c-1,2 0,4 1,5 c1,0 2,0 2,-1 c-1,-1 -1,-3 0,-4 c1,-1 0,-1 -1,-1 z'/%3E%3Cpath d='M27,29 c2,0 3,-1 3,-3 c0,-1 -1,-1 -1,0 c0,1 -1,2 -2,1 c-1,0 0,1 0,2 z'/%3E%3Cpath d='M25,10 c1,-1 3,0 3,1 c-1,2 -3,2 -4,1 c0,-1 0,-2 1,-2 z'/%3E%3Cpath d='M8,26 c1,-1 3,0 2,2 c-1,1 -3,1 -3,0 c0,-1 0,-1 1,-2 z'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 24px 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36' fill='%23888888' fill-opacity='0.45' fill-rule='evenodd'%3E%3Cpath d='M8 6 C5 6 3 9 3 13 C3 17 6 20 10 20 C13 20 15 18 16 15 C14 16 12 16 10 15 C8 14 6 12 6 9 C6 7 7 6 8 6 Z'/%3E%3Cpath d='M26 8 C23 7 19 9 19 13 C19 16 21 19 25 19 C28 19 31 17 31 13 C31 10 29 8 26 8 Z M25 11 C27 11 28 12 28 13 C28 15 27 16 25 16 C23 16 22 15 22 13 C22 12 23 11 25 11 Z'/%3E%3Cpath d='M14 24 C11 23 8 25 8 28 C8 31 11 33 14 33 C18 33 20 30 19 27 C17 28 15 28 13 27 C12 26 12 25 14 24 Z'/%3E%3Cpath d='M26 23 C23 23 21 26 22 28 C23 31 26 32 29 31 C31 30 32 27 30 25 C29 23 27 23 26 23 Z'/%3E%3Ccircle cx='18' cy='7' r='1.8'/%3E%3Ccircle cx='6' cy='23' r='1.5'/%3E%3Ccircle cx='20' cy='22' r='1.4'/%3E%3Ccircle cx='32' cy='18' r='1.5'/%3E%3C/svg%3E");
+  background-size: 28px 28px;
   width: 100%;
   height: 100%;
 }
@@ -2933,16 +2933,16 @@ body[data-skin="glass"],
                     radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--accent) 22%, white) 0%, transparent 55%) !important;
 }
 
-/* ヒョウ柄（リアル＆ランダム配置、選んだ色に連動） */
+/* レオパード柄（380pxシームレスSVG・不規則なC字/U字/輪/点・選択色連動） */
 html[data-skin="leopard"],
 body[data-skin="leopard"],
 [data-skin="leopard"] #theme-phone-mockup {
   background-image: var(--leopard-pattern) !important;
-  background-size: 135px 135px !important;
+  background-size: 380px 380px !important;
 }
 
 [data-skin="leopard"] #theme-phone-mockup {
-  background-size: 68px 68px !important;
+  background-size: 190px 190px !important;
 }
 
 /* モロッカンタイル（幾何学アラベスクの優美なタイル模様） */
