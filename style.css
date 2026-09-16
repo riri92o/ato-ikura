@@ -2938,11 +2938,11 @@ html[data-skin="leopard"],
 body[data-skin="leopard"],
 [data-skin="leopard"] #theme-phone-mockup {
   background-image: var(--leopard-pattern) !important;
-  background-size: 96px 96px !important;
+  background-size: 135px 135px !important;
 }
 
 [data-skin="leopard"] #theme-phone-mockup {
-  background-size: 48px 48px !important;
+  background-size: 68px 68px !important;
 }
 
 /* モロッカンタイル（幾何学アラベスクの優美なタイル模様） */
