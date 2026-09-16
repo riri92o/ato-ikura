@@ -202,7 +202,7 @@
     { id: "leopard", name: "ヒョウ柄" },
     { id: "moroccan", name: "モロッカン" },
     { id: "starry", name: "星空" },
-    { id: "aurora", name: "オーロラ" },
+    { id: "othello", name: "オセロ" },
   ];
 
   const CATEGORIES = ["食費", "日用品", "交通", "娯楽", "旅行", "衣服", "医療", "固定費", "その他"];
@@ -594,8 +594,8 @@
     clean.settings.borderColor = /^#[0-9a-f]{6}$/i.test(input.settings?.borderColor || "") ? input.settings.borderColor : "#e2e8f0";
     clean.settings.gaugeColor = /^#[0-9a-f]{6}$/i.test(input.settings?.gaugeColor || "") ? input.settings.gaugeColor : "#34d399";
     clean.settings.usageColor = /^#[0-9a-f]{6}$/i.test(input.settings?.usageColor || "") ? input.settings.usageColor : "#0284c7";
-    const skinRaw = input.settings?.skin === "paper" ? "check" : input.settings?.skin;
-    clean.settings.skin = typeof skinRaw === "string" && ["none", "dot", "grid", "check", "paper", "line", "glass", "leopard", "moroccan", "starry", "aurora"].includes(skinRaw) ? (skinRaw === "paper" ? "check" : skinRaw) : "none";
+    const skinRaw = input.settings?.skin === "paper" ? "check" : (input.settings?.skin === "aurora" ? "othello" : input.settings?.skin);
+    clean.settings.skin = typeof skinRaw === "string" && ["none", "dot", "grid", "check", "paper", "line", "glass", "leopard", "moroccan", "starry", "othello", "aurora"].includes(skinRaw) ? (skinRaw === "paper" ? "check" : (skinRaw === "aurora" ? "othello" : skinRaw)) : "none";
     clean.settings.budgetMode = ["usage", "outflow"].includes(input.settings?.budgetMode) ? input.settings.budgetMode : "usage";
     const cycleDay = input.settings?.cycleStartDay;
     clean.settings.cycleStartDay = cycleDay === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleDay) || 1));
@@ -5018,6 +5018,45 @@
     return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
   }
 
+  function shadeHexColor(hexColor, factor) {
+    const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hexColor || "");
+    if (!match) return hexColor || "#000000";
+    let r = Number.parseInt(match[1], 16);
+    let g = Number.parseInt(match[2], 16);
+    let b = Number.parseInt(match[3], 16);
+    if (factor < 0) {
+      const p = 1 + factor;
+      r = Math.round(r * p);
+      g = Math.round(g * p);
+      b = Math.round(b * p);
+    } else {
+      r = Math.round(r + (255 - r) * factor);
+      g = Math.round(g + (255 - g) * factor);
+      b = Math.round(b + (255 - b) * factor);
+    }
+    const clamp = (v) => Math.max(0, Math.min(255, v));
+    return `#${((1 << 24) + (clamp(r) << 16) + (clamp(g) << 8) + clamp(b)).toString(16).slice(1)}`;
+  }
+
+  function generateLeopardSvg(themeColor, isDarkBg) {
+    const coreColor = themeColor || "#bf8a56";
+    const coreOpacity = isDarkBg ? 0.6 : 0.45;
+    const spotColor = isDarkBg ? shadeHexColor(themeColor, 0.45) : shadeHexColor(themeColor, -0.7);
+    const spotOpacity = isDarkBg ? 0.95 : 0.88;
+
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><g fill='${coreColor}' fill-opacity='${coreOpacity}'><path d='M22,24 c-7,7 -4,18 6,19 c10,1 15,-8 13,-17 c-2,-8 -12,-9 -19,-2 z'/><path d='M107,22 c-5,7 -2,16 8,16 c9,0 13,-10 9,-16 c-4,-7 -12,-7 -17,0 z'/><path d='M65,44 c-3,4 -1,9 4,9 c5,0 7,-5 5,-9 c-2,-4 -6,-4 -9,0 z'/><path d='M30,96 c-8,8 -5,20 7,21 c11,1 17,-9 14,-19 c-3,-9 -13,-10 -21,-2 z'/><path d='M118,88 c-6,7 -2,17 9,17 c10,0 14,-11 10,-17 c-4,-7 -13,-7 -19,0 z'/><path d='M78,128 c-5,6 -2,15 8,15 c9,0 13,-9 9,-15 c-4,-6 -12,-6 -17,0 z'/><path d='M143,48 c-3,4 -1,9 4,9 c5,0 7,-5 5,-9 c-2,-4 -6,-4 -9,0 z'/><path d='M72,-8 c-6,7 -2,16 8,16 c10,0 14,-10 10,-16 c-4,-7 -13,-7 -18,0 z'/><path d='M72,152 c-6,7 -2,16 8,16 c10,0 14,-10 10,-16 c-4,-7 -13,-7 -18,0 z'/><path d='M-8,60 c-6,7 -2,16 8,16 c10,0 14,-10 10,-16 c-4,-7 -13,-7 -18,0 z'/><path d='M152,60 c-6,7 -2,16 8,16 c10,0 14,-10 10,-16 c-4,-7 -13,-7 -18,0 z'/></g><g fill='${spotColor}' fill-opacity='${spotOpacity}'><path d='M15,22 c-4,6 -3,14 2,18 c3,2 5,1 5,-2 c-3,-4 -3,-11 2,-14 c3,-3 1,-6 -3,-5 c-3,1 -5,2 -6,3 z'/><path d='M25,17 c6,-3 13,-1 16,4 c2,3 0,5 -3,4 c-3,-3 -8,-4 -11,-2 c-3,2 -4,0 -3,-3 c1,-2 1,-3 1,-3 z'/><path d='M29,43 c7,1 14,-3 14,-10 c0,-3 -3,-4 -4,-2 c-2,4 -6,7 -10,6 c-3,-1 -4,1 -3,4 c1,1 2,2 3,2 z'/><path d='M44,19 c3,-1 6,2 5,5 c-1,3 -4,3 -6,1 c-2,-2 -1,-5 1,-6 z'/><path d='M103,19 c-5,6 -4,15 1,20 c3,3 6,1 5,-2 c-3,-4 -4,-11 0,-15 c3,-3 1,-6 -3,-5 c-1,0 -2,1 -3,2 z'/><path d='M112,15 c6,-3 13,0 15,5 c2,3 -1,4 -4,3 c-3,-3 -7,-4 -10,-1 c-3,2 -4,-1 -3,-4 c0,-1 1,-2 2,-3 z'/><path d='M118,41 c7,0 13,-4 11,-11 c-1,-3 -4,-3 -4,0 c0,4 -4,7 -8,7 c-3,0 -3,3 -1,4 c1,0 1,0 2,0 z'/><path d='M62,45 c-3,3 -2,8 1,11 c2,1 4,0 3,-2 c-2,-2 -2,-6 1,-7 c2,-2 1,-3 -2,-3 c-1,0 -2,0 -3,1 z'/><path d='M69,42 c5,-2 10,1 11,5 c1,2 -1,3 -3,2 c-2,-2 -5,-3 -8,-1 c-2,1 -3,-1 -2,-3 c0,-1 1,-2 2,-3 z'/><path d='M71,56 c4,0 7,-2 6,-5 c-1,-2 -3,-1 -3,1 c0,2 -2,3 -4,3 c-1,0 -1,1 0,1 z'/><path d='M25,95 c-5,6 -3,15 2,19 c3,2 6,1 5,-2 c-3,-4 -3,-11 1,-14 c3,-3 1,-6 -3,-5 c-2,0 -4,1 -5,2 z'/><path d='M37,90 c6,-3 13,-1 15,4 c2,3 0,5 -3,4 c-3,-3 -8,-3 -11,-1 c-3,2 -4,0 -3,-3 c1,-2 1,-3 2,-4 z'/><path d='M39,117 c8,1 15,-3 15,-11 c0,-3 -3,-4 -5,-2 c-2,4 -6,8 -10,7 c-3,-1 -4,2 -3,4 c1,1 2,2 3,2 z'/><path d='M113,87 c-4,6 -3,14 1,18 c3,3 6,0 5,-3 c-2,-4 -2,-9 1,-12 c3,-3 1,-5 -3,-5 c-2,0 -3,1 -4,2 z'/><path d='M123,82 c6,-3 12,0 14,5 c2,3 -1,4 -3,3 c-3,-2 -7,-3 -10,-1 c-3,2 -4,-1 -3,-4 z'/><path d='M125,108 c7,0 13,-4 13,-10 c0,-3 -3,-3 -4,-1 c-2,4 -5,7 -9,6 c-3,0 -3,3 -1,4 c0,1 1,1 1,1 z'/><path d='M74,129 c-4,5 -3,12 1,16 c3,2 5,0 4,-2 c-2,-3 -2,-8 1,-10 c3,-2 1,-5 -3,-5 c-1,0 -2,0 -3,1 z'/><path d='M83,125 c5,-2 11,0 12,4 c1,2 -1,3 -3,2 c-2,-2 -5,-2 -8,-1 c-2,1 -3,-1 -2,-3 z'/><path d='M85,148 c6,0 11,-3 11,-8 c0,-2 -2,-3 -3,-1 c-1,3 -4,5 -8,5 c-2,0 -2,2 -1,3 c0,1 1,1 1,1 z'/><path d='M140,48 c-3,4 -2,9 1,12 c2,1 4,0 3,-2 c-2,-2 -2,-6 1,-7 c2,-2 1,-3 -2,-3 c-1,0 -2,0 -3,1 z'/><path d='M147,45 c4,-2 9,1 10,4 c1,2 -1,3 -3,2 c-2,-2 -5,-2 -7,-1 c-2,1 -3,-1 -2,-3 z'/><path d='M149,58 c4,0 7,-2 6,-5 c-1,-2 -3,-1 -3,1 c0,2 -2,3 -4,3 c-1,0 -1,1 0,1 z'/><path d='M68,-11 c-4,5 -3,13 1,16 c3,2 5,0 4,-2 c-2,-3 -2,-8 1,-10 c3,-2 1,-5 -3,-5 c-1,0 -2,0 -3,1 z'/><path d='M68,149 c-4,5 -3,13 1,16 c3,2 5,0 4,-2 c-2,-3 -2,-8 1,-10 c3,-2 1,-5 -3,-5 c-1,0 -2,0 -3,1 z'/><path d='M78,-15 c5,-3 12,0 14,4 c2,3 -1,4 -3,3 c-3,-2 -6,-3 -9,-1 c-3,2 -4,-1 -3,-4 z'/><path d='M78,145 c5,-3 12,0 14,4 c2,3 -1,4 -3,3 c-3,-2 -6,-3 -9,-1 c-3,2 -4,-1 -3,-4 z'/><path d='M81,11 c6,1 11,-3 10,-8 c-1,-3 -4,-3 -4,0 c0,3 -4,5 -7,5 c-2,0 -2,2 -1,3 c1,0 1,0 2,0 z'/><path d='M81,171 c6,1 11,-3 10,-8 c-1,-3 -4,-3 -4,0 c0,3 -4,5 -7,5 c-2,0 -2,2 -1,3 c1,0 1,0 2,0 z'/><path d='M-12,61 c-4,5 -3,13 1,16 c3,2 5,0 4,-2 c-2,-3 -2,-8 1,-10 c3,-2 1,-5 -3,-5 c-1,0 -2,0 -3,1 z'/><path d='M148,61 c-4,5 -3,13 1,16 c3,2 5,0 4,-2 c-2,-3 -2,-8 1,-10 c3,-2 1,-5 -3,-5 c-1,0 -2,0 -3,1 z'/><path d='M-2,57 c5,-3 12,0 14,4 c2,3 -1,4 -3,3 c-3,-2 -6,-3 -9,-1 c-3,2 -4,-1 -3,-4 z'/><path d='M158,57 c5,-3 12,0 14,4 c2,3 -1,4 -3,3 c-3,-2 -6,-3 -9,-1 c-3,2 -4,-1 -3,-4 z'/><path d='M1,83 c6,1 11,-3 10,-8 c-1,-3 -4,-3 -4,0 c0,3 -4,5 -7,5 c-2,0 -2,2 -1,3 c1,0 1,0 2,0 z'/><path d='M161,83 c6,1 11,-3 10,-8 c-1,-3 -4,-3 -4,0 c0,3 -4,5 -7,5 c-2,0 -2,2 -1,3 c1,0 1,0 2,0 z'/><path d='M6,22 c3,-3 7,-1 7,3 c-1,4 -6,5 -8,3 c-2,-2 -1,-4 1,-6 z'/><path d='M166,22 c3,-3 7,-1 7,3 c-1,4 -6,5 -8,3 c-2,-2 -1,-4 1,-6 z'/><path d='M50,16 c3,-4 8,-1 7,4 c-1,4 -7,5 -9,3 c-2,-3 0,-5 2,-7 z'/><path d='M92,18 c4,-3 8,1 7,5 c-1,4 -7,4 -9,1 c-2,-3 0,-5 2,-6 z'/><path d='M146,16 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M60,32 c3,-4 8,-1 8,3 c-1,4 -7,5 -9,3 c-2,-3 0,-4 1,-6 z'/><path d='M84,38 c4,-3 8,0 7,4 c-1,4 -6,5 -8,3 c-3,-2 -1,-5 1,-7 z'/><path d='M138,34 c3,-3 7,0 6,4 c-1,4 -6,5 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M18,54 c3,-4 8,-1 7,4 c-1,4 -7,5 -9,2 c-2,-3 0,-5 2,-6 z'/><path d='M36,60 c4,-3 8,0 7,4 c-1,4 -6,5 -8,3 c-2,-2 0,-5 1,-7 z'/><path d='M54,66 c3,-4 8,-1 8,3 c-1,4 -7,5 -9,2 c-2,-3 0,-4 1,-5 z'/><path d='M88,68 c4,-3 8,0 7,4 c-1,4 -6,5 -9,3 c-2,-2 0,-5 2,-7 z'/><path d='M110,62 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M130,68 c4,-3 8,0 7,4 c-1,4 -6,5 -9,3 c-2,-2 0,-5 2,-7 z'/><path d='M8,98 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M168,98 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M20,126 c4,-3 8,0 7,4 c-1,4 -6,5 -8,3 c-3,-2 -1,-5 1,-7 z'/><path d='M62,102 c3,-4 8,-1 7,4 c-1,4 -7,5 -9,2 c-2,-3 0,-5 2,-6 z'/><path d='M80,108 c4,-3 8,0 7,4 c-1,4 -6,5 -8,3 c-2,-2 0,-5 1,-7 z'/><path d='M102,110 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M146,112 c4,-3 8,0 7,4 c-1,4 -6,5 -8,3 c-3,-2 -1,-5 1,-7 z'/><path d='M44,142 c4,-3 8,1 7,5 c-1,4 -7,4 -9,1 c-2,-3 0,-5 2,-6 z'/><path d='M64,152 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M112,144 c4,-3 8,0 7,4 c-1,4 -6,5 -8,3 c-3,-2 -1,-5 1,-7 z'/><path d='M136,138 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M154,154 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M154,-6 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M24,2 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/><path d='M24,162 c3,-3 7,0 6,4 c-1,4 -6,4 -8,2 c-2,-3 0,-4 2,-6 z'/></g></svg>`;
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+  }
+
+  function generateStarrySvg(themeColor, isDarkBg) {
+    const starFill = isDarkBg ? "#ffffff" : shadeHexColor(themeColor, -0.6);
+    const starOpacity = isDarkBg ? 0.92 : 0.38;
+    const sparkOpacity = isDarkBg ? 0.8 : 0.28;
+
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64' fill='none'><path d='M16 8 Q16 16 24 16 Q16 16 16 24 Q16 16 8 16 Q16 16 16 8 Z' fill='${starFill}' fill-opacity='${starOpacity}'/><path d='M48 40 Q48 46 54 46 Q48 46 48 52 Q48 46 42 46 Q48 46 48 40 Z' fill='${starFill}' fill-opacity='${starOpacity}'/><circle cx='52' cy='12' r='1.8' fill='${starFill}' fill-opacity='${starOpacity}'/><circle cx='30' cy='34' r='1.5' fill='${starFill}' fill-opacity='${starOpacity}'/><circle cx='8' cy='52' r='1.8' fill='${starFill}' fill-opacity='${starOpacity}'/><circle cx='40' cy='56' r='1.2' fill='${starFill}' fill-opacity='${sparkOpacity}'/><circle cx='34' cy='10' r='1.2' fill='${starFill}' fill-opacity='${sparkOpacity}'/><circle cx='58' cy='30' r='1.2' fill='${starFill}' fill-opacity='${sparkOpacity}'/><path d='M30 50 L34 50 M32 48 L32 52' stroke='${starFill}' stroke-opacity='${sparkOpacity}' stroke-width='1.2'/><path d='M12 32 L16 32 M14 30 L14 34' stroke='${starFill}' stroke-opacity='${sparkOpacity}' stroke-width='1.2'/></svg>`;
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+  }
+
   function getThemeCode() {
     const c1 = (state.settings.themeColor1 || "#007a78").toUpperCase();
     const bg = (state.settings.bgColor || "#ffffff").toUpperCase();
@@ -5068,6 +5107,20 @@
     document.documentElement.style.setProperty("--text-muted", cardTextMuted);
     document.documentElement.style.setProperty("--page-text", pageTextColor);
     document.documentElement.style.setProperty("--page-text-muted", pageTextMuted);
+
+    if (document.documentElement && document.documentElement.dataset) {
+      document.documentElement.dataset.darkBg = isDarkBg ? "true" : "false";
+    }
+    if (document.body && document.body.dataset) {
+      document.body.dataset.darkBg = isDarkBg ? "true" : "false";
+    }
+
+    try {
+      const leopardPattern = generateLeopardSvg(color1, isDarkBg);
+      const starryPattern = generateStarrySvg(color1, isDarkBg);
+      document.documentElement.style.setProperty("--leopard-pattern", leopardPattern);
+      document.documentElement.style.setProperty("--starry-pattern", starryPattern);
+    } catch (_e) {}
 
     if (isDarkBg || isDarkCard) {
       document.documentElement.style.setProperty("--accent-dark", "color-mix(in srgb, var(--theme-color-1, #34d399) 70%, #ffffff)");
@@ -6299,7 +6352,7 @@
 
     // 7. テーマ・表示の設定
     if (!state.settings.skin || state.settings.skin === "none") {
-      state.settings.skin = "aurora";
+      state.settings.skin = "othello";
       applyThemeSkin();
     }
 
