@@ -1439,12 +1439,6 @@
 
     const quickBtn = $("btn-quick-super-reload");
     if (quickBtn) quickBtn.addEventListener("click", () => handleReload(quickBtn));
-
-    const menuBtn = $("btn-menu-super-reload");
-    if (menuBtn) menuBtn.addEventListener("click", () => handleReload(menuBtn));
-
-    const guideBtn = $("btn-guide-super-reload");
-    if (guideBtn) guideBtn.addEventListener("click", () => handleReload(guideBtn));
   }
 
   function switchSettingsSubView(viewKey) {
@@ -1554,7 +1548,7 @@
       switchSettingsSubView("menu");
       renderSettings();
     }
-    if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window.scrollTo === "function") window.scrollTo(0, 0);
   }
 
   function updateFabs() {

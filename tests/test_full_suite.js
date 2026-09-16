@@ -549,14 +549,12 @@ if (addSampleBtn && removeSampleBtn) {
   print("Sample data buttons found and verified!");
 }
 
-// Test Super Reload Buttons
+// Test Super Reload Button
 const quickReloadBtn = document.getElementById("btn-quick-super-reload");
-const menuReloadBtn = document.getElementById("btn-menu-super-reload");
-const guideReloadBtn = document.getElementById("btn-guide-super-reload");
-if (!quickReloadBtn || !menuReloadBtn || !guideReloadBtn) {
-  throw new Error("Super reload buttons missing!");
+if (!quickReloadBtn) {
+  throw new Error("Quick super reload button missing!");
 }
-print("Super reload buttons verified!");
+print("Quick super reload button verified!");
 
 print("All view, dialog, subscription, home widget, and QR / e-money integration tests passed successfully!");
 

@@ -49,6 +49,7 @@
 html {
   min-height: 100%;
   min-height: 100dvh;
+  overflow-x: hidden;
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
 }
@@ -58,6 +59,7 @@ body {
   min-height: 100dvh;
   min-width: 320px;
   margin: 0;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
@@ -92,6 +94,7 @@ textarea:focus-visible {
   width: min(100%, 760px);
   min-height: 100dvh;
   margin: 0 auto;
+  overflow-x: hidden;
   box-sizing: border-box;
   background: transparent;
   padding: env(safe-area-inset-top, 0px) 14px calc(var(--bottom-nav-height) + 20px + env(safe-area-inset-bottom, 0px));
@@ -155,17 +158,17 @@ h3 {
 }
 
 .view.is-active.slide-next {
-  animation: viewSlideInNext 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: viewSlideInNext 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .view.is-active.slide-prev {
-  animation: viewSlideInPrev 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: viewSlideInPrev 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes viewSlideInNext {
   from {
-    opacity: 0.7;
-    transform: translateX(38px);
+    opacity: 0.8;
+    transform: translateX(10px);
   }
   to {
     opacity: 1;
@@ -175,8 +178,8 @@ h3 {
 
 @keyframes viewSlideInPrev {
   from {
-    opacity: 0.7;
-    transform: translateX(-38px);
+    opacity: 0.8;
+    transform: translateX(-10px);
   }
   to {
     opacity: 1;
@@ -3918,35 +3921,13 @@ dialog {
   transform: scale(0.92);
 }
 
-.quick-reload-btn.is-reloading svg,
-.settings-update-card.is-reloading svg,
-.is-reloading .reload-icon-spin-target {
+.quick-reload-btn.is-reloading svg {
   animation: spinReload 0.75s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes spinReload {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-}
-
-.settings-update-wrapper {
-  margin-top: 14px;
-}
-
-.settings-update-card {
-  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
-  background: color-mix(in srgb, var(--accent) 4%, var(--surface));
-}
-
-.settings-update-badge {
-  font-size: 0.75rem;
-  font-weight: 750;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: #ffffff;
-  letter-spacing: 0.02em;
-  flex-shrink: 0;
 }
 
 .settings-nav-list {
