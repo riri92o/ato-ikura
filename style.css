@@ -6733,6 +6733,30 @@ body.is-widget-dragging {
   color: #f7931a;
 }
 
+.emoney-tx-badge.is-cancelled-badge {
+  background: color-mix(in srgb, var(--text-muted) 16%, var(--surface-soft));
+  color: var(--text-muted);
+}
+
+.transfer-badge.is-cancelled-tag {
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-muted) 16%, transparent);
+}
+
+.emoney-tx-item.is-cancelled {
+  opacity: 0.65;
+  background: color-mix(in srgb, var(--surface) 80%, var(--surface-soft));
+  border-style: dashed;
+}
+
+.emoney-tx-item.is-cancelled .emoney-tx-title,
+.emoney-tx-item.is-cancelled .emoney-tx-amount,
+.emoney-tx-amount.is-cancelled-amt {
+  text-decoration: line-through;
+  text-decoration-color: currentColor;
+  color: var(--text-muted) !important;
+}
+
 .emoney-tx-info {
   display: flex;
   flex-direction: column;

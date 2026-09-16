@@ -471,13 +471,17 @@
         .map((item) => ({
           id: String(item.id || uid("emoney_tx")),
           emoneyId: String(item.emoneyId || ""),
-          type: ["charge", "adjust"].includes(item.type) ? item.type : "charge",
-          amount: item.type === "adjust" ? (Number(item.amount) || 0) : Core.normalizeAmount(item.amount),
+          type: ["charge", "adjust", "adjustment", "cancelled_expense"].includes(item.type) ? item.type : "charge",
+          amount: (item.type === "adjust" || item.type === "adjustment") ? (Number(item.amount) || Number(item.diff) || 0) : Core.normalizeAmount(item.amount),
+          diff: (item.type === "adjust" || item.type === "adjustment") ? (Number(item.diff) || Number(item.amount) || 0) : undefined,
+          targetBalance: item.targetBalance !== undefined ? Number(item.targetBalance) : undefined,
+          category: typeof item.category === "string" ? item.category : "",
           date: item.date,
           sourceType: ["cash", "card", "bank", "other"].includes(item.sourceType) ? item.sourceType : "cash",
           cardId: typeof item.cardId === "string" ? item.cardId : "",
           memo: String(item.memo || "").slice(0, 200),
           createdAt: String(item.createdAt || new Date().toISOString()),
+          deletedAt: typeof item.deletedAt === "string" ? item.deletedAt : "",
           isSample: Boolean(item.isSample),
         }));
     } else {
@@ -3302,7 +3306,7 @@
 
     const items = [];
 
-    // 1. チャージ & 残高調整
+    // 1. チャージ & 残高調整 & 取消された支出
     (state.emoneyTransactions || []).forEach((tx) => {
       if (tx.emoneyId !== em.id) return;
       if (tx.type === "charge") {
@@ -3333,10 +3337,23 @@
           memo: tx.memo || "",
           onClick: () => deleteEmoneyTransaction(tx.id),
         });
+      } else if (tx.type === "cancelled_expense") {
+        items.push({
+          type: "cancelled_expense",
+          id: tx.id,
+          date: tx.date,
+          createdAt: tx.createdAt || tx.date,
+          amount: Core.normalizeAmount(tx.amount),
+          title: tx.memo || tx.category || "支出",
+          memo: tx.memo || "",
+          category: tx.category || "支出",
+          isCancelled: true,
+          onClick: () => deleteEmoneyTransaction(tx.id),
+        });
       }
     });
 
-    // 2. 支出
+    // 2. 有効な支出
     (state.expenses || []).forEach((exp) => {
       if (exp.paymentMethod === "QR・電子マネー" && exp.emoneyId === em.id) {
         items.push({
@@ -3346,7 +3363,9 @@
           createdAt: exp.createdAt || exp.date,
           amount: Core.normalizeAmount(exp.amount),
           title: exp.memo || exp.category,
+          memo: exp.memo || "",
           category: exp.category,
+          isCancelled: false,
           onClick: () => openExpenseDialog(exp.date, exp.id),
         });
       }
@@ -3360,7 +3379,7 @@
     }
 
     const rowEls = items.map((item) => {
-      const row = createElement("div", "emoney-tx-item");
+      const row = createElement("div", `emoney-tx-item${item.isCancelled ? " is-cancelled" : ""}`);
 
       const left = createElement("div", "emoney-tx-left");
       
@@ -3372,6 +3391,9 @@
       } else if (item.type === "adjustment") {
         badgeClass += " is-adjust";
         badgeSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line><circle cx="9" cy="8" r="2" fill="currentColor"></circle><circle cx="15" cy="16" r="2" fill="currentColor"></circle></svg>';
+      } else if (item.type === "cancelled_expense") {
+        badgeClass += " is-cancelled-badge";
+        badgeSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"></circle><line x1="5.7" y1="5.7" x2="18.3" y2="18.3"></line></svg>';
       } else {
         badgeClass += " is-expense";
         badgeSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>';
@@ -3390,6 +3412,9 @@
       } else if (item.type === "adjustment") {
         sub.append(createElement("span", "transfer-badge", "残高調整"));
         if (item.memo) sub.append(createElement("span", "", `（${item.memo}）`));
+      } else if (item.type === "cancelled_expense") {
+        sub.append(createElement("span", "transfer-badge is-cancelled-tag", "取消済"));
+        sub.append(createElement("span", "", item.category));
       } else {
         sub.append(createElement("span", "", item.category));
       }
@@ -3409,12 +3434,17 @@
         isMinus = item.diff < 0;
       } else {
         amtText = `-${formatYen(item.amount)}`;
-        isMinus = true;
+        isMinus = !item.isCancelled;
       }
 
-      const amtEl = createElement("strong", `emoney-tx-amount${isPlus ? " is-plus" : ""}${isMinus ? " is-minus" : ""}`, amtText);
+      const amtEl = createElement(
+        "strong",
+        `emoney-tx-amount${isPlus ? " is-plus" : ""}${isMinus ? " is-minus" : ""}${item.isCancelled ? " is-cancelled-amt" : ""}`,
+        amtText
+      );
       const actionsEl = createElement("div", "emoney-tx-actions");
-      const editLink = createElement("button", "emoney-tx-action-link", item.type === "adjustment" ? "削除" : "詳細");
+      const actionText = (item.type === "adjustment" || item.type === "cancelled_expense") ? "削除" : "詳細";
+      const editLink = createElement("button", "emoney-tx-action-link", actionText);
       editLink.type = "button";
       editLink.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -3759,11 +3789,13 @@
     const tx = (state.emoneyTransactions || []).find((t) => t.id === id);
     if (!tx) return;
 
-    const confirmed = await confirmAction(
-      "この残高調整を削除しますか？",
-      "削除すると残高が調整前の状態に再計算されます。",
-      "削除する"
-    );
+    const isCancelled = tx.type === "cancelled_expense";
+    const title = isCancelled ? "この取消履歴を削除しますか？" : "この残高調整を削除しますか？";
+    const body = isCancelled
+      ? "この取消ログを履歴一覧から完全に削除します。"
+      : "削除すると残高が調整前の状態に再計算されます。";
+
+    const confirmed = await confirmAction(title, body, "削除する");
     if (!confirmed) return;
 
     state.emoneyTransactions = state.emoneyTransactions.filter((t) => t.id !== id);
@@ -3772,7 +3804,7 @@
     if (selectedDetailEmoneyId) {
       renderEmoneyDetail(selectedDetailEmoneyId);
     }
-    showToast("残高調整を削除しました。");
+    showToast(isCancelled ? "取消履歴を削除しました。" : "残高調整を削除しました。");
   }
 
   /* ==========================================================================
@@ -4717,10 +4749,29 @@
     if (!expense) return;
     const confirmed = await confirmAction("支出を削除しますか？", `${formatShortDate(expense.date)}の${formatYen(expense.amount)}を削除します。`, "削除する");
     if (!confirmed) return;
+
+    if (expense.paymentMethod === "QR・電子マネー" && expense.emoneyId) {
+      if (!state.emoneyTransactions) state.emoneyTransactions = [];
+      state.emoneyTransactions.push({
+        id: uid("emoney_tx"),
+        emoneyId: expense.emoneyId,
+        type: "cancelled_expense",
+        amount: Core.normalizeAmount(expense.amount),
+        date: expense.date,
+        category: expense.category || "その他",
+        memo: expense.memo || "",
+        createdAt: expense.createdAt || expense.date || new Date().toISOString(),
+        deletedAt: new Date().toISOString(),
+      });
+    }
+
     state.expenses = state.expenses.filter((item) => item.id !== id);
     saveState();
     closeDialog($("expense-dialog"));
     renderAll();
+    if (selectedDetailEmoneyId) {
+      renderEmoneyDetail(selectedDetailEmoneyId);
+    }
     showToast("支出を削除しました。");
   }
 

@@ -508,6 +508,25 @@ if (!emoneyHistDialog) {
   throw new Error("emoney-history-dialog element missing!");
 }
 
+// 6. Test Cancelled Expense Handling in Core & UI
+const testTxWithCancelled = [
+  ...testEmoneyTx,
+  { id: "tx_cancelled_1", type: "cancelled_expense", emoneyId: "emoney_paypay", amount: 1500, date: "2026-09-06", category: "食費", memo: "誤登録" }
+];
+
+// Cancelled expense must NOT affect PayPay balance (should still be 9700 after active expense is removed)
+const balWithCancelled = AtoIkuraCore.calculateEmoneyBalance("emoney_paypay", testEmoneys, testTxWithCancelled, modifiedExpenses);
+if (balWithCancelled !== 9700) {
+  throw new Error(`Cancelled expense must not affect balance! Expected 9700, got ${balWithCancelled}`);
+}
+
+// Cancelled expense must NOT affect monthly summaries or card withdrawals
+const sepSumWithCancelled = AtoIkuraCore.summarizeMonth("2026-09", modifiedExpenses, testCards, [], 1, [], testTxWithCancelled);
+if (sepSumWithCancelled.usage !== 3800) { // exp2(800) + exp3(3000)
+  throw new Error(`Cancelled expense should not be in monthly usage! Expected 3800, got ${sepSumWithCancelled.usage}`);
+}
+print("Cancelled expense exclusion from balance & summaries verified successfully!");
+
 print("All view, dialog, subscription, home widget, and QR / e-money integration tests passed successfully!");
 
 
