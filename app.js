@@ -5036,6 +5036,11 @@
       document.documentElement.style.removeProperty("--accent-dark");
     }
 
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute("content", bgColor);
+    }
+
     const val1 = $("theme-color-1-val");
     if (val1) val1.textContent = color1.toUpperCase();
 
