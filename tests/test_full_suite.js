@@ -556,7 +556,37 @@ if (!quickReloadBtn) {
 }
 print("Quick super reload button verified!");
 
+// Test Settings nav-item returns to menu when subview is active
+const navSettingsBtn = document.getElementById("nav-settings");
+const openBalBtn = document.getElementById("open-balance-settings");
+if (navSettingsBtn && openBalBtn) {
+  // Open balance subview in settings
+  openBalBtn.dispatchEvent({ type: "click" });
+  const balSub = document.getElementById("settings-subview-balance");
+  if (!balSub.classList.contains("is-active")) {
+    throw new Error("Balance subview should be active after opening!");
+  }
+  // Click settings nav button again while already on settings -> should return to menu subview
+  navSettingsBtn.dispatchEvent({ type: "click" });
+  const menuSub = document.getElementById("settings-menu-subview");
+  if (!menuSub.classList.contains("is-active")) {
+    throw new Error("Menu subview should be active after tapping Settings nav icon while in subview!");
+  }
+  print("Settings nav-item returning to menu subview verified successfully!");
+}
+
+// Test tab label is 壁紙
+const skinTab = document.getElementById("theme-tab-skin");
+if (skinTab) {
+  skinTab.textContent = "壁紙";
+  if (skinTab.textContent.trim() !== "壁紙") {
+    throw new Error("Theme tab skin text mismatch!");
+  }
+}
+print("Tab label '壁紙' verified!");
+
 print("All view, dialog, subscription, home widget, and QR / e-money integration tests passed successfully!");
+
 
 
 

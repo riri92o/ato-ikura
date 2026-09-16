@@ -759,6 +759,8 @@
         } else if (view === "report" && isAlreadyActive) {
           const nextTab = reportSubTab === "outlook" ? "analysis" : "outlook";
           switchReportSubTab(nextTab);
+        } else if (view === "settings" && isAlreadyActive) {
+          switchSettingsSubView("menu");
         } else {
           switchView(view);
         }
@@ -1841,6 +1843,8 @@
         } else if (targetView === "report" && isAlreadyActive) {
           const nextTab = reportSubTab === "outlook" ? "analysis" : "outlook";
           switchReportSubTab(nextTab);
+        } else if (targetView === "settings" && isAlreadyActive) {
+          switchSettingsSubView("menu");
         } else if (targetView && targetView !== currentView) {
           const direction = closestIdx > prevIdx ? "next" : "prev";
           switchView(targetView, direction);
@@ -5350,7 +5354,7 @@
         if (codeInput && document.activeElement !== codeInput) {
           codeInput.value = getThemeCode();
         }
-        showToast(`スキン「${skin.name}」を適用しました。`);
+        showToast(`壁紙「${skin.name}」を適用しました。`);
       });
 
       grid.appendChild(button);
