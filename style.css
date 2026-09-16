@@ -47,11 +47,15 @@
 }
 
 html {
+  min-height: 100%;
+  min-height: 100dvh;
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
 }
 
 body {
+  min-height: 100%;
+  min-height: 100dvh;
   min-width: 320px;
   margin: 0;
   background: var(--bg);
@@ -3877,6 +3881,74 @@ dialog {
 }
 
 /* 設定メニューカード（一覧） */
+.settings-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+
+.settings-header-row .page-heading {
+  margin-bottom: 0;
+}
+
+.quick-reload-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.quick-reload-btn:hover {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+
+.quick-reload-btn:active {
+  transform: scale(0.92);
+}
+
+.quick-reload-btn.is-reloading svg,
+.settings-update-card.is-reloading svg,
+.is-reloading .reload-icon-spin-target {
+  animation: spinReload 0.75s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes spinReload {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.settings-update-wrapper {
+  margin-top: 14px;
+}
+
+.settings-update-card {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface));
+}
+
+.settings-update-badge {
+  font-size: 0.75rem;
+  font-weight: 750;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: #ffffff;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
 .settings-nav-list {
   display: grid;
   gap: 10px;

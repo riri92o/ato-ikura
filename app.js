@@ -1404,6 +1404,47 @@
     $("add-sample-button").addEventListener("click", addSampleData);
     $("remove-sample-button").addEventListener("click", removeSampleData);
     if ($("delete-all-button")) $("delete-all-button").addEventListener("click", deleteAllData);
+
+    setupSuperReload();
+  }
+
+  function setupSuperReload() {
+    const handleReload = async (triggerBtn) => {
+      if (triggerBtn) {
+        triggerBtn.classList.add("is-reloading");
+      }
+      showToast("キャッシュを削除して最新版を取得中...");
+      try {
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const reg of registrations) {
+            await reg.unregister();
+          }
+        }
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          for (const key of keys) {
+            await caches.delete(key);
+          }
+        }
+      } catch (e) {
+        console.warn("Super reload cleanup error:", e);
+      }
+      setTimeout(() => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("reload_t", Date.now().toString());
+        window.location.replace(url.toString());
+      }, 350);
+    };
+
+    const quickBtn = $("btn-quick-super-reload");
+    if (quickBtn) quickBtn.addEventListener("click", () => handleReload(quickBtn));
+
+    const menuBtn = $("btn-menu-super-reload");
+    if (menuBtn) menuBtn.addEventListener("click", () => handleReload(menuBtn));
+
+    const guideBtn = $("btn-guide-super-reload");
+    if (guideBtn) guideBtn.addEventListener("click", () => handleReload(guideBtn));
   }
 
   function switchSettingsSubView(viewKey) {
