@@ -199,6 +199,10 @@
     { id: "check", name: "チェック" },
     { id: "line", name: "ライン" },
     { id: "glass", name: "ガラス" },
+    { id: "leopard", name: "ヒョウ柄" },
+    { id: "moroccan", name: "モロッカン" },
+    { id: "starry", name: "星空" },
+    { id: "aurora", name: "オーロラ" },
   ];
 
   const CATEGORIES = ["食費", "日用品", "交通", "娯楽", "旅行", "衣服", "医療", "固定費", "その他"];
@@ -591,7 +595,7 @@
     clean.settings.gaugeColor = /^#[0-9a-f]{6}$/i.test(input.settings?.gaugeColor || "") ? input.settings.gaugeColor : "#34d399";
     clean.settings.usageColor = /^#[0-9a-f]{6}$/i.test(input.settings?.usageColor || "") ? input.settings.usageColor : "#0284c7";
     const skinRaw = input.settings?.skin === "paper" ? "check" : input.settings?.skin;
-    clean.settings.skin = typeof skinRaw === "string" && ["none", "dot", "grid", "check", "paper", "line", "glass"].includes(skinRaw) ? (skinRaw === "paper" ? "check" : skinRaw) : "none";
+    clean.settings.skin = typeof skinRaw === "string" && ["none", "dot", "grid", "check", "paper", "line", "glass", "leopard", "moroccan", "starry", "aurora"].includes(skinRaw) ? (skinRaw === "paper" ? "check" : skinRaw) : "none";
     clean.settings.budgetMode = ["usage", "outflow"].includes(input.settings?.budgetMode) ? input.settings.budgetMode : "usage";
     const cycleDay = input.settings?.cycleStartDay;
     clean.settings.cycleStartDay = cycleDay === "end" ? "end" : Math.min(28, Math.max(1, Number(cycleDay) || 1));
@@ -5943,66 +5947,195 @@
     }
     const confirmed = await confirmAction(
       "サンプルデータを追加しますか？",
-      "現在登録されているデータは消えず、お試し用のダミー支出・カードデータが追加されます。",
+      "現在登録されているデータは消えず、毎日しっかり記録している人のリアルなお試しデータ（支出・カード・電子マネー・サブスク）が追加されます。",
       "追加する"
     );
     if (!confirmed) return;
 
     const mainCardId = uid("card");
     const subCardId = uid("card");
+    const paypayId = uid("emoney");
+    const suicaId = uid("emoney");
     const today = Core.todayKey();
+
+    // 1. サンプルカード
     const sampleCards = [
       {
         id: mainCardId,
-        name: "メインカード（サンプル）",
+        name: "楽天カード（メイン）",
         closingDay: "end",
         paymentDay: 27,
         paymentMonth: 1,
         weekendAdjustment: "none",
-        color: "#6a78c9",
-        memo: "月末締め・翌月27日払いの例",
+        color: "#bf0000",
+        memo: "月末締め・翌月27日払いのメインカード",
         createdAt: new Date().toISOString(),
         isSample: true,
       },
       {
         id: subCardId,
-        name: "サブカード（サンプル）",
+        name: "三井住友カード（サブ）",
         closingDay: 15,
         paymentDay: 10,
         paymentMonth: 1,
         weekendAdjustment: "next",
-        color: "#ad6f9d",
-        memo: "15日締め・翌月10日払いの例",
+        color: "#0f5132",
+        memo: "15日締め・翌月10日払いのサブカード",
         createdAt: new Date().toISOString(),
         isSample: true,
       },
     ];
     state.cards.push(...sampleCards);
+
+    // 2. サンプルQR・電子マネー
+    if (!state.emoneys) state.emoneys = [];
+    if (!state.emoneyTransactions) state.emoneyTransactions = [];
+    const sampleEmoneys = [
+      {
+        id: paypayId,
+        name: "PayPay",
+        initialBalance: 3500,
+        color: "#ff0033",
+        icon: "paypay",
+        isDefault: !state.emoneys.some((e) => e.isDefault),
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+      {
+        id: suicaId,
+        name: "Suica",
+        initialBalance: 1500,
+        color: "#008000",
+        icon: "suica",
+        isDefault: false,
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+    ];
+    state.emoneys.push(...sampleEmoneys);
+
+    // 3. サンプルチャージ履歴
+    const sampleTransactions = [
+      {
+        id: uid("emoney_tx"),
+        emoneyId: paypayId,
+        type: "charge",
+        amount: 5000,
+        date: Core.addDays(today, -11),
+        sourceType: "card",
+        cardId: mainCardId,
+        memo: "楽天カードからチャージ",
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+      {
+        id: uid("emoney_tx"),
+        emoneyId: suicaId,
+        type: "charge",
+        amount: 3000,
+        date: Core.addDays(today, -13),
+        sourceType: "card",
+        cardId: mainCardId,
+        memo: "楽天カードからチャージ",
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+      {
+        id: uid("emoney_tx"),
+        emoneyId: paypayId,
+        type: "charge",
+        amount: 3000,
+        date: Core.addDays(today, -3),
+        sourceType: "bank",
+        cardId: "",
+        memo: "銀行口座からチャージ",
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+    ];
+    state.emoneyTransactions.push(...sampleTransactions);
+
+    // 4. サンプル支出（毎日コツコツ記録している人のリアルな日常データ）
     const sampleExpenses = [
-      sampleExpense(980, Core.addDays(today, -2), "食費", "現金", "", "ランチ"),
-      sampleExpense(2450, Core.addDays(today, -1), "日用品", "デビットカード", "", "ドラッグストア"),
-      sampleExpense(6800, today, "娯楽", Core.CREDIT_PAYMENT, mainCardId, "チケット"),
-      sampleExpense(12800, Core.addDays(today, 2), "衣服", Core.CREDIT_PAYMENT, subCardId, "買い物"),
-      sampleExpense(520, Core.addDays(today, 3), "交通", "QR・電子マネー", "", "電車"),
+      // 14日前
+      sampleExpense(380, Core.addDays(today, -14), "食費", "QR・電子マネー", "", paypayId, "朝カフェ コーヒー"),
+      sampleExpense(920, Core.addDays(today, -14), "食費", "QR・電子マネー", "", paypayId, "ランチ 定食"),
+      sampleExpense(360, Core.addDays(today, -14), "交通", "QR・電子マネー", "", suicaId, "地下鉄移動"),
+      // 13日前
+      sampleExpense(2480, Core.addDays(today, -13), "日用品", Core.CREDIT_PAYMENT, mainCardId, "", "ドラッグストア（洗剤・消耗品）"),
+      sampleExpense(1150, Core.addDays(today, -13), "食費", "現金", "", "", "弁当・お惣菜"),
+      // 12日前
+      sampleExpense(390, Core.addDays(today, -12), "食費", "QR・電子マネー", "", paypayId, "コンビニ 朝食"),
+      sampleExpense(880, Core.addDays(today, -12), "食費", "QR・電子マネー", "", paypayId, "ラーメン ランチ"),
+      sampleExpense(4320, Core.addDays(today, -12), "食費", Core.CREDIT_PAYMENT, mainCardId, "", "スーパー 食料品まとめ買い"),
+      // 11日前
+      sampleExpense(540, Core.addDays(today, -11), "交通", "QR・電子マネー", "", suicaId, "電車移動"),
+      sampleExpense(1050, Core.addDays(today, -11), "食費", "QR・電子マネー", "", paypayId, "ランチ パスタ"),
+      sampleExpense(2200, Core.addDays(today, -11), "娯楽", Core.CREDIT_PAYMENT, subCardId, "", "技術書・電子書籍"),
+      // 10日前
+      sampleExpense(450, Core.addDays(today, -10), "食費", "QR・電子マネー", "", paypayId, "カフェ ラテ"),
+      sampleExpense(1380, Core.addDays(today, -10), "食費", "現金", "", "", "同僚とランチ"),
+      // 9日前（週末）
+      sampleExpense(890, Core.addDays(today, -9), "食費", "QR・電子マネー", "", paypayId, "ベーカリー パン"),
+      sampleExpense(3850, Core.addDays(today, -9), "食費", Core.CREDIT_PAYMENT, mainCardId, "", "スーパー 週末買い出し"),
+      sampleExpense(5800, Core.addDays(today, -9), "娯楽", Core.CREDIT_PAYMENT, mainCardId, "", "映画＆夕食"),
+      // 8日前
+      sampleExpense(1800, Core.addDays(today, -8), "医療", "現金", "", "", "クリニック診察・目薬"),
+      sampleExpense(980, Core.addDays(today, -8), "日用品", "QR・電子マネー", "", paypayId, "生活雑貨"),
+      // 7日前
+      sampleExpense(380, Core.addDays(today, -7), "食費", "QR・電子マネー", "", paypayId, "朝コーヒー"),
+      sampleExpense(950, Core.addDays(today, -7), "食費", "QR・電子マネー", "", paypayId, "ランチ 蕎麦"),
+      sampleExpense(360, Core.addDays(today, -7), "交通", "QR・電子マネー", "", suicaId, "電車"),
+      // 6日前
+      sampleExpense(1100, Core.addDays(today, -6), "食費", "QR・電子マネー", "", paypayId, "中華ランチ"),
+      sampleExpense(1680, Core.addDays(today, -6), "日用品", Core.CREDIT_PAYMENT, subCardId, "", "シャンプー・日用品"),
+      // 5日前
+      sampleExpense(450, Core.addDays(today, -5), "食費", "QR・電子マネー", "", paypayId, "ドトール"),
+      sampleExpense(3200, Core.addDays(today, -5), "食費", Core.CREDIT_PAYMENT, mainCardId, "", "スーパー 夕食食材"),
+      sampleExpense(4900, Core.addDays(today, -5), "衣服", Core.CREDIT_PAYMENT, subCardId, "", "ユニクロ シャツ・インナー"),
+      // 4日前
+      sampleExpense(890, Core.addDays(today, -4), "食費", "QR・電子マネー", "", paypayId, "ランチ カレー"),
+      sampleExpense(360, Core.addDays(today, -4), "交通", "QR・電子マネー", "", suicaId, "バス"),
+      sampleExpense(4500, Core.addDays(today, -4), "その他", Core.CREDIT_PAYMENT, mainCardId, "", "仕事仲間と食事会"),
+      // 3日前
+      sampleExpense(650, Core.addDays(today, -3), "食費", "QR・電子マネー", "", paypayId, "サンドイッチ"),
+      sampleExpense(1420, Core.addDays(today, -3), "日用品", "QR・電子マネー", "", paypayId, "無印良品 消耗品"),
+      // 2日前
+      sampleExpense(380, Core.addDays(today, -2), "食費", "QR・電子マネー", "", paypayId, "コンビニ 朝食"),
+      sampleExpense(980, Core.addDays(today, -2), "食費", "QR・電子マネー", "", paypayId, "日替わりランチ"),
+      sampleExpense(2950, Core.addDays(today, -2), "食費", Core.CREDIT_PAYMENT, mainCardId, "", "スーパー 食料品"),
+      // 1日前
+      sampleExpense(420, Core.addDays(today, -1), "食費", "QR・電子マネー", "", paypayId, "スターバックス ドリップ"),
+      sampleExpense(1350, Core.addDays(today, -1), "食費", "現金", "", "", "和食ランチ"),
+      sampleExpense(540, Core.addDays(today, -1), "交通", "QR・電子マネー", "", suicaId, "往復電車"),
+      // 今日
+      sampleExpense(380, today, "食費", "QR・電子マネー", "", paypayId, "モーニング コーヒー"),
+      sampleExpense(1000, today, "食費", "QR・電子マネー", "", paypayId, "ランチ"),
+      // 今後の予定
+      sampleExpense(2800, Core.addDays(today, 2), "日用品", Core.CREDIT_PAYMENT, mainCardId, "", "日用品補充予定"),
+      sampleExpense(6800, Core.addDays(today, 5), "娯楽", Core.CREDIT_PAYMENT, mainCardId, "", "週末イベント・チケット"),
     ];
     state.expenses.push(...sampleExpenses);
+
+    // 5. サンプル手動支払日データ
     state.manualPayments.push({
       id: uid("manual"),
       cardId: mainCardId,
-      amount: 42800,
-      date: Core.addDays(today, 9),
-      memo: "移行前に確定していた金額",
+      amount: 48500,
+      date: Core.addDays(today, 8),
+      memo: "確定した前月カード引き落とし予定",
       createdAt: new Date().toISOString(),
       isSample: true,
     });
 
+    // 6. サンプル固定費・サブスク
     const sampleSubscriptions = [
       {
         id: uid("sub"),
         name: "家賃",
         icon: "home",
         type: "fixed",
-        amount: 80000,
+        amount: 75000,
         amountType: "fixed",
         interval: "monthly",
         paymentDay: 25,
@@ -6019,10 +6152,10 @@
       },
       {
         id: uid("sub"),
-        name: "スマホ料金",
-        icon: "phone",
+        name: "電気・ガス・水道",
+        icon: "zap",
         type: "fixed",
-        amount: 7090,
+        amount: 11800,
         amountType: "variable",
         interval: "monthly",
         paymentDay: "end",
@@ -6032,7 +6165,27 @@
         cardId: mainCardId,
         includeInWithdrawal: true,
         category: "固定費",
-        memo: "通信費",
+        memo: "公共料金まとめ",
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+      {
+        id: uid("sub"),
+        name: "スマホ・通信費",
+        icon: "phone",
+        type: "fixed",
+        amount: 6800,
+        amountType: "variable",
+        interval: "monthly",
+        paymentDay: 27,
+        paymentMonth: null,
+        oneTimeDate: "",
+        paymentMethod: Core.CREDIT_PAYMENT,
+        cardId: mainCardId,
+        includeInWithdrawal: true,
+        category: "固定費",
+        memo: "携帯・光回線",
         isActive: true,
         createdAt: new Date().toISOString(),
         isSample: true,
@@ -6059,20 +6212,40 @@
       },
       {
         id: uid("sub"),
-        name: "Netflix",
+        name: "Amazonプライム / 動画配信",
         icon: "tv",
         type: "subscription",
-        amount: 890,
+        amount: 1490,
         amountType: "fixed",
         interval: "monthly",
-        paymentDay: 20,
+        paymentDay: 10,
         paymentMonth: null,
         oneTimeDate: "",
         paymentMethod: Core.CREDIT_PAYMENT,
-        cardId: mainCardId,
+        cardId: subCardId,
         includeInWithdrawal: true,
         category: "娯楽",
-        memo: "動画配信",
+        memo: "サブスク動画",
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        isSample: true,
+      },
+      {
+        id: uid("sub"),
+        name: "フィットネスジム",
+        icon: "activity",
+        type: "subscription",
+        amount: 4400,
+        amountType: "fixed",
+        interval: "monthly",
+        paymentDay: 5,
+        paymentMonth: null,
+        oneTimeDate: "",
+        paymentMethod: Core.CREDIT_PAYMENT,
+        cardId: subCardId,
+        includeInWithdrawal: true,
+        category: "医療",
+        memo: "ジム月会費",
         isActive: true,
         createdAt: new Date().toISOString(),
         isSample: true,
@@ -6080,13 +6253,19 @@
     ];
     state.subscriptions.push(...sampleSubscriptions);
 
+    // 7. テーマ・表示の設定
+    if (!state.settings.skin || state.settings.skin === "none") {
+      state.settings.skin = "aurora";
+      applyThemeSkin();
+    }
+
     saveState();
     currentMonth = firstOfMonth(today);
     renderAll();
-    showToast("サンプルデータを追加しました。");
+    showToast("リアルな日常サンプルデータを追加しました。");
   }
 
-  function sampleExpense(amount, date, category, paymentMethod, cardId, memo) {
+  function sampleExpense(amount, date, category, paymentMethod, cardId, emoneyId, memo) {
     const timestamp = new Date().toISOString();
     return {
       id: uid("exp"),
@@ -6094,13 +6273,14 @@
       date,
       category,
       paymentMethod,
-      cardId,
+      cardId: cardId || "",
+      emoneyId: emoneyId || "",
       includeInWithdrawal: true,
       paymentDateOverride: "",
       calculatedPaymentDate: paymentMethod === Core.CREDIT_PAYMENT
         ? Core.calculatePaymentDate(date, state.cards.find((card) => card.id === cardId))
         : "",
-      memo,
+      memo: memo || "",
       createdAt: timestamp,
       updatedAt: timestamp,
       isSample: true,
@@ -6112,7 +6292,9 @@
       state.expenses.some((item) => item.isSample) ||
       state.cards.some((item) => item.isSample) ||
       state.manualPayments.some((item) => item.isSample) ||
-      state.subscriptions.some((item) => item.isSample)
+      state.subscriptions.some((item) => item.isSample) ||
+      (state.emoneys || []).some((item) => item.isSample) ||
+      (state.emoneyTransactions || []).some((item) => item.isSample)
     );
   }
 
@@ -6127,6 +6309,8 @@
     state.cards = state.cards.filter((item) => !item.isSample);
     state.manualPayments = state.manualPayments.filter((item) => !item.isSample);
     state.subscriptions = state.subscriptions.filter((item) => !item.isSample);
+    state.emoneys = (state.emoneys || []).filter((item) => !item.isSample);
+    state.emoneyTransactions = (state.emoneyTransactions || []).filter((item) => !item.isSample);
     saveState();
     renderAll();
     showToast("サンプルデータだけ削除しました。");

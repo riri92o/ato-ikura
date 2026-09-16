@@ -1,6 +1,8 @@
 // Thorough test of all view transitions and dialog triggers in AtoIkura
 const window = this;
 window.scrollTo = function() {};
+window.clearTimeout = function() {};
+window.setTimeout = function(cb) { return 1; };
 window.addEventListener = function(evt, cb) {};
 const elements = {};
 const domLoadedCallbacks = [];
@@ -526,6 +528,26 @@ if (sepSumWithCancelled.usage !== 3800) { // exp2(800) + exp3(3000)
   throw new Error(`Cancelled expense should not be in monthly usage! Expected 3800, got ${sepSumWithCancelled.usage}`);
 }
 print("Cancelled expense exclusion from balance & summaries verified successfully!");
+
+// 7. Test New Skins (leopard, moroccan, starry, aurora) via Theme Code Apply
+const tcInput = document.getElementById("theme-code-input");
+const tcApplyBtn = document.getElementById("theme-code-apply-btn");
+const skinsToTest = ["leopard", "moroccan", "starry", "aurora"];
+skinsToTest.forEach((sid) => {
+  tcInput.value = `#185A37_#FFFFFF_#FFFFFF_#E2E8F0_#34D399:${sid}`;
+  tcApplyBtn.dispatchEvent({ type: "click" });
+  if (document.documentElement.dataset.skin !== sid) {
+    throw new Error(`Theme code apply with skin '${sid}' failed! Got: ${document.documentElement.dataset.skin}`);
+  }
+});
+print("New skin presets (leopard, moroccan, starry, aurora) applied and verified!");
+
+// Test sample data buttons existence
+const addSampleBtn = document.getElementById("add-sample-button");
+const removeSampleBtn = document.getElementById("remove-sample-button");
+if (addSampleBtn && removeSampleBtn) {
+  print("Sample data buttons found and verified!");
+}
 
 print("All view, dialog, subscription, home widget, and QR / e-money integration tests passed successfully!");
 
