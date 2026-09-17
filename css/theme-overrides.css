@@ -1,0 +1,71 @@
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111712;
+    --surface: #182019;
+    --surface-soft: #1d3024;
+    --surface-muted: #202721;
+    --text: #edf5ef;
+    --text-muted: #a8b3aa;
+    --border: #344039;
+    --accent: #68b98b;
+    --accent-dark: #8ed0aa;
+    --accent-soft: #1b3827;
+    --usage: #77b3e7;
+    --usage-soft: #173249;
+    --card: #c099ea;
+    --card-soft: #322345;
+    --outflow: #eda866;
+    --outflow-soft: #402d1d;
+    --danger: #ef8888;
+    --danger-soft: #432323;
+    --shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+    --summary-bg: linear-gradient(135deg, var(--theme-color-1) 0%, var(--theme-color-2) 100%);
+    --summary-text: #ffffff;
+    --summary-subtext: rgba(255, 255, 255, 0.84);
+    --summary-note: rgba(255, 255, 255, 0.72);
+    --summary-item-bg: rgba(255, 255, 255, 0.14);
+    --summary-item-border: rgba(255, 255, 255, 0.18);
+    --summary-total-bg: rgba(255, 195, 100, 0.22);
+    --summary-total-border: rgba(255, 210, 120, 0.32);
+    --summary-shadow: 0 14px 32px rgba(0, 0, 0, 0.4);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111712;
+  --surface: #182019;
+  --surface-soft: #1d3024;
+  --surface-muted: #202721;
+  --text: #edf5ef;
+  --text-muted: #a8b3aa;
+  --border: #344039;
+  --accent: var(--theme-color-1);
+  --accent-dark: color-mix(in srgb, var(--theme-color-1) 80%, white);
+  --accent-soft: color-mix(in srgb, var(--theme-color-1) 25%, #182019);
+  --usage: #77b3e7;
+  --usage-soft: #173249;
+  --card: #c099ea;
+  --card-soft: #322345;
+  --outflow: #eda866;
+  --outflow-soft: #402d1d;
+  --danger: #ef8888;
+  --danger-soft: #432323;
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  --summary-bg: linear-gradient(135deg, var(--theme-color-1) 0%, var(--theme-color-2) 100%);
+  --summary-text: #ffffff;
+  --summary-subtext: rgba(255, 255, 255, 0.84);
+  --summary-note: rgba(255, 255, 255, 0.72);
+  --summary-item-bg: rgba(255, 255, 255, 0.14);
+  --summary-item-border: rgba(255, 255, 255, 0.18);
+  --summary-total-bg: rgba(255, 195, 100, 0.22);
+  --summary-total-border: rgba(255, 210, 120, 0.32);
+  --summary-shadow: 0 14px 32px rgba(0, 0, 0, 0.4);
+}
+
+@supports not (color: color-mix(in srgb, white, black)) {
+  .bottom-nav { background: var(--surface); }
+  .calendar-day.is-today { background: var(--accent-soft); }
+}
+

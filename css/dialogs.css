@@ -1,0 +1,436 @@
+dialog {
+  color: var(--text);
+}
+
+.app-dialog,
+.confirm-dialog {
+  width: min(calc(100% - 20px), 610px);
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 23px;
+  background: var(--surface);
+  box-shadow: 0 28px 90px rgba(13, 28, 19, 0.26);
+}
+
+.app-dialog::backdrop,
+.confirm-dialog::backdrop {
+  background: rgba(11, 25, 17, 0.48);
+  backdrop-filter: blur(3px);
+}
+
+.app-dialog form,
+.confirm-dialog form {
+  padding: 19px;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dialog-close {
+  flex: 0 0 auto;
+}
+
+/* よく使う支出（クイック入力） */
+.favorites-quick-bar {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+}
+
+.favorites-bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.favorites-bar-title {
+  font-size: 0.74rem;
+  font-weight: 750;
+  color: var(--text-muted);
+}
+
+.favorites-manage-btn {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.favorites-manage-btn.is-active {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.favorites-chips-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.favorites-chips-list::-webkit-scrollbar {
+  display: none;
+}
+
+.favorite-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.favorite-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.favorite-chip:active {
+  transform: scale(0.96);
+}
+
+.favorite-chip-icon {
+  font-size: 0.95rem;
+}
+
+.favorite-chip-title {
+  font-weight: 700;
+}
+
+.favorite-chip-amount {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--accent);
+  padding: 2px 6px;
+  background: var(--surface-muted);
+  border-radius: 10px;
+}
+
+.favorite-chip.is-deleting {
+  animation: chip-shake 0.3s infinite ease-in-out alternate;
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.favorite-chip-del-icon {
+  margin-left: 2px;
+  font-weight: 800;
+  color: var(--danger);
+}
+
+@keyframes chip-shake {
+  0% { transform: rotate(-2deg); }
+  100% { transform: rotate(2deg); }
+}
+
+.favorites-empty-hint {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  padding: 4px 2px;
+}
+
+.favorite-save-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.favorite-save-btn {
+  font-size: 0.76rem;
+  font-weight: 750;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.favorite-save-btn:hover {
+  text-decoration: underline;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px 10px;
+}
+
+.full-span,
+.field-large,
+.payment-date-box {
+  grid-column: 1 / -1;
+}
+
+.money-input {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  min-height: 54px;
+  padding: 0 14px;
+  border: 2px solid var(--accent-soft);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.money-input:focus-within {
+  border-color: var(--accent);
+}
+
+.money-input span {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.money-input input {
+  min-width: 0;
+  min-height: 50px;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  font-size: 1.55rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.money-input input:focus-visible {
+  outline: 0;
+}
+
+.required {
+  margin-left: 5px;
+  color: var(--danger);
+  font-size: 0.67rem;
+}
+
+.field-error {
+  min-height: 1em;
+  color: var(--danger);
+}
+
+.payment-date-box {
+  padding: 12px;
+  border-radius: 13px;
+  background: var(--card-soft);
+}
+
+.payment-date-box p {
+  margin: 0 0 9px;
+  color: var(--card);
+  font-size: 0.79rem;
+}
+
+.day-records-section {
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border);
+}
+
+.compact-record {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.record-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.record-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  line-height: 1.3;
+}
+
+.record-amount-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.compact-record small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+
+.dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.action-spacer {
+  flex: 1;
+}
+
+.app-dialog-small {
+  width: min(calc(100% - 20px), 470px);
+}
+
+.confirm-dialog {
+  width: min(calc(100% - 28px), 410px);
+}
+
+.confirm-dialog p {
+  color: var(--text-muted);
+  white-space: pre-line;
+}
+
+.toast {
+  position: fixed;
+  z-index: 70;
+  right: 50%;
+  bottom: calc(var(--bottom-nav-height) + 28px + env(safe-area-inset-bottom));
+  max-width: calc(100% - 36px);
+  padding: 11px 15px;
+  border-radius: 12px;
+  background: #213329;
+  box-shadow: var(--shadow);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(50%, 10px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(50%, 0);
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (max-width: 390px) {
+  .app-shell {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .app-header {
+    padding-right: 3px;
+    padding-left: 3px;
+  }
+
+  .summary-panel,
+  .balance-panel,
+  .category-panel,
+  .filter-panel,
+  .settings-card,
+  .info-card {
+    padding: 12px;
+  }
+
+  .calendar-day {
+    min-height: 83px;
+    padding-right: 2px;
+    padding-left: 2px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-span,
+  .field-large,
+  .payment-date-box {
+    grid-column: 1;
+  }
+
+  .dialog-actions {
+    flex-wrap: wrap;
+  }
+
+  .dialog-actions .action-spacer {
+    display: none;
+  }
+
+  .dialog-actions .button {
+    flex: 1 1 auto;
+  }
+}
+
+@media (min-width: 640px) {
+  .app-shell {
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+
+  .calendar-day {
+    min-height: 105px;
+    padding: 7px 6px;
+  }
+
+  .day-amount {
+    font-size: 0.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

@@ -1,13 +1,24 @@
 /* 更新時は CACHE_VERSION を上げると、古いキャッシュが自動削除されます。 */
-const CACHE_VERSION = "ato-ikura-v1.9.50";
+const CACHE_VERSION = "ato-ikura-v1.9.51";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./privacy.html",
   "./support.html",
   "./style.css",
+  "./css/components.css",
+  "./css/themes.css",
+  "./css/dialogs.css",
+  "./css/theme-overrides.css",
+  "./css/features.css",
   "./core.js",
+  "./storage.js",
   "./app.js",
+  "./cards.js",
+  "./emoney.js",
+  "./subscriptions.js",
+  "./reports.js",
+  "./main.js",
   "./manifest.json",
   "./icons/icon.svg",
   "./icons/icon-192.png",

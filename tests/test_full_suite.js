@@ -144,7 +144,13 @@ const location = { reload: function() {}, protocol: "http:" };
 const Chart = function() { return { destroy: function() {}, update: function() {} }; };
 
 load("core.js");
+load("storage.js");
 load("app.js");
+load("cards.js");
+load("emoney.js");
+load("subscriptions.js");
+load("reports.js");
+load("main.js");
 
 print("Booting DOMContentLoaded...");
 for (const cb of domLoadedCallbacks) {
@@ -586,7 +592,6 @@ if (skinTab) {
 print("Tab label '壁紙' verified!");
 
 print("All view, dialog, subscription, home widget, and QR / e-money integration tests passed successfully!");
-
 
 
 

@@ -103,8 +103,14 @@ const Chart = function() { return { destroy: function() {}, update: function() {
 load("core.js");
 print("core.js loaded successfully. AtoIkuraCore:", typeof window.AtoIkuraCore);
 
+load("storage.js");
 load("app.js");
-print("app.js loaded successfully. Executing DOMContentLoaded...");
+load("cards.js");
+load("emoney.js");
+load("subscriptions.js");
+load("reports.js");
+load("main.js");
+print("Application scripts loaded successfully. Executing DOMContentLoaded...");
 
 for (const cb of domLoadedCallbacks) {
   cb();

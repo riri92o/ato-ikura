@@ -1,4 +1,15 @@
 import re
+from pathlib import Path
+
+SCRIPT_FILES = [
+    "app.js",
+    "storage.js",
+    "cards.js",
+    "emoney.js",
+    "subscriptions.js",
+    "reports.js",
+    "main.js",
+]
 
 # 1. Read index.html and extract all element IDs
 with open("index.html", "r", encoding="utf-8") as f:
@@ -7,12 +18,11 @@ with open("index.html", "r", encoding="utf-8") as f:
 html_ids = set(re.findall(r'id=["\']([^"\']+)["\']', html_content))
 print(f"Total IDs in index.html: {len(html_ids)}")
 
-# 2. Read app.js and extract all $("...") queries
-with open("app.js", "r", encoding="utf-8") as f:
-    app_content = f.read()
+# 2. Read all application scripts and extract all byId("...") queries
+app_content = "\n".join(Path(path).read_text(encoding="utf-8") for path in SCRIPT_FILES)
 
-js_ids = set(re.findall(r'\$\(["\']([^"\']+)["\']\)', app_content))
-print(f"Total IDs queried in app.js via $(...): {len(js_ids)}")
+js_ids = set(re.findall(r'byId\(["\']([^"\']+)["\']\)', app_content))
+print(f"Total IDs queried across application scripts: {len(js_ids)}")
 
 missing_ids = []
 for jid in sorted(js_ids):
