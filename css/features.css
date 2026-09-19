@@ -181,6 +181,326 @@
   line-height: 1.45;
 }
 
+/* 機能別チュートリアル */
+.tutorial-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 12px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface));
+  box-shadow: var(--shadow);
+}
+
+.tutorial-hero-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  font-size: 1.45rem;
+}
+
+.tutorial-hero h3,
+.tutorial-quick-start h3,
+.tutorial-data-card h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+.tutorial-hero h3 {
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.tutorial-hero p {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.tutorial-quick-start,
+.tutorial-data-card {
+  padding: 16px;
+}
+
+.tutorial-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.tutorial-number {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-contrast, #fff);
+  font-weight: 900;
+}
+
+.tutorial-kicker {
+  margin: 0 0 2px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.tutorial-steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: tutorial-step;
+}
+
+.tutorial-steps li {
+  position: relative;
+  display: grid;
+  gap: 3px;
+  min-height: 42px;
+  padding: 10px 12px 10px 48px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface-soft);
+  counter-increment: tutorial-step;
+}
+
+.tutorial-steps li::before {
+  content: counter(tutorial-step);
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  color: var(--accent-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
+  transform: translateY(-50%);
+}
+
+.tutorial-steps strong {
+  font-size: 0.86rem;
+  color: var(--text);
+}
+
+.tutorial-steps span {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.tutorial-tip,
+.tutorial-warning {
+  display: grid;
+  gap: 3px;
+  margin-top: 12px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+
+.tutorial-tip {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+}
+
+.tutorial-warning {
+  background: color-mix(in srgb, #f59e0b 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, #f59e0b 30%, var(--border));
+}
+
+.tutorial-tip strong,
+.tutorial-warning strong {
+  color: var(--text);
+}
+
+.tutorial-tip span,
+.tutorial-warning span {
+  color: var(--text-muted);
+}
+
+.tutorial-index {
+  display: flex;
+  gap: 7px;
+  margin: 14px 0;
+  padding: 2px 0 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tutorial-index::-webkit-scrollbar {
+  display: none;
+}
+
+.tutorial-index a {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.tutorial-index a:focus-visible,
+.tutorial-index a:hover {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+.tutorial-accordion-list {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.tutorial-accordion {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+  box-shadow: 0 2px 9px rgba(0, 0, 0, 0.035);
+  scroll-margin-top: 12px;
+}
+
+.tutorial-accordion summary {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 10px;
+  min-height: 62px;
+  padding: 10px 13px;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.tutorial-accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.tutorial-summary-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-soft));
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.tutorial-accordion summary strong,
+.tutorial-accordion summary small {
+  display: block;
+}
+
+.tutorial-accordion summary strong {
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.tutorial-accordion summary small {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tutorial-chevron {
+  color: var(--text-muted);
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.tutorial-accordion[open] .tutorial-chevron {
+  transform: rotate(180deg);
+}
+
+.tutorial-content {
+  padding: 13px 15px 15px;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-soft) 45%, var(--surface));
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.tutorial-content p {
+  margin: 10px 0 0;
+}
+
+.tutorial-content ul,
+.tutorial-content ol {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.tutorial-content strong {
+  color: var(--text);
+}
+
+.tutorial-note {
+  margin-top: 11px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 9px 9px 0;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  color: var(--text-muted);
+}
+
+.tutorial-small-note {
+  margin: -4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 360px) {
+  .tutorial-hero {
+    padding: 14px;
+  }
+
+  .tutorial-hero-icon {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .tutorial-accordion summary {
+    grid-template-columns: 34px minmax(0, 1fr) 18px;
+    padding-inline: 10px;
+  }
+
+  .tutorial-summary-icon {
+    width: 32px;
+    height: 32px;
+  }
+}
+
 /* カード画面: 今月の引き落としブロック & 履歴リンク */
 .card-month-payment-box {
   margin: 12px 0 8px;
@@ -3306,5 +3626,4 @@ body.is-widget-dragging {
 .color-chip:hover {
   transform: scale(1.18);
 }
-
 

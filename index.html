@@ -512,8 +512,13 @@
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
               </button>
 
+              <button type="button" class="settings-menu-card" data-settings-nav="tutorial">
+                <span class="settings-menu-title">使い方ガイド</span>
+                <span class="settings-menu-arrow" aria-hidden="true">›</span>
+              </button>
+
               <button type="button" class="settings-menu-card" data-settings-nav="guide">
-                <span class="settings-menu-title">使い方・アプリ情報</span>
+                <span class="settings-menu-title">サポート・アプリ情報</span>
                 <span class="settings-menu-arrow" aria-hidden="true">›</span>
               </button>
             </div>
@@ -822,9 +827,167 @@
             </section>
           </div>
 
+          <div id="settings-subview-tutorial" class="settings-subview">
+            <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
+            <div class="page-heading">
+              <p class="section-kicker">はじめてでも迷わない</p>
+              <h2>使い方ガイド</h2>
+            </div>
+
+            <section class="tutorial-hero" aria-labelledby="tutorial-start-title">
+              <span class="tutorial-hero-icon" aria-hidden="true">📘</span>
+              <div>
+                <h3 id="tutorial-start-title">「使った日」と「お金が減る日」を分けて管理</h3>
+                <p>最初の設定から日々の記録、カード・電子マネー・固定費、レポート、バックアップまで、この画面で一通り確認できます。</p>
+              </div>
+            </section>
+
+            <section class="settings-card tutorial-quick-start" id="tutorial-quick-start">
+              <div class="tutorial-section-heading">
+                <span class="tutorial-number">1</span>
+                <div><p class="tutorial-kicker">まずはここから</p><h3>3ステップで利用開始</h3></div>
+              </div>
+              <ol class="tutorial-steps">
+                <li><strong>支払い方法を登録</strong><span>下部の「支払い」で、利用中のカードや電子マネーを登録します。</span></li>
+                <li><strong>予算・残高を設定</strong><span>ホームの予算設定と、設定の「残高・使用可能額」を入力します。</span></li>
+                <li><strong>最初の支出を登録</strong><span>ホーム右下の「＋」から、金額・日付・カテゴリ・支払い方法を保存します。</span></li>
+              </ol>
+              <div class="tutorial-tip"><strong>試してから始めたいとき</strong><span>「サポート・アプリ情報」からサンプルデータを追加できます。自分のデータを残したまま、サンプルだけ削除できます。</span></div>
+            </section>
+
+            <nav class="tutorial-index" aria-label="ガイドの目次">
+              <a href="#tutorial-home">ホーム</a>
+              <a href="#tutorial-expense">支出登録</a>
+              <a href="#tutorial-cards">カード</a>
+              <a href="#tutorial-emoney">電子マネー</a>
+              <a href="#tutorial-subscriptions">固定費</a>
+              <a href="#tutorial-history">履歴</a>
+              <a href="#tutorial-reports">レポート</a>
+              <a href="#tutorial-settings">設定</a>
+              <a href="#tutorial-backup">バックアップ</a>
+            </nav>
+
+            <div class="tutorial-accordion-list">
+              <details id="tutorial-home" class="tutorial-accordion" open>
+                <summary><span class="tutorial-summary-icon" aria-hidden="true">🏠</span><span><strong>ホームとカレンダー</strong><small>今月あといくら、日ごとの支出、予算を確認</small></span><span class="tutorial-chevron" aria-hidden="true">⌄</span></summary>
+                <div class="tutorial-content">
+                  <ul>
+                    <li>上部の月をタップすると、表示する月を選べます。左右の矢印でも月を移動できます。</li>
+                    <li>「使った額」はその月に利用した金額、「口座から出る額」は現金支出やカード引き落としなど、実際にお金が減る金額です。</li>
+                    <li>予算を設定すると、残り金額と使用率が表示されます。集計方法は「使った額」と「口座から出る額」から選べます。</li>
+                    <li>カレンダーの日付をタップすると、その日の記録を確認・追加できます。</li>
+                    <li>ホームの部品は、設定の「ホーム画面のウィジェット」で表示・非表示と並び順を変更できます。</li>
+                  </ul>
+                </div>
+              </details>
+
+              <details id="tutorial-expense" class="tutorial-accordion">
+                <summary><span class="tutorial-summary-icon" aria-hidden="true">＋</span><span><strong>支出を登録・編集する</strong><small>現金、カード、電子マネーなどの日々の記録</small></span><span class="tutorial-chevron" aria-hidden="true">⌄</span></summary>
+                <div class="tutorial-content">
+                  <ol>
+                    <li>ホーム右下の「＋」をタップします。</li>
+                    <li>金額、利用日、カテゴリ、支払い方法を入力します。</li>
+                    <li>カード払いでは使用したカード、電子マネー払いでは使用した電子マネーを選びます。</li>
+                    <li>必要ならメモや個別の支払日を設定して保存します。</li>
+                  </ol>
+                  <p>登録済みの記録は、カレンダーの日付または「履歴」から開いて編集・削除できます。よく使う内容はお気に入りに保存すると、次回からすばやく入力できます。</p>
+                </div>
+              </details>
+
+              <details id="tutorial-cards" class="tutorial-accordion">
+                <summary><span class="tutorial-summary-icon" aria-hidden="true">💳</span><span><strong>クレジットカード</strong><small>締め日から引き落とし日を自動計算</small></span><span class="tutorial-chevron" aria-hidden="true">⌄</span></summary>
+                <div class="tutorial-content">
+                  <ol>
+                    <li>下部の「支払い」を開き、「カード」の追加ボタンをタップします。</li>
+                    <li>カード名、締め日、支払日、支払月を設定します。</li>
+                    <li>必要に応じて、休日の場合の前営業日・翌営業日調整を選びます。</li>
+                  </ol>
+                  <p>カード支出を登録すると、利用額は買い物した日に、引き落とし額は計算された支払日に反映されます。請求額が確定したら「確定額」を登録して予定額を置き換えられます。カード番号や暗証番号の入力は不要です。</p>
+                </div>
+              </details>
+
+              <details id="tutorial-emoney" class="tutorial-accordion">
+                <summary><span class="tutorial-summary-icon" aria-hidden="true">📱</span><span><strong>QR・電子マネー</strong><small>残高、チャージ、利用、残高調整を管理</small></span><span class="tutorial-chevron" aria-hidden="true">⌄</span></summary>
+                <div class="tutorial-content">
+                  <ul>
+                    <li>「支払い」→「QR・電子マネー」から、サービス名・初期残高・色・アイコンを登録します。</li>
+                    <li>「チャージ」で金額、日付、チャージ元を記録します。カードからのチャージでは使用したカードも選べます。</li>
+                    <li>支出登録時に電子マネーを選ぶと、その残高から利用額が差し引かれます。</li>
+                    <li>実際の残高とずれた場合は「残高調整」で現在残高に合わせられます。履歴からチャージや調整内容も確認できます。</li>
+                  </ul>
+                </div>
+              </details>
+
+              <details id="tutorial-subscriptions" class="tutorial-accordion">
+                <summary><span class="tutorial-summary-icon" aria-hidden="true">🔁</span><span><strong>固定費・サブスク</strong><small>家賃、通信費、動画サービスなどを自動集計</small></span><span class="tutorial-chevron" aria-hidden="true">⌄</span></summary>
+                <div class="tutorial-content">
+                  <ol>
+                    <li>「支払い」→「固定費・サブスク」を開き、追加ボタンをタップします。</li>
+                    <li>名称、金額、毎月・毎年・一回のみの間隔、支払日、支払い方法を登録します。</li>
+                    <li>カード払いの場合は使用するカードを選びます。</li>
+                  </ol>
+                  <p>登録した固定費は対象月の集計とレポートに反映されます。一時的に止める場合は詳細画面から無効にでき、削除せず登録内容を残せます。</p>
+                </div>
+              </details>
+
+              <details id="tutorial-history" class="tutorial-accordion">
+                <summary><span class="tutorial-summary-icon" aria-hidden="true">🔎</span><span><strong>履歴と検索</strong><small>過去の支出を絞り込み、編集する</small></span><span class="tutorial-chevron" aria-hidden="true">⌄</span></summary>
+                <div class="tutorial-content">
+                  <ul>
+                    <li>月、カテゴリ、支払い方法で記録を絞り込めます。</li>
+                    <li>検索欄では、メモ・店舗名・カテゴリ・カード名を検索できます。</li>
+                    <li>一覧の記録をタップすると編集画面が開き、内容の変更や削除ができます。</li>
+                  </ul>
+                </div>
+              </details>
+
+              <details id="tutorial-reports" class="tutorial-accordion">
+                <summary><span class="tutorial-summary-icon" aria-hidden="true">📊</span><span><strong>レポート</strong><small>残高の見通しと支出傾向を確認</small></span><span class="tutorial-chevron" aria-hidden="true">⌄</span></summary>
+                <div class="tutorial-content">
+                  <ul>
+                    <li>「見通し」では、設定した現在残高から今後の出金予定を差し引いた目安を確認できます。</li>
+                    <li>「分析」では、カテゴリ別の割合、前月比較、月ごとの利用額・出金額、支払い方法別の内訳を確認できます。</li>
+                    <li>スマートアドバイザーをタップすると、予算や支出状況に応じた別のヒントを表示します。</li>
+                  </ul>
+                  <div class="tutorial-note">レポートは登録済みデータから算出する目安です。未登録の支出や今後の収入は含まれません。</div>
+                </div>
+              </details>
+
+              <details id="tutorial-settings" class="tutorial-accordion">
+                <summary><span class="tutorial-summary-icon" aria-hidden="true">⚙️</span><span><strong>予算・残高・集計期間・外観</strong><small>自分の家計と好みに合わせて調整</small></span><span class="tutorial-chevron" aria-hidden="true">⌄</span></summary>
+                <div class="tutorial-content">
+                  <ul>
+                    <li><strong>集計期間・給料日：</strong>1か月の開始日を変更し、給料日基準で集計できます。</li>
+                    <li><strong>残高・使用可能額：</strong>現在の口座残高と最低限残したい金額を設定します。</li>
+                    <li><strong>ホーム画面のウィジェット：</strong>表示する情報と並び順を変更します。</li>
+                    <li><strong>表示・テーマ：</strong>ライト・ダーク・端末連動、配色、背景模様を選べます。</li>
+                  </ul>
+                </div>
+              </details>
+
+              <details id="tutorial-backup" class="tutorial-accordion">
+                <summary><span class="tutorial-summary-icon" aria-hidden="true">💾</span><span><strong>バックアップと機種変更</strong><small>データ消失に備えてJSONを保存</small></span><span class="tutorial-chevron" aria-hidden="true">⌄</span></summary>
+                <div class="tutorial-content">
+                  <ol>
+                    <li>設定一覧の「バックアップ」を開き、「JSONで書き出す」をタップします。</li>
+                    <li>作成されたファイルをiCloud Driveなど、端末外にも保存します。</li>
+                    <li>復元時は「JSONから読み込む」でファイルを選び、件数を確認して読み込みます。</li>
+                  </ol>
+                  <div class="tutorial-warning"><strong>読み込み前に確認</strong><span>読み込むと現在のデータはバックアップ内容に置き換わります。必要なら先に現在のデータを書き出してください。</span></div>
+                </div>
+              </details>
+            </div>
+
+            <section class="settings-card tutorial-data-card">
+              <h3>データ保存について</h3>
+              <p class="settings-description">データはこのブラウザ内に保存され、別端末には自動同期されません。ブラウザデータの削除や端末変更に備え、定期的にバックアップしてください。</p>
+              <p class="tutorial-small-note">Safariのプライベートブラウズは継続的な保存には向きません。最新版が表示されない場合は、設定上部の更新ボタンをお試しください。</p>
+            </section>
+          </div>
+
           <div id="settings-subview-guide" class="settings-subview">
             <button class="back-link-btn" type="button" data-back-settings>‹ 設定一覧に戻る</button>
-            <div class="page-heading"><p class="section-kicker">サポート・利用規約・情報</p><h2>使い方・アプリ情報</h2></div>
+            <div class="page-heading"><p class="section-kicker">サポート・利用規約・情報</p><h2>サポート・アプリ情報</h2></div>
 
             <!-- サポート＆ポリシー（外部リンク・別ページ） -->
             <section class="settings-card">
@@ -844,16 +1007,6 @@
                   <span class="settings-menu-arrow" aria-hidden="true">›</span>
                 </a>
               </div>
-            </section>
-
-            <section class="settings-card">
-              <h3>アプリの基本的な使い方</h3>
-              <p class="settings-description">「あといくら」は、買い物をした日（利用）と口座からお金が減る日（支払い）を分けて管理できる支出管理アプリです。</p>
-              <ul class="guide-list">
-                <li><strong>支出を登録</strong>：右下の「＋」ボタンから、使った日・金額・支払い方法を選んで登録します。</li>
-                <li><strong>カードを設定</strong>：クレジットカードを登録すると、締め日と支払い日から口座引き落とし日を自動計算します。</li>
-                <li><strong>カレンダーで把握</strong>：買い物をした日には使った額、カード支払日には引き落とし額が表示されます。</li>
-              </ul>
             </section>
 
             <section class="settings-card">

@@ -359,6 +359,7 @@ function switchSettingsSubView(viewKey) {
     balance: byId("settings-subview-balance"),
     theme: byId("settings-subview-theme"),
     backup: byId("settings-subview-backup"),
+    tutorial: byId("settings-subview-tutorial"),
     guide: byId("settings-subview-guide"),
   };
 
