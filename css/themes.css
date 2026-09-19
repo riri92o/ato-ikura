@@ -800,11 +800,20 @@
 /* ============================================================
    スキン装飾パターン（メインアプリ & ミニスマホ連動）
    ============================================================ */
+html[data-skin],
+[data-skin] #theme-phone-mockup {
+  background-color: var(--bg-color, var(--bg)) !important;
+}
+
+body[data-skin] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
 /* ドット */
 html[data-skin="dot"],
-body[data-skin="dot"],
 [data-skin="dot"] #theme-phone-mockup {
-  background-image: radial-gradient(color-mix(in srgb, var(--accent) 20%, transparent) 1.5px, transparent 1.5px) !important;
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 18%, transparent) 1.5px, transparent 1.5px) !important;
   background-size: 16px 16px !important;
 }
 
@@ -814,10 +823,9 @@ body[data-skin="dot"],
 
 /* グリッド */
 html[data-skin="grid"],
-body[data-skin="grid"],
 [data-skin="grid"] #theme-phone-mockup {
-  background-image: linear-gradient(to right, color-mix(in srgb, var(--accent) 16%, transparent) 1px, transparent 1px),
-                    linear-gradient(to bottom, color-mix(in srgb, var(--accent) 16%, transparent) 1px, transparent 1px) !important;
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--accent) 14%, transparent) 1px, transparent 1px),
+                    linear-gradient(to bottom, color-mix(in srgb, var(--accent) 14%, transparent) 1px, transparent 1px) !important;
   background-size: 18px 18px !important;
 }
 
@@ -827,14 +835,12 @@ body[data-skin="grid"],
 
 /* チェック（上品で可愛いギンガムチェック模様） */
 html[data-skin="check"],
-body[data-skin="check"],
 [data-skin="check"] #theme-phone-mockup,
 html[data-skin="paper"],
-body[data-skin="paper"],
 [data-skin="paper"] #theme-phone-mockup {
   background-image: 
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 18%, transparent) 50%, transparent 50%),
-    linear-gradient(color-mix(in srgb, var(--accent) 18%, transparent) 50%, transparent 50%) !important;
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 15%, transparent) 50%, transparent 50%),
+    linear-gradient(color-mix(in srgb, var(--accent) 15%, transparent) 50%, transparent 50%) !important;
   background-size: 22px 22px !important;
 }
 
@@ -845,30 +851,26 @@ body[data-skin="paper"],
 
 /* ライン */
 html[data-skin="line"],
-body[data-skin="line"],
 [data-skin="line"] #theme-phone-mockup {
-  background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, color-mix(in srgb, var(--accent) 16%, transparent) 6px, color-mix(in srgb, var(--accent) 16%, transparent) 8px) !important;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, color-mix(in srgb, var(--accent) 14%, transparent) 6px, color-mix(in srgb, var(--accent) 14%, transparent) 8px) !important;
 }
 
 [data-skin="line"] #theme-phone-mockup {
-  background-image: repeating-linear-gradient(45deg, transparent, transparent 3.5px, color-mix(in srgb, var(--accent) 16%, transparent) 3.5px, color-mix(in srgb, var(--accent) 16%, transparent) 4.5px) !important;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 3.5px, color-mix(in srgb, var(--accent) 14%, transparent) 3.5px, color-mix(in srgb, var(--accent) 14%, transparent) 4.5px) !important;
 }
 
 /* ガラス（リアルな光彩反射とフロストグラス感） */
 html[data-skin="glass"],
-body[data-skin="glass"],
 [data-skin="glass"] #theme-phone-mockup {
-  background-image: linear-gradient(125deg, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0.06) 24%, rgba(255, 255, 255, 0.36) 46%, rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0.26) 80%, rgba(255, 255, 255, 0.05) 100%),
-                    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--accent) 30%, white) 0%, transparent 55%),
-                    radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--accent) 22%, white) 0%, transparent 55%) !important;
+  background-image: linear-gradient(125deg, rgba(255, 255, 255, 0.40) 0%, rgba(255, 255, 255, 0.04) 24%, rgba(255, 255, 255, 0.28) 46%, rgba(255, 255, 255, 0.02) 62%, rgba(255, 255, 255, 0.20) 80%, rgba(255, 255, 255, 0.04) 100%),
+                    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--accent) 20%, transparent) 0%, transparent 55%),
+                    radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 55%) !important;
 }
 
 /* マーブル（大理石・上品な流線ヴェイン・選択色連動） */
 html[data-skin="marble"],
-body[data-skin="marble"],
 [data-skin="marble"] #theme-phone-mockup,
 html[data-skin="leopard"],
-body[data-skin="leopard"],
 [data-skin="leopard"] #theme-phone-mockup {
   background-image: var(--marble-pattern) !important;
   background-size: 320px 320px !important;
@@ -881,11 +883,10 @@ body[data-skin="leopard"],
 
 /* モロッカンタイル（幾何学アラベスクの優美なタイル模様） */
 html[data-skin="moroccan"],
-body[data-skin="moroccan"],
 [data-skin="moroccan"] #theme-phone-mockup {
   background-image: 
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36' fill='none'%3E%3Cpath d='M18 0 C18 9 9 9 9 18 C9 27 18 27 18 36 C18 27 27 27 27 18 C27 9 18 9 18 0 Z' stroke='%23888888' stroke-opacity='0.22' stroke-width='1.2' fill='%23888888' fill-opacity='0.04'/%3E%3Cpath d='M0 18 C0 27 -9 27 -9 36 M0 18 C0 9 -9 9 -9 0 M36 18 C36 27 45 27 45 36 M36 18 C36 9 45 9 45 0' stroke='%23888888' stroke-opacity='0.22' stroke-width='1.2' fill='none'/%3E%3Ccircle cx='18' cy='18' r='1.6' fill='%23888888' fill-opacity='0.25'/%3E%3Ccircle cx='0' cy='0' r='1.6' fill='%23888888' fill-opacity='0.25'/%3E%3Ccircle cx='36' cy='0' r='1.6' fill='%23888888' fill-opacity='0.25'/%3E%3Ccircle cx='0' cy='36' r='1.6' fill='%23888888' fill-opacity='0.25'/%3E%3Ccircle cx='36' cy='36' r='1.6' fill='%23888888' fill-opacity='0.25'/%3E%3C/svg%3E"),
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 60%) !important;
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 60%) !important;
   background-size: 36px 36px, 100% 100% !important;
 }
 
@@ -895,12 +896,11 @@ body[data-skin="moroccan"],
 
 /* 星空（きらめく星と星屑、暗い色で白く輝く高コントラスト） */
 html[data-skin="starry"],
-body[data-skin="starry"],
 [data-skin="starry"] #theme-phone-mockup {
   background-image: 
     var(--starry-pattern),
-    radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--accent) 18%, transparent) 0%, transparent 55%),
-    radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 60%) !important;
+    radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 55%),
+    radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 60%) !important;
   background-size: 64px 64px, 100% 100%, 100% 100% !important;
 }
 
@@ -909,25 +909,22 @@ body[data-skin="starry"],
 }
 
 [data-theme="dark"] html[data-skin="starry"],
-[data-theme="dark"] body[data-skin="starry"],
 [data-theme="dark"] [data-skin="starry"] #theme-phone-mockup,
-html[data-dark-bg="true"][data-skin="starry"],
-body[data-dark-bg="true"][data-skin="starry"] {
+html[data-dark-bg="true"][data-skin="starry"] {
   background-image: 
     var(--starry-pattern),
-    radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--accent) 35%, transparent) 0%, transparent 60%),
-    radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--accent) 25%, transparent) 0%, transparent 65%) !important;
+    radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 60%),
+    radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 65%) !important;
 }
 
 /* オセロ（選んだ色と白/淡色が交互に並ぶ端正な市松・盤面模様） */
 html[data-skin="othello"],
-body[data-skin="othello"],
 [data-skin="othello"] #theme-phone-mockup {
   background-image: 
     conic-gradient(
-      color-mix(in srgb, var(--accent) 20%, transparent) 90deg,
+      color-mix(in srgb, var(--accent) 16%, transparent) 90deg,
       transparent 90deg 180deg,
-      color-mix(in srgb, var(--accent) 20%, transparent) 180deg 270deg,
+      color-mix(in srgb, var(--accent) 16%, transparent) 180deg 270deg,
       transparent 270deg
     ) !important;
   background-size: 32px 32px !important;
@@ -938,14 +935,13 @@ body[data-skin="othello"],
 }
 
 [data-theme="dark"] html[data-skin="othello"],
-[data-theme="dark"] body[data-skin="othello"],
 [data-theme="dark"] [data-skin="othello"] #theme-phone-mockup {
   background-image: 
     conic-gradient(
-      color-mix(in srgb, var(--accent) 32%, transparent) 90deg,
-      rgba(255, 255, 255, 0.05) 90deg 180deg,
-      color-mix(in srgb, var(--accent) 32%, transparent) 180deg 270deg,
-      rgba(255, 255, 255, 0.05) 270deg
+      color-mix(in srgb, var(--accent) 18%, transparent) 90deg,
+      rgba(255, 255, 255, 0.04) 90deg 180deg,
+      color-mix(in srgb, var(--accent) 18%, transparent) 180deg 270deg,
+      rgba(255, 255, 255, 0.04) 270deg
     ) !important;
 }
 

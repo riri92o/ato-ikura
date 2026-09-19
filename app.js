@@ -2419,7 +2419,9 @@ function applyThemeColors() {
   document.documentElement.style.setProperty("--theme-color-2", color1);
   document.documentElement.style.setProperty("--accent", color1);
   document.documentElement.style.setProperty("--bg-color", bgColor);
+  document.documentElement.style.setProperty("--bg", bgColor);
   document.documentElement.style.setProperty("--border-color", borderColor);
+  document.documentElement.style.setProperty("--border", borderColor);
   document.documentElement.style.setProperty("--gauge-color", gaugeColor);
   document.documentElement.style.setProperty("--usage-color", usageColor);
   document.documentElement.style.setProperty("--usage-soft", colorWithAlpha(usageColor, 0.15));
@@ -2432,6 +2434,13 @@ function applyThemeColors() {
   document.documentElement.style.setProperty("--text-muted", cardTextMuted);
   document.documentElement.style.setProperty("--page-text", pageTextColor);
   document.documentElement.style.setProperty("--page-text-muted", pageTextMuted);
+
+  if (document.documentElement && document.documentElement.style) {
+    document.documentElement.style.backgroundColor = bgColor;
+  }
+  if (document.body && document.body.style) {
+    document.body.style.backgroundColor = "transparent";
+  }
 
   if (document.documentElement && document.documentElement.dataset) {
     document.documentElement.dataset.darkBg = isDarkBg ? "true" : "false";

@@ -1,16 +1,16 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #111712;
-    --surface: #182019;
-    --surface-soft: #1d3024;
-    --surface-muted: #202721;
+    --bg: var(--bg-color, #111712);
+    --surface: var(--card-bg-color, #182019);
+    --surface-soft: color-mix(in srgb, var(--surface, #182019) 88%, #ffffff);
+    --surface-muted: color-mix(in srgb, var(--surface, #182019) 80%, #ffffff);
     --text: #edf5ef;
     --text-muted: #a8b3aa;
-    --border: #344039;
-    --accent: #68b98b;
-    --accent-dark: #8ed0aa;
-    --accent-soft: #1b3827;
+    --border: var(--border-color, #344039);
+    --accent: var(--theme-color-1, #68b98b);
+    --accent-dark: color-mix(in srgb, var(--theme-color-1, #68b98b) 80%, white);
+    --accent-soft: color-mix(in srgb, var(--theme-color-1, #68b98b) 25%, var(--surface, #182019));
     --usage: #77b3e7;
     --usage-soft: #173249;
     --card: #c099ea;
@@ -34,16 +34,16 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #111712;
-  --surface: #182019;
-  --surface-soft: #1d3024;
-  --surface-muted: #202721;
+  --bg: var(--bg-color, #111712);
+  --surface: var(--card-bg-color, #182019);
+  --surface-soft: color-mix(in srgb, var(--surface, #182019) 88%, #ffffff);
+  --surface-muted: color-mix(in srgb, var(--surface, #182019) 80%, #ffffff);
   --text: #edf5ef;
   --text-muted: #a8b3aa;
-  --border: #344039;
+  --border: var(--border-color, #344039);
   --accent: var(--theme-color-1);
   --accent-dark: color-mix(in srgb, var(--theme-color-1) 80%, white);
-  --accent-soft: color-mix(in srgb, var(--theme-color-1) 25%, #182019);
+  --accent-soft: color-mix(in srgb, var(--theme-color-1) 25%, var(--surface, #182019));
   --usage: #77b3e7;
   --usage-soft: #173249;
   --card: #c099ea;

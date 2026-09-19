@@ -4,6 +4,8 @@ window.scrollTo = function() {};
 window.clearTimeout = function() {};
 window.setTimeout = function(cb) { return 1; };
 window.addEventListener = function(evt, cb) {};
+window.confirm = function() { return true; };
+const confirm = window.confirm;
 const elements = {};
 const domLoadedCallbacks = [];
 
