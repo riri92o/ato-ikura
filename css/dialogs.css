@@ -321,6 +321,205 @@ dialog {
   white-space: pre-line;
 }
 
+/* 支出保存時の完了フィードバック */
+.expense-save-feedback {
+  --feedback-accent: var(--accent);
+  position: fixed;
+  z-index: 85;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html[data-dark-bg="true"] .expense-save-feedback {
+  --feedback-accent: color-mix(in srgb, var(--accent) 58%, white);
+}
+
+.expense-save-feedback.is-active {
+  animation: expense-feedback-overlay 2.1s both;
+}
+
+.expense-feedback-card {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-width: min(330px, calc(100vw - 40px));
+  max-width: min(390px, calc(100vw - 32px));
+  padding: 18px 22px 18px 18px;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--feedback-accent) 34%, var(--border));
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: 0 24px 70px rgba(7, 20, 13, 0.24), 0 8px 24px color-mix(in srgb, var(--feedback-accent) 16%, transparent);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+}
+
+.expense-save-feedback.is-active .expense-feedback-card {
+  animation: expense-feedback-card 2.1s cubic-bezier(0.2, 0.82, 0.22, 1) both;
+}
+
+.expense-feedback-mark {
+  position: relative;
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+}
+
+.expense-feedback-mark svg {
+  position: relative;
+  z-index: 2;
+  width: 58px;
+  height: 58px;
+  overflow: visible;
+  filter: drop-shadow(0 7px 13px color-mix(in srgb, var(--feedback-accent) 24%, transparent));
+}
+
+.expense-feedback-ring,
+.expense-feedback-check {
+  fill: none;
+  stroke: var(--feedback-accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.expense-feedback-ring {
+  stroke-width: 3.5;
+  stroke-dasharray: 132;
+  stroke-dashoffset: 132;
+}
+
+.expense-feedback-check {
+  stroke-width: 4.2;
+  stroke-dasharray: 28;
+  stroke-dashoffset: 28;
+}
+
+.expense-save-feedback.is-active .expense-feedback-ring {
+  animation: expense-feedback-draw 0.52s 0.1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.expense-save-feedback.is-active .expense-feedback-check {
+  animation: expense-feedback-draw 0.34s 0.43s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.expense-feedback-halo {
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--feedback-accent) 22%, transparent);
+  opacity: 0;
+}
+
+.expense-save-feedback.is-active .expense-feedback-halo {
+  animation: expense-feedback-halo 0.85s 0.12s ease-out both;
+}
+
+.expense-feedback-particle {
+  --particle-x: 0px;
+  --particle-y: -38px;
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px;
+  border-radius: 999px;
+  background: var(--feedback-accent);
+  opacity: 0;
+}
+
+.expense-feedback-particle:nth-of-type(2) { --particle-x: 33px; --particle-y: -25px; }
+.expense-feedback-particle:nth-of-type(3) { --particle-x: 40px; --particle-y: 13px; width: 5px; height: 5px; }
+.expense-feedback-particle:nth-of-type(4) { --particle-x: 13px; --particle-y: 39px; }
+.expense-feedback-particle:nth-of-type(5) { --particle-x: -33px; --particle-y: 27px; width: 5px; height: 5px; }
+.expense-feedback-particle:nth-of-type(6) { --particle-x: -40px; --particle-y: -14px; }
+.expense-feedback-particle:nth-of-type(7) { --particle-x: -10px; --particle-y: -40px; width: 5px; height: 5px; }
+
+.expense-save-feedback.is-active .expense-feedback-particle {
+  animation: expense-feedback-particle 0.62s 0.27s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.expense-feedback-copy {
+  min-width: 0;
+}
+
+.expense-feedback-copy span,
+.expense-feedback-copy strong,
+.expense-feedback-copy small {
+  display: block;
+}
+
+.expense-feedback-copy span {
+  margin-bottom: 2px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.expense-feedback-copy strong {
+  color: color-mix(in srgb, var(--feedback-accent) 72%, var(--text));
+  font-size: clamp(1.45rem, 6vw, 1.8rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.expense-feedback-copy small {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expense-save-feedback.is-active .expense-feedback-copy {
+  animation: expense-feedback-copy 0.58s 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes expense-feedback-overlay {
+  0% { opacity: 0; }
+  10%, 82% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes expense-feedback-card {
+  0% { opacity: 0; transform: translateY(22px) scale(0.86); }
+  18% { opacity: 1; transform: translateY(-2px) scale(1.035); }
+  30%, 82% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-9px) scale(0.98); }
+}
+
+@keyframes expense-feedback-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes expense-feedback-halo {
+  0% { opacity: 0; transform: scale(0.45); }
+  28% { opacity: 0.8; }
+  100% { opacity: 0; transform: scale(1.65); }
+}
+
+@keyframes expense-feedback-particle {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  22% { opacity: 0.85; }
+  100% { opacity: 0; transform: translate(var(--particle-x), var(--particle-y)) scale(0.1); }
+}
+
+@keyframes expense-feedback-copy {
+  0% { opacity: 0; transform: translateX(-7px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
 .toast {
   position: fixed;
   z-index: 70;
@@ -432,5 +631,30 @@ dialog {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
-}
 
+  .expense-save-feedback.is-active,
+  .expense-save-feedback.is-active .expense-feedback-card,
+  .expense-save-feedback.is-active .expense-feedback-halo,
+  .expense-save-feedback.is-active .expense-feedback-copy,
+  .expense-save-feedback.is-active .expense-feedback-ring,
+  .expense-save-feedback.is-active .expense-feedback-check {
+    animation: none !important;
+  }
+
+  .expense-save-feedback.is-active,
+  .expense-save-feedback.is-active .expense-feedback-card,
+  .expense-save-feedback.is-active .expense-feedback-copy {
+    opacity: 1;
+    transform: none;
+  }
+
+  .expense-save-feedback.is-active .expense-feedback-ring,
+  .expense-save-feedback.is-active .expense-feedback-check {
+    stroke-dashoffset: 0;
+  }
+
+  .expense-feedback-particle,
+  .expense-feedback-halo {
+    display: none;
+  }
+}

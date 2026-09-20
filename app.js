@@ -306,6 +306,7 @@ let selectedDetailSubId = "";
 let reportSubTab = "outlook";
 let isSummaryBreakdownOpen = false;
 let toastTimer = null;
+let expenseFeedbackTimer = null;
 
 const byId = (id) => document.getElementById(id);
 
@@ -2260,7 +2261,7 @@ function saveExpenseFromForm(event) {
   closeDialog(byId("expense-dialog"));
   currentMonth = firstOfMonth(date);
   renderAll();
-  showToast(existing ? "支出を更新しました。" : "支出を登録しました。");
+  showExpenseSaveFeedback(record, Boolean(existing));
 }
 
 async function deleteCurrentExpense() {
@@ -3815,6 +3816,29 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("is-visible");
   toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2400);
+}
+
+function showExpenseSaveFeedback(expense, isUpdate = false) {
+  const feedback = byId("expense-save-feedback");
+  if (!feedback || !expense) {
+    showToast(isUpdate ? "支出を更新しました。" : "支出を登録しました。");
+    return;
+  }
+
+  window.clearTimeout(expenseFeedbackTimer);
+  byId("expense-feedback-label").textContent = isUpdate ? "支出を更新しました" : "支出を登録しました";
+  byId("expense-feedback-amount").textContent = formatYen(expense.amount);
+  byId("expense-feedback-detail").textContent = `${expense.category} ・ ${expense.paymentMethod}`;
+
+  feedback.classList.remove("is-active");
+  feedback.setAttribute("aria-hidden", "false");
+  void feedback.offsetWidth;
+  feedback.classList.add("is-active");
+
+  expenseFeedbackTimer = window.setTimeout(() => {
+    feedback.classList.remove("is-active");
+    feedback.setAttribute("aria-hidden", "true");
+  }, 2150);
 }
 
 function formatMoneyInput(event) {

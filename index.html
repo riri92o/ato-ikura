@@ -1735,6 +1735,29 @@
       </form>
     </dialog>
 
+    <div id="expense-save-feedback" class="expense-save-feedback" role="status" aria-live="polite" aria-atomic="true" aria-hidden="true">
+      <div class="expense-feedback-card">
+        <div class="expense-feedback-mark" aria-hidden="true">
+          <span class="expense-feedback-halo"></span>
+          <svg viewBox="0 0 52 52">
+            <circle class="expense-feedback-ring" cx="26" cy="26" r="21"></circle>
+            <path class="expense-feedback-check" d="M16.5 26.5 23 33l13-14"></path>
+          </svg>
+          <span class="expense-feedback-particle"></span>
+          <span class="expense-feedback-particle"></span>
+          <span class="expense-feedback-particle"></span>
+          <span class="expense-feedback-particle"></span>
+          <span class="expense-feedback-particle"></span>
+          <span class="expense-feedback-particle"></span>
+        </div>
+        <div class="expense-feedback-copy">
+          <span id="expense-feedback-label">支出を登録しました</span>
+          <strong id="expense-feedback-amount"></strong>
+          <small id="expense-feedback-detail"></small>
+        </div>
+      </div>
+    </div>
+
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
