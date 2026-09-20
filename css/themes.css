@@ -764,8 +764,38 @@
 
 .skin-preview-marble,
 .skin-preview-leopard {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36' fill='none' stroke='%23888888' stroke-linecap='round'%3E%3Cpath d='M-2,6 Q10,12 18,20 T38,30' stroke-width='2' stroke-opacity='0.6'/%3E%3Cpath d='M18,20 Q24,14 30,16' stroke-width='1.2' stroke-opacity='0.45'/%3E%3Cpath d='M32,-2 Q24,8 16,16 T4,38' stroke-width='1.6' stroke-opacity='0.5'/%3E%3Cpath d='M16,16 Q10,14 6,10' stroke-width='1' stroke-opacity='0.35'/%3E%3Cpath d='M24,14 Q28,8 34,6' stroke-width='0.8' stroke-opacity='0.35'/%3E%3C/svg%3E");
-  background-size: 28px 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72' fill='none'%3E%3Cpath d='M-8 15 C9 -1 18 29 34 16 C48 5 52 34 80 18' stroke='%23888888' stroke-width='13' stroke-opacity='.15' stroke-linecap='round'/%3E%3Cpath d='M-8 15 C9 -1 18 29 34 16 C48 5 52 34 80 18' stroke='%23777777' stroke-width='3.2' stroke-opacity='.65' stroke-linecap='round'/%3E%3Cpath d='M-5 62 C14 41 28 69 43 52 C56 37 63 47 79 34' stroke='%23888888' stroke-width='10' stroke-opacity='.13' stroke-linecap='round'/%3E%3Cpath d='M-5 62 C14 41 28 69 43 52 C56 37 63 47 79 34' stroke='%23777777' stroke-width='2.6' stroke-opacity='.58' stroke-linecap='round'/%3E%3Cpath d='M20 -7 C32 8 20 18 31 31 C41 43 34 57 47 79' stroke='%23777777' stroke-width='2' stroke-opacity='.48' stroke-linecap='round'/%3E%3Cpath d='M34 16 C39 24 38 31 35 38 M43 52 C49 59 57 62 65 60 M31 31 C24 37 21 43 20 50' stroke='%23777777' stroke-width='1' stroke-opacity='.42' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 58px 58px;
+  width: 100%;
+  height: 100%;
+}
+
+.skin-preview-wave {
+  background-image: radial-gradient(ellipse at 50% 100%, transparent 46%, color-mix(in srgb, var(--accent) 36%, transparent) 47% 54%, transparent 55%);
+  background-size: 15px 9px;
+  width: 100%;
+  height: 100%;
+}
+
+.skin-preview-diamond {
+  background-image: linear-gradient(45deg, transparent 46%, color-mix(in srgb, var(--accent) 32%, transparent) 47% 53%, transparent 54%),
+                    linear-gradient(-45deg, transparent 46%, color-mix(in srgb, var(--accent) 32%, transparent) 47% 53%, transparent 54%);
+  background-size: 12px 12px;
+  width: 100%;
+  height: 100%;
+}
+
+.skin-preview-bubble {
+  background-image: radial-gradient(circle at 25% 25%, color-mix(in srgb, var(--accent) 30%, transparent) 0 3px, transparent 3.3px),
+                    radial-gradient(circle at 72% 70%, transparent 0 3px, color-mix(in srgb, var(--accent) 38%, transparent) 3.3px 4.2px, transparent 4.5px);
+  background-size: 23px 23px;
+  width: 100%;
+  height: 100%;
+}
+
+.skin-preview-confetti {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Cg fill='%23777777' fill-opacity='.62'%3E%3Crect x='5' y='6' width='2' height='8' rx='1' transform='rotate(-38 6 10)'/%3E%3Crect x='25' y='3' width='2' height='7' rx='1' transform='rotate(24 26 6)'/%3E%3Crect x='39' y='13' width='2' height='8' rx='1' transform='rotate(62 40 17)'/%3E%3Crect x='12' y='33' width='2' height='7' rx='1' transform='rotate(41 13 36)'/%3E%3Crect x='34' y='40' width='2' height='8' rx='1' transform='rotate(-28 35 44)'/%3E%3Ccircle cx='46' cy='34' r='1.5'/%3E%3Ccircle cx='22' cy='23' r='1.3'/%3E%3C/g%3E%3Cg fill='%23888888' fill-opacity='.42'%3E%3Cpath d='M9 22l5 1-4 4zM31 15l4 3-5 2zM21 46l5-2-1 5z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 44px 44px;
   width: 100%;
   height: 100%;
 }
@@ -867,18 +897,71 @@ html[data-skin="glass"],
                     radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 55%) !important;
 }
 
-/* マーブル（大理石・上品な流線ヴェイン・選択色連動） */
+/* ウェーブ（やわらかな波紋） */
+html[data-skin="wave"],
+[data-skin="wave"] #theme-phone-mockup {
+  background-image: radial-gradient(ellipse at 50% 100%, transparent 45%, color-mix(in srgb, var(--accent) 18%, transparent) 46% 51%, transparent 52%) !important;
+  background-size: 48px 28px !important;
+  background-position: 0 0 !important;
+}
+
+[data-skin="wave"] #theme-phone-mockup {
+  background-size: 24px 14px !important;
+}
+
+/* ダイヤ（繊細なひし形格子） */
+html[data-skin="diamond"],
+[data-skin="diamond"] #theme-phone-mockup {
+  background-image: linear-gradient(45deg, transparent 48%, color-mix(in srgb, var(--accent) 16%, transparent) 49% 51%, transparent 52%),
+                    linear-gradient(-45deg, transparent 48%, color-mix(in srgb, var(--accent) 16%, transparent) 49% 51%, transparent 52%) !important;
+  background-size: 38px 38px !important;
+}
+
+[data-skin="diamond"] #theme-phone-mockup {
+  background-size: 19px 19px !important;
+}
+
+/* バブル（大小の泡とリング） */
+html[data-skin="bubble"],
+[data-skin="bubble"] #theme-phone-mockup {
+  background-image: radial-gradient(circle at 20% 24%, color-mix(in srgb, var(--accent) 16%, transparent) 0 7px, transparent 7.5px),
+                    radial-gradient(circle at 72% 68%, transparent 0 10px, color-mix(in srgb, var(--accent) 18%, transparent) 10.5px 12px, transparent 12.5px),
+                    radial-gradient(circle at 48% 92%, color-mix(in srgb, var(--accent) 10%, transparent) 0 4px, transparent 4.5px) !important;
+  background-size: 78px 78px, 92px 92px, 58px 58px !important;
+  background-position: 0 0, 18px 12px, 9px 22px !important;
+}
+
+[data-skin="bubble"] #theme-phone-mockup {
+  background-size: 39px 39px, 46px 46px, 29px 29px !important;
+  background-position: 0 0, 9px 6px, 5px 11px !important;
+}
+
+/* 紙吹雪（小さな色片を散らした軽快な柄） */
+html[data-skin="confetti"],
+[data-skin="confetti"] #theme-phone-mockup {
+  background-image: var(--confetti-pattern) !important;
+  background-size: 104px 104px !important;
+  background-position: 0 0 !important;
+}
+
+[data-skin="confetti"] #theme-phone-mockup {
+  background-size: 52px 52px !important;
+}
+
+/* マーブル（太い鉱脈、枝分かれ、明るい縁を重ねた大理石模様） */
 html[data-skin="marble"],
 [data-skin="marble"] #theme-phone-mockup,
 html[data-skin="leopard"],
 [data-skin="leopard"] #theme-phone-mockup {
-  background-image: var(--marble-pattern) !important;
-  background-size: 320px 320px !important;
+  background-image: var(--marble-pattern),
+                    radial-gradient(ellipse at 18% 20%, color-mix(in srgb, var(--accent) 7%, transparent) 0%, transparent 55%),
+                    radial-gradient(ellipse at 82% 78%, rgba(255, 255, 255, 0.12) 0%, transparent 58%) !important;
+  background-size: 420px 420px, 100% 100%, 100% 100% !important;
 }
 
 [data-skin="marble"] #theme-phone-mockup,
 [data-skin="leopard"] #theme-phone-mockup {
-  background-size: 160px 160px !important;
+  background-size: 210px 210px, 100% 100%, 100% 100% !important;
 }
 
 /* モロッカンタイル（幾何学アラベスクの優美なタイル模様） */
@@ -1294,4 +1377,3 @@ html[data-skin="othello"],
 .fab:active {
   transform: scale(0.95);
 }
-

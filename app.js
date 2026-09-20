@@ -199,6 +199,10 @@ const SKIN_PRESETS = [
   { id: "line", name: "ライン" },
   { id: "glass", name: "ガラス" },
   { id: "marble", name: "マーブル" },
+  { id: "wave", name: "ウェーブ" },
+  { id: "diamond", name: "ダイヤ" },
+  { id: "bubble", name: "バブル" },
+  { id: "confetti", name: "紙吹雪" },
   { id: "moroccan", name: "モロッカン" },
   { id: "starry", name: "星空" },
   { id: "othello", name: "オセロ" },
@@ -2393,11 +2397,12 @@ function shadeHexColor(hexColor, factor) {
 
 function generateMarbleSvg(themeColor, isDarkBg) {
   const color = themeColor || "#007a78";
-  const op1 = isDarkBg ? 0.24 : 0.14;
-  const op2 = isDarkBg ? 0.16 : 0.09;
-  const op3 = isDarkBg ? 0.10 : 0.05;
+  const broadOpacity = isDarkBg ? 0.26 : 0.18;
+  const veinOpacity = isDarkBg ? 0.58 : 0.42;
+  const branchOpacity = isDarkBg ? 0.38 : 0.28;
+  const highlightOpacity = isDarkBg ? 0.20 : 0.62;
 
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360' viewBox='0 0 360 360' fill='none'><g stroke='${color}' stroke-opacity='${op1}' stroke-linecap='round' stroke-linejoin='round'><path d='M-20,40 Q60,80 110,130 T220,240 Q290,290 380,340' stroke-width='2.6'/><path d='M340,-20 Q290,70 240,120 T130,230 Q80,280 40,380' stroke-width='2.2'/><path d='M-20,400 Q60,440 110,490 T220,600 Q290,650 380,700' stroke-width='2.6'/><path d='M-380,40 Q-300,80 -250,130 T-140,240 Q-70,290 20,340' stroke-width='2.6'/><path d='M340,340 Q290,430 240,480 T130,590 Q80,640 40,740' stroke-width='2.2'/><path d='M-20,-20 Q-70,70 -120,120 T-230,230 Q-280,280 -320,380' stroke-width='2.2'/></g><g stroke='${color}' stroke-opacity='${op2}' stroke-linecap='round' stroke-linejoin='round'><path d='M110,130 Q160,110 210,135 T300,160' stroke-width='1.5'/><path d='M220,240 Q180,280 195,330 T220,390' stroke-width='1.4'/><path d='M60,80 Q40,140 20,170 T-20,210' stroke-width='1.4'/><path d='M290,290 Q340,260 380,270' stroke-width='1.3'/><path d='M240,120 Q190,90 170,40 T150,-20' stroke-width='1.5'/><path d='M130,230 Q90,200 40,210 T-20,200' stroke-width='1.4'/><path d='M290,70 Q330,110 370,120' stroke-width='1.3'/><path d='M80,280 Q120,310 140,360 T150,400' stroke-width='1.4'/><path d='M0,180 Q90,160 170,200 T360,190' stroke-width='1.6'/><path d='M170,200 Q220,160 260,80 T300,-10' stroke-width='1.2'/><path d='M170,200 Q140,260 90,300 T20,370' stroke-width='1.3'/><path d='M0,540 Q90,520 170,560 T360,550' stroke-width='1.6'/><path d='M-360,180 Q-270,160 -190,200 T0,190' stroke-width='1.6'/></g><g stroke='${color}' stroke-opacity='${op3}' stroke-linecap='round' stroke-linejoin='round'><path d='M160,110 Q180,70 210,60' stroke-width='0.9'/><path d='M210,135 Q230,170 260,180' stroke-width='0.8'/><path d='M180,280 Q140,290 120,330' stroke-width='0.9'/><path d='M195,330 Q230,340 250,370' stroke-width='0.8'/><path d='M40,140 Q70,170 80,210' stroke-width='0.8'/><path d='M190,90 Q150,110 130,100' stroke-width='0.9'/><path d='M90,200 Q100,160 80,130' stroke-width='0.8'/><path d='M260,80 Q290,60 320,80' stroke-width='0.8'/><path d='M140,260 Q170,280 190,270' stroke-width='0.9'/><path d='M310,160 Q340,180 370,170' stroke-width='0.8'/><path d='M40,210 Q20,250 10,270' stroke-width='0.8'/><path d='M240,120 Q270,150 290,140' stroke-width='0.9'/><path d='M120,310 Q100,340 110,380' stroke-width='0.8'/></g></svg>`;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420' viewBox='0 0 420 420' fill='none'><defs><filter id='soft' x='-20%' y='-20%' width='140%' height='140%'><feGaussianBlur stdDeviation='7'/></filter></defs><g fill='none' stroke='${color}' stroke-linecap='round' filter='url(#soft)' opacity='${broadOpacity}'><path d='M-30 64 C55 16 92 121 164 91 C236 61 251 174 337 137 C379 119 410 86 450 74' stroke-width='28'/><path d='M-35 363 C38 292 97 372 156 317 C213 264 253 335 307 278 C360 222 401 245 455 202' stroke-width='22'/><path d='M82 -35 C129 30 94 85 137 139 C181 195 134 238 183 291 C224 336 218 384 253 455' stroke-width='18'/></g><g fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-opacity='${veinOpacity}'><path d='M-30 64 C55 16 92 121 164 91 C236 61 251 174 337 137 C379 119 410 86 450 74' stroke-width='5.4'/><path d='M-35 363 C38 292 97 372 156 317 C213 264 253 335 307 278 C360 222 401 245 455 202' stroke-width='4.6'/><path d='M82 -35 C129 30 94 85 137 139 C181 195 134 238 183 291 C224 336 218 384 253 455' stroke-width='3.8'/></g><g fill='none' stroke='white' stroke-linecap='round' stroke-opacity='${highlightOpacity}'><path d='M-27 57 C55 9 90 112 162 83 C235 53 251 165 334 129 C379 110 410 78 448 67' stroke-width='1.7'/><path d='M-31 356 C39 285 96 365 153 310 C211 256 252 327 303 271 C357 214 400 237 452 195' stroke-width='1.5'/><path d='M75 -32 C121 33 86 87 129 143 C172 199 125 241 174 296 C214 341 209 389 244 452' stroke-width='1.2'/></g><g fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-opacity='${branchOpacity}'><path d='M92 91 C70 137 38 145 5 166'/><path d='M164 91 C188 123 191 150 181 183'/><path d='M252 119 C281 89 288 54 279 21'/><path d='M337 137 C351 167 378 178 411 176'/><path d='M91 341 C75 302 45 278 9 268'/><path d='M156 317 C173 354 204 370 234 373'/><path d='M307 278 C287 244 285 217 296 188'/><path d='M137 139 C109 165 91 197 88 230'/><path d='M183 291 C213 271 238 249 251 218'/><path d='M221 361 C253 345 279 348 304 367'/> </g></svg>`;
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
@@ -2407,6 +2412,14 @@ function generateStarrySvg(themeColor, isDarkBg) {
   const sparkOpacity = isDarkBg ? 0.8 : 0.28;
 
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64' fill='none'><path d='M16 8 Q16 16 24 16 Q16 16 16 24 Q16 16 8 16 Q16 16 16 8 Z' fill='${starFill}' fill-opacity='${starOpacity}'/><path d='M48 40 Q48 46 54 46 Q48 46 48 52 Q48 46 42 46 Q48 46 48 40 Z' fill='${starFill}' fill-opacity='${starOpacity}'/><circle cx='52' cy='12' r='1.8' fill='${starFill}' fill-opacity='${starOpacity}'/><circle cx='30' cy='34' r='1.5' fill='${starFill}' fill-opacity='${starOpacity}'/><circle cx='8' cy='52' r='1.8' fill='${starFill}' fill-opacity='${starOpacity}'/><circle cx='40' cy='56' r='1.2' fill='${starFill}' fill-opacity='${sparkOpacity}'/><circle cx='34' cy='10' r='1.2' fill='${starFill}' fill-opacity='${sparkOpacity}'/><circle cx='58' cy='30' r='1.2' fill='${starFill}' fill-opacity='${sparkOpacity}'/><path d='M30 50 L34 50 M32 48 L32 52' stroke='${starFill}' stroke-opacity='${sparkOpacity}' stroke-width='1.2'/><path d='M12 32 L16 32 M14 30 L14 34' stroke='${starFill}' stroke-opacity='${sparkOpacity}' stroke-width='1.2'/></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+function generateConfettiSvg(themeColor, isDarkBg) {
+  const color = themeColor || "#007a78";
+  const opacity = isDarkBg ? 0.48 : 0.30;
+  const softOpacity = isDarkBg ? 0.30 : 0.18;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='104' height='104' viewBox='0 0 104 104'><g fill='${color}' fill-opacity='${opacity}'><rect x='9' y='14' width='3' height='13' rx='1.5' transform='rotate(-38 10.5 20.5)'/><rect x='48' y='7' width='3' height='10' rx='1.5' transform='rotate(24 49.5 12)'/><rect x='78' y='25' width='3' height='14' rx='1.5' transform='rotate(62 79.5 32)'/><rect x='24' y='65' width='3' height='12' rx='1.5' transform='rotate(41 25.5 71)'/><rect x='66' y='79' width='3' height='13' rx='1.5' transform='rotate(-28 67.5 85.5)'/><circle cx='91' cy='67' r='2.4'/><circle cx='42' cy='43' r='2'/></g><g fill='${color}' fill-opacity='${softOpacity}'><path d='M18 43 l7 2 -5 5z'/><path d='M61 29 l6 4 -7 3z'/><path d='M41 89 l7 -2 -2 7z'/><path d='M88 9 l6 3 -5 5z'/><circle cx='8' cy='88' r='1.8'/><circle cx='77' cy='55' r='1.6'/></g></svg>`;
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
@@ -2491,9 +2504,11 @@ function applyThemeColors() {
   try {
     const marblePattern = generateMarbleSvg(color1, isDarkBg);
     const starryPattern = generateStarrySvg(color1, isDarkBg);
+    const confettiPattern = generateConfettiSvg(color1, isDarkBg);
     document.documentElement.style.setProperty("--marble-pattern", marblePattern);
     document.documentElement.style.setProperty("--leopard-pattern", marblePattern);
     document.documentElement.style.setProperty("--starry-pattern", starryPattern);
+    document.documentElement.style.setProperty("--confetti-pattern", confettiPattern);
   } catch (_e) {}
 
   if (isDarkBg || isDarkCard) {
