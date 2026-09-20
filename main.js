@@ -28,17 +28,19 @@ function initSplashScreen() {
       splash.style.display = "none";
     }, 450);
   };
-  setTimeout(hideSplash, 850);
+  const splashDuration = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 450 : 1650;
+  setTimeout(hideSplash, splashDuration);
   splash.addEventListener("click", hideSplash, { once: true });
 }
 function checkFirstTimeOnboarding() {
   const hasOnboarded = localStorage.getItem(APP.onboardedKey);
   const hasData = state.expenses.length > 0 || state.cards.length > 0 || Object.keys(state.budgets || {}).length > 0;
   if (!hasOnboarded && !hasData) {
+    const onboardingDelay = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 550 : 2150;
     window.setTimeout(() => {
       const dialog = byId("onboarding-dialog");
       if (dialog) showDialog(dialog);
-    }, 250);
+    }, onboardingDelay);
   }
 }
 function populateStaticSelects() {
