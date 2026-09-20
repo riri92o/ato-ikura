@@ -740,11 +740,53 @@ function bindEvents() {
     btn.addEventListener("click", () => {
       const modeVal = btn.dataset.modeVal;
       state.settings.theme = modeVal;
+      if (modeVal === "dark") {
+        if (!state.settings.bgColor || getLuminance(state.settings.bgColor) >= 0.45) {
+          state.settings.bgColor = "#111712";
+          state.settings.cardBgColor = "#182019";
+          state.settings.borderColor = "#344039";
+        }
+      } else if (modeVal === "light") {
+        if (state.settings.bgColor && getLuminance(state.settings.bgColor) < 0.45) {
+          state.settings.bgColor = "#ffffff";
+          state.settings.cardBgColor = "#ffffff";
+          state.settings.borderColor = "#e2e8f0";
+        }
+      } else if (modeVal === "auto") {
+        const isSysDark = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (isSysDark && (!state.settings.bgColor || getLuminance(state.settings.bgColor) >= 0.45)) {
+          state.settings.bgColor = "#111712";
+          state.settings.cardBgColor = "#182019";
+          state.settings.borderColor = "#344039";
+        } else if (!isSysDark && state.settings.bgColor && getLuminance(state.settings.bgColor) < 0.45) {
+          state.settings.bgColor = "#ffffff";
+          state.settings.cardBgColor = "#ffffff";
+          state.settings.borderColor = "#e2e8f0";
+        }
+      }
       saveState();
       applyTheme();
+      renderCalendar();
       showToast(`表示モードを「${modeVal === "light" ? "ライト" : modeVal === "dark" ? "ダーク" : "端末に合わせる"}」に変更しました。`);
     });
   });
+
+  if (typeof window !== "undefined" && window.matchMedia) {
+    try {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleThemeChange = () => {
+        if (state.settings.theme === "auto") {
+          applyTheme();
+          renderCalendar();
+        }
+      };
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener("change", handleThemeChange);
+      } else if (mediaQuery.addListener) {
+        mediaQuery.addListener(handleThemeChange);
+      }
+    } catch (_e) {}
+  }
 
   byId("reset-colors-button").addEventListener("click", () => {
     const def = THEME_PRESETS.find((p) => p.id === "teal") || THEME_PRESETS[0];

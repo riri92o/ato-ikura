@@ -369,6 +369,37 @@ if (typeof switchSettingsSubView === "function") {
     shareBtn.dispatchEvent({ type: "click" });
   }
 
+  // Test Dark/Light Mode Segment Buttons
+  const darkBtn = document.querySelector('.mode-seg-btn[data-mode-val="dark"]');
+  const lightBtn = document.querySelector('.mode-seg-btn[data-mode-val="light"]');
+  if (darkBtn && lightBtn) {
+    darkBtn.dispatchEvent({ type: "click" });
+    if (state.settings.theme !== "dark") throw new Error("Clicking dark button should set state.settings.theme to 'dark'");
+    if (document.documentElement.getAttribute("data-theme") !== "dark") throw new Error("data-theme should be 'dark'");
+    if (document.documentElement.dataset.darkBg !== "true") throw new Error("dataset.darkBg should be 'true' in dark mode");
+    if (document.documentElement.style.getPropertyValue("--bg-color") !== "#111712") {
+      throw new Error("Dark mode should set --bg-color to #111712");
+    }
+
+    // Test customizing background in dark mode
+    const bgInput = document.getElementById("setting-bg-color");
+    if (bgInput) {
+      bgInput.value = "#1a202c";
+      bgInput.dispatchEvent({ type: "input", target: bgInput });
+      if (document.documentElement.style.getPropertyValue("--bg-color") !== "#1a202c") {
+        throw new Error("Custom background color in dark mode should update --bg-color");
+      }
+    }
+
+    lightBtn.dispatchEvent({ type: "click" });
+    if (state.settings.theme !== "light") throw new Error("Clicking light button should set state.settings.theme to 'light'");
+    if (document.documentElement.getAttribute("data-theme") !== "light") throw new Error("data-theme should be 'light'");
+    if (document.documentElement.dataset.darkBg !== "false") throw new Error("dataset.darkBg should be 'false' in light mode");
+    if (document.documentElement.style.getPropertyValue("--bg-color") !== "#ffffff") {
+      throw new Error("Light mode should set --bg-color to #ffffff");
+    }
+  }
+
   // Test theme reset button (ensuring cardBgColor is completely reset)
   const resetBtn = document.getElementById("theme-top-reset-btn");
   if (resetBtn) {

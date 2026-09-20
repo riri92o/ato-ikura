@@ -2308,16 +2308,44 @@ function saveBalanceSettings() {
 }
 
 function saveTheme() {
-  state.settings.theme = byId("theme-select").value;
+  const modeVal = byId("theme-select").value;
+  state.settings.theme = modeVal;
+  if (modeVal === "dark") {
+    if (!state.settings.bgColor || getLuminance(state.settings.bgColor) >= 0.45) {
+      state.settings.bgColor = "#111712";
+      state.settings.cardBgColor = "#182019";
+      state.settings.borderColor = "#344039";
+    }
+  } else if (modeVal === "light") {
+    if (state.settings.bgColor && getLuminance(state.settings.bgColor) < 0.45) {
+      state.settings.bgColor = "#ffffff";
+      state.settings.cardBgColor = "#ffffff";
+      state.settings.borderColor = "#e2e8f0";
+    }
+  } else if (modeVal === "auto") {
+    const isSysDark = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (isSysDark && (!state.settings.bgColor || getLuminance(state.settings.bgColor) >= 0.45)) {
+      state.settings.bgColor = "#111712";
+      state.settings.cardBgColor = "#182019";
+      state.settings.borderColor = "#344039";
+    } else if (!isSysDark && state.settings.bgColor && getLuminance(state.settings.bgColor) < 0.45) {
+      state.settings.bgColor = "#ffffff";
+      state.settings.cardBgColor = "#ffffff";
+      state.settings.borderColor = "#e2e8f0";
+    }
+  }
   saveState();
   applyTheme();
+  renderCalendar();
   showToast("テーマを変更しました。");
 }
 
 function applyTheme() {
   const theme = state.settings.theme || "auto";
-  if (theme === "auto") document.documentElement.removeAttribute("data-theme");
-  else document.documentElement.setAttribute("data-theme", theme);
+  const isSysDark = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isEffectiveDark = theme === "dark" || (theme === "auto" && isSysDark);
+
+  document.documentElement.setAttribute("data-theme", isEffectiveDark ? "dark" : "light");
   const themeSelect = byId("theme-select");
   if (themeSelect && themeSelect.value !== theme) {
     themeSelect.value = theme;
@@ -2401,19 +2429,29 @@ function getThemeCode() {
 }
 
 function applyThemeColors() {
-  const color1 = state.settings.themeColor1 || "#007a78";
-  const bgColor = state.settings.bgColor || "#ffffff";
-  const isDarkBg = getLuminance(bgColor) < 0.45;
-  const effectiveCardBg = state.settings.cardBgColor || (isDarkBg ? "#1e293b" : "#ffffff");
-  const isDarkCard = getLuminance(effectiveCardBg) < 0.48;
-  const borderColor = state.settings.borderColor || (isDarkCard ? "#334155" : "#e2e8f0");
-  const gaugeColor = state.settings.gaugeColor || "#34d399";
-  const usageColor = state.settings.usageColor || "#0284c7";
+  const theme = state.settings.theme || "auto";
+  const isSysDark = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDarkTheme = (theme === "dark") || (theme === "auto" && isSysDark);
 
-  const cardTextColor = isDarkCard ? "#f8fafc" : "#1e293b";
-  const cardTextMuted = isDarkCard ? "#94a3b8" : "#64748b";
-  const pageTextColor = isDarkBg ? "#f8fafc" : "#1e293b";
-  const pageTextMuted = isDarkBg ? "#94a3b8" : "#64748b";
+  let bgColor = state.settings.bgColor;
+  if (!bgColor || (isDarkTheme && (!state.settings.bgColor || state.settings.bgColor.toLowerCase() === "#ffffff"))) {
+    bgColor = isDarkTheme ? "#111712" : "#ffffff";
+  }
+
+  const isDarkBg = getLuminance(bgColor) < 0.45;
+  const defaultCardBg = isDarkBg ? (isDarkTheme ? "#182019" : "#1e293b") : "#ffffff";
+  const effectiveCardBg = state.settings.cardBgColor || defaultCardBg;
+  const isDarkCard = getLuminance(effectiveCardBg) < 0.48;
+  const defaultBorder = isDarkCard ? "#344039" : "#e2e8f0";
+  const borderColor = state.settings.borderColor || defaultBorder;
+  const color1 = state.settings.themeColor1 || (isDarkTheme ? "#34d399" : "#007a78");
+  const gaugeColor = state.settings.gaugeColor || (isDarkTheme ? "#34d399" : "#007a78");
+  const usageColor = state.settings.usageColor || (isDarkTheme ? "#60a5fa" : "#0284c7");
+
+  const cardTextColor = isDarkCard ? "#edf5ef" : "#1e293b";
+  const cardTextMuted = isDarkCard ? "#a8b3aa" : "#64748b";
+  const pageTextColor = isDarkBg ? "#edf5ef" : "#1e293b";
+  const pageTextMuted = isDarkBg ? "#a8b3aa" : "#64748b";
 
   document.documentElement.style.setProperty("--theme-color-1", color1);
   document.documentElement.style.setProperty("--theme-color-2", color1);
@@ -2436,6 +2474,7 @@ function applyThemeColors() {
   document.documentElement.style.setProperty("--page-text-muted", pageTextMuted);
 
   if (document.documentElement && document.documentElement.style) {
+    document.documentElement.style.colorScheme = isDarkBg ? "dark" : "light";
     document.documentElement.style.backgroundColor = bgColor;
   }
   if (document.body && document.body.style) {
