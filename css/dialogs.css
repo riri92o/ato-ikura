@@ -226,6 +226,216 @@ dialog {
   outline: 0;
 }
 
+.money-input.has-calculator {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.money-calculator-button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.money-calculator-button:hover {
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+}
+
+.money-calculator-button:active {
+  transform: scale(0.92);
+}
+
+.money-calculator-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.money-calculator-button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.money-calculator-button svg path:first-of-type {
+  fill: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/*
+  電卓配色は専用変数に集約。将来、設定画面から各変数を更新すれば
+  電卓だけの配色プリセットやカスタムカラーを追加できる。
+*/
+.calculator-dialog {
+  --calculator-bg: var(--surface);
+  --calculator-display-bg: var(--surface-muted);
+  --calculator-key-bg: var(--surface-soft);
+  --calculator-key-text: var(--text);
+  --calculator-muted-bg: color-mix(in srgb, var(--surface-muted) 78%, var(--border));
+  --calculator-accent: var(--accent);
+  width: min(calc(100% - 28px), 360px);
+  max-height: calc(100dvh - 28px);
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--calculator-bg);
+}
+
+html[data-dark-bg="true"] .calculator-dialog {
+  --calculator-accent: color-mix(in srgb, var(--accent) 62%, white);
+}
+
+.calculator-dialog::backdrop {
+  background: rgba(7, 18, 12, 0.48);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+.calculator-dialog[open] {
+  animation: calculatorDialogIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.calculator-shell {
+  padding: 16px;
+}
+
+.calculator-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.calculator-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.calculator-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--calculator-key-bg);
+  color: var(--calculator-key-text);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.calculator-display {
+  min-height: 84px;
+  margin-bottom: 12px;
+  padding: 13px 15px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--calculator-display-bg);
+  text-align: right;
+}
+
+.calculator-expression,
+.calculator-result {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calculator-expression {
+  min-height: 1.3em;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.calculator-result {
+  margin-top: 5px;
+  color: var(--calculator-key-text);
+  font-size: clamp(1.65rem, 8vw, 2.1rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.calculator-keys {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.calculator-key {
+  min-width: 0;
+  min-height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--calculator-key-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 72%, transparent);
+  color: var(--calculator-key-text);
+  font-size: 1.08rem;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.1s ease, filter 0.12s ease;
+}
+
+.calculator-key:hover {
+  filter: brightness(1.04);
+}
+
+.calculator-key:active {
+  transform: scale(0.92);
+}
+
+.calculator-key:focus-visible {
+  outline: 2px solid var(--calculator-accent);
+  outline-offset: 1px;
+}
+
+.calculator-key-muted {
+  background: var(--calculator-muted-bg);
+  color: var(--text-muted);
+}
+
+.calculator-key-operator {
+  background: color-mix(in srgb, var(--calculator-accent) 16%, var(--calculator-bg));
+  color: var(--calculator-accent);
+}
+
+.calculator-key-equals {
+  background: var(--calculator-accent);
+  box-shadow: none;
+  color: white;
+}
+
+.calculator-apply {
+  width: 100%;
+  margin-top: 12px;
+  border-color: var(--calculator-accent);
+  background: var(--calculator-accent);
+  color: white;
+}
+
+@keyframes calculatorDialogIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calculator-dialog[open] {
+    animation: none;
+  }
+}
+
 .required {
   margin-left: 5px;
   color: var(--danger);

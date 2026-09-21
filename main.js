@@ -348,6 +348,12 @@ function bindEvents() {
   });
 
   byId("expense-amount").addEventListener("blur", formatMoneyInput);
+  byId("open-expense-calculator").addEventListener("click", openExpenseCalculator);
+  byId("expense-calculator-dialog").querySelectorAll("[data-calculator-key]").forEach((button) => {
+    button.addEventListener("click", () => handleExpenseCalculatorKey(button.dataset.calculatorKey));
+  });
+  byId("apply-calculator-result").addEventListener("click", applyExpenseCalculatorResult);
+  document.addEventListener("keydown", handleExpenseCalculatorKeyboard);
   byId("manual-payment-amount").addEventListener("blur", formatMoneyInput);
   byId("setting-balance").addEventListener("blur", formatMoneyInput);
   byId("setting-reserve").addEventListener("blur", formatMoneyInput);

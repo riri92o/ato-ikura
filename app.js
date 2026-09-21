@@ -307,6 +307,15 @@ let reportSubTab = "outlook";
 let isSummaryBreakdownOpen = false;
 let toastTimer = null;
 let expenseFeedbackTimer = null;
+const expenseCalculatorState = {
+  current: "0",
+  accumulator: null,
+  operator: null,
+  waitingForOperand: false,
+  justEvaluated: false,
+  expression: "",
+  error: false,
+};
 
 const byId = (id) => document.getElementById(id);
 
@@ -3839,6 +3848,206 @@ function showExpenseSaveFeedback(expense, isUpdate = false) {
     feedback.classList.remove("is-active");
     feedback.setAttribute("aria-hidden", "true");
   }, 2150);
+}
+
+const CALCULATOR_OPERATOR_SYMBOLS = {
+  add: "＋",
+  subtract: "−",
+  multiply: "×",
+  divide: "÷",
+};
+
+function openExpenseCalculator() {
+  const initialAmount = Core.normalizeAmount(byId("expense-amount").value);
+  Object.assign(expenseCalculatorState, {
+    current: initialAmount > 0 ? String(initialAmount) : "0",
+    accumulator: null,
+    operator: null,
+    waitingForOperand: false,
+    justEvaluated: false,
+    expression: initialAmount > 0 ? "入力中の金額" : "",
+    error: false,
+  });
+  updateExpenseCalculatorDisplay();
+  showDialog(byId("expense-calculator-dialog"));
+}
+
+function formatCalculatorInput(rawValue) {
+  const raw = String(rawValue || "0");
+  const [integerPart, decimalPart] = raw.split(".");
+  const integer = Number.parseInt(integerPart || "0", 10) || 0;
+  const formattedInteger = new Intl.NumberFormat("ja-JP").format(integer);
+  return decimalPart === undefined ? formattedInteger : `${formattedInteger}.${decimalPart}`;
+}
+
+function calculatorNumberToInput(value) {
+  if (!Number.isFinite(value)) return "0";
+  const normalized = Math.round(value * 1000000) / 1000000;
+  return String(Object.is(normalized, -0) ? 0 : normalized);
+}
+
+function updateExpenseCalculatorDisplay() {
+  const expressionEl = byId("calculator-expression");
+  const resultEl = byId("calculator-result");
+  if (!expressionEl || !resultEl) return;
+  expressionEl.textContent = expenseCalculatorState.expression || "\u00a0";
+  resultEl.textContent = expenseCalculatorState.error
+    ? "計算できません"
+    : formatCalculatorInput(expenseCalculatorState.current);
+}
+
+function calculateExpenseCalculator(left, operator, right) {
+  if (operator === "add") return left + right;
+  if (operator === "subtract") return left - right;
+  if (operator === "multiply") return left * right;
+  if (operator === "divide") return right === 0 ? null : left / right;
+  return right;
+}
+
+function resetExpenseCalculator(message = "") {
+  Object.assign(expenseCalculatorState, {
+    current: "0",
+    accumulator: null,
+    operator: null,
+    waitingForOperand: false,
+    justEvaluated: false,
+    expression: message,
+    error: false,
+  });
+}
+
+function setExpenseCalculatorError(message) {
+  Object.assign(expenseCalculatorState, {
+    current: "0",
+    accumulator: null,
+    operator: null,
+    waitingForOperand: false,
+    justEvaluated: false,
+    expression: message,
+    error: true,
+  });
+}
+
+function handleExpenseCalculatorKey(key) {
+  const state = expenseCalculatorState;
+  const isDigit = /^\d$/.test(key) || key === "00";
+
+  if (key === "clear") {
+    resetExpenseCalculator();
+  } else if (key === "backspace") {
+    if (state.error || state.waitingForOperand || state.justEvaluated) {
+      resetExpenseCalculator();
+    } else {
+      state.current = state.current.length > 1 ? state.current.slice(0, -1) : "0";
+      if (state.current === "-" || state.current === "") state.current = "0";
+    }
+  } else if (isDigit) {
+    if (state.error || state.waitingForOperand || state.justEvaluated) {
+      state.current = key === "00" ? "0" : key;
+      state.waitingForOperand = false;
+      state.justEvaluated = false;
+      state.error = false;
+      if (!state.operator) state.expression = "";
+    } else {
+      const digitCount = state.current.replace(/[-.]/g, "").length;
+      if (digitCount < 12) {
+        state.current = state.current === "0" ? (key === "00" ? "0" : key) : state.current + key;
+      }
+    }
+  } else if (key === "decimal") {
+    if (state.error || state.waitingForOperand || state.justEvaluated) {
+      state.current = "0.";
+      state.waitingForOperand = false;
+      state.justEvaluated = false;
+      state.error = false;
+    } else if (!state.current.includes(".")) {
+      state.current += ".";
+    }
+  } else if (key === "percent") {
+    const value = Number(state.current);
+    if (Number.isFinite(value)) {
+      state.current = calculatorNumberToInput(value / 100);
+      state.waitingForOperand = false;
+      state.justEvaluated = false;
+    }
+  } else if (Object.prototype.hasOwnProperty.call(CALCULATOR_OPERATOR_SYMBOLS, key)) {
+    const currentValue = Number(state.current);
+    if (state.error || !Number.isFinite(currentValue)) {
+      resetExpenseCalculator();
+    } else if (state.operator && !state.waitingForOperand) {
+      const result = calculateExpenseCalculator(state.accumulator, state.operator, currentValue);
+      if (result === null || !Number.isFinite(result) || Math.abs(result) > 999999999999) {
+        setExpenseCalculatorError(result === null ? "0では割れません" : "金額が大きすぎます");
+      } else {
+        state.accumulator = result;
+        state.current = calculatorNumberToInput(result);
+        state.operator = key;
+        state.waitingForOperand = true;
+        state.justEvaluated = false;
+        state.expression = `${formatCalculatorInput(state.current)} ${CALCULATOR_OPERATOR_SYMBOLS[key]}`;
+      }
+    } else {
+      state.accumulator = currentValue;
+      state.operator = key;
+      state.waitingForOperand = true;
+      state.justEvaluated = false;
+      state.expression = `${formatCalculatorInput(state.current)} ${CALCULATOR_OPERATOR_SYMBOLS[key]}`;
+    }
+  } else if (key === "equals" && state.operator && state.accumulator !== null && !state.waitingForOperand) {
+    const rightValue = Number(state.current);
+    const leftValue = state.accumulator;
+    const operator = state.operator;
+    const result = calculateExpenseCalculator(leftValue, operator, rightValue);
+    if (result === null || !Number.isFinite(result) || Math.abs(result) > 999999999999) {
+      setExpenseCalculatorError(result === null ? "0では割れません" : "金額が大きすぎます");
+    } else {
+      state.expression = `${formatCalculatorInput(calculatorNumberToInput(leftValue))} ${CALCULATOR_OPERATOR_SYMBOLS[operator]} ${formatCalculatorInput(state.current)} ＝`;
+      state.current = calculatorNumberToInput(result);
+      state.accumulator = null;
+      state.operator = null;
+      state.waitingForOperand = false;
+      state.justEvaluated = true;
+    }
+  }
+
+  updateExpenseCalculatorDisplay();
+}
+
+function applyExpenseCalculatorResult() {
+  const amount = Math.round(Number(expenseCalculatorState.current));
+  if (expenseCalculatorState.error || !Number.isFinite(amount) || amount <= 0) {
+    expenseCalculatorState.expression = "1円以上の金額にしてください";
+    expenseCalculatorState.error = false;
+    updateExpenseCalculatorDisplay();
+    return;
+  }
+  byId("expense-amount").value = formatNumber(amount);
+  byId("expense-amount-error").textContent = "";
+  closeDialog(byId("expense-calculator-dialog"));
+  byId("expense-amount").focus();
+}
+
+function handleExpenseCalculatorKeyboard(event) {
+  const dialog = byId("expense-calculator-dialog");
+  if (!dialog || !dialog.open) return;
+  const keyMap = {
+    "+": "add",
+    "-": "subtract",
+    "*": "multiply",
+    "/": "divide",
+    "%": "percent",
+    ".": "decimal",
+    Enter: "equals",
+    "=": "equals",
+    Backspace: "backspace",
+    Delete: "clear",
+    c: "clear",
+    C: "clear",
+  };
+  const calculatorKey = /^\d$/.test(event.key) ? event.key : keyMap[event.key];
+  if (!calculatorKey) return;
+  event.preventDefault();
+  handleExpenseCalculatorKey(calculatorKey);
 }
 
 function formatMoneyInput(event) {

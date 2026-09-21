@@ -1149,7 +1149,17 @@
         <!-- メイン入力項目（無駄な余白を削減したコンパクトフォーム） -->
         <div class="form-grid expense-compact-grid">
           <label class="field-large full-span">金額<span class="required">必須</span>
-            <div class="money-input"><span>¥</span><input id="expense-amount" type="text" inputmode="numeric" autocomplete="off" placeholder="0" required /></div>
+            <div class="money-input has-calculator">
+              <span>¥</span>
+              <input id="expense-amount" type="text" inputmode="numeric" autocomplete="off" placeholder="0" required />
+              <button id="open-expense-calculator" class="money-calculator-button" type="button" aria-label="電卓を開く" title="電卓を開く">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="4" y="2.5" width="16" height="19" rx="3"></rect>
+                  <path d="M7.5 6.5h9v3h-9z"></path>
+                  <path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"></path>
+                </svg>
+              </button>
+            </div>
             <small id="expense-amount-error" class="field-error"></small>
           </label>
           <label>利用日<span class="required">必須</span><input id="expense-date" type="date" required /></label>
@@ -1187,6 +1197,43 @@
           <button class="button button-primary" type="submit">保存する</button>
         </div>
       </form>
+    </dialog>
+
+    <!-- 支出金額用の電卓 -->
+    <dialog id="expense-calculator-dialog" class="app-dialog calculator-dialog" aria-labelledby="expense-calculator-title">
+      <div class="calculator-shell">
+        <div class="calculator-header">
+          <h2 id="expense-calculator-title">電卓</h2>
+          <button class="dialog-close calculator-close" type="button" data-close-dialog="expense-calculator-dialog" aria-label="電卓を閉じる">×</button>
+        </div>
+        <div class="calculator-display" aria-live="polite" aria-atomic="true">
+          <span id="calculator-expression" class="calculator-expression">&nbsp;</span>
+          <strong id="calculator-result" class="calculator-result">0</strong>
+        </div>
+        <div class="calculator-keys" aria-label="電卓のキー">
+          <button type="button" class="calculator-key calculator-key-muted" data-calculator-key="clear">AC</button>
+          <button type="button" class="calculator-key calculator-key-muted" data-calculator-key="backspace" aria-label="一文字削除">⌫</button>
+          <button type="button" class="calculator-key calculator-key-muted" data-calculator-key="percent">%</button>
+          <button type="button" class="calculator-key calculator-key-operator" data-calculator-key="divide" aria-label="割る">÷</button>
+          <button type="button" class="calculator-key" data-calculator-key="7">7</button>
+          <button type="button" class="calculator-key" data-calculator-key="8">8</button>
+          <button type="button" class="calculator-key" data-calculator-key="9">9</button>
+          <button type="button" class="calculator-key calculator-key-operator" data-calculator-key="multiply" aria-label="掛ける">×</button>
+          <button type="button" class="calculator-key" data-calculator-key="4">4</button>
+          <button type="button" class="calculator-key" data-calculator-key="5">5</button>
+          <button type="button" class="calculator-key" data-calculator-key="6">6</button>
+          <button type="button" class="calculator-key calculator-key-operator" data-calculator-key="subtract" aria-label="引く">−</button>
+          <button type="button" class="calculator-key" data-calculator-key="1">1</button>
+          <button type="button" class="calculator-key" data-calculator-key="2">2</button>
+          <button type="button" class="calculator-key" data-calculator-key="3">3</button>
+          <button type="button" class="calculator-key calculator-key-operator" data-calculator-key="add" aria-label="足す">＋</button>
+          <button type="button" class="calculator-key" data-calculator-key="00">00</button>
+          <button type="button" class="calculator-key" data-calculator-key="0">0</button>
+          <button type="button" class="calculator-key" data-calculator-key="decimal">.</button>
+          <button type="button" class="calculator-key calculator-key-equals" data-calculator-key="equals" aria-label="計算する">＝</button>
+        </div>
+        <button id="apply-calculator-result" class="button button-primary calculator-apply" type="button">この金額を入力</button>
+      </div>
     </dialog>
 
     <!-- 集計方式の「？」説明ダイアログ -->
