@@ -2407,12 +2407,31 @@ function shadeHexColor(hexColor, factor) {
 
 function generateMarbleSvg(themeColor, isDarkBg) {
   const color = themeColor || "#007a78";
-  const broadOpacity = isDarkBg ? 0.26 : 0.18;
-  const veinOpacity = isDarkBg ? 0.58 : 0.42;
-  const branchOpacity = isDarkBg ? 0.38 : 0.28;
-  const highlightOpacity = isDarkBg ? 0.20 : 0.62;
+  const deepColor = shadeHexColor(color, isDarkBg ? -0.2 : -0.48);
+  const broadOpacity = isDarkBg ? 0.25 : 0.16;
+  const veinOpacity = isDarkBg ? 0.66 : 0.48;
+  const branchOpacity = isDarkBg ? 0.46 : 0.34;
+  const highlightOpacity = isDarkBg ? 0.34 : 0.72;
 
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420' viewBox='0 0 420 420' fill='none'><defs><filter id='soft' x='-20%' y='-20%' width='140%' height='140%'><feGaussianBlur stdDeviation='7'/></filter></defs><g fill='none' stroke='${color}' stroke-linecap='round' filter='url(#soft)' opacity='${broadOpacity}'><path d='M-30 64 C55 16 92 121 164 91 C236 61 251 174 337 137 C379 119 410 86 450 74' stroke-width='28'/><path d='M-35 363 C38 292 97 372 156 317 C213 264 253 335 307 278 C360 222 401 245 455 202' stroke-width='22'/><path d='M82 -35 C129 30 94 85 137 139 C181 195 134 238 183 291 C224 336 218 384 253 455' stroke-width='18'/></g><g fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-opacity='${veinOpacity}'><path d='M-30 64 C55 16 92 121 164 91 C236 61 251 174 337 137 C379 119 410 86 450 74' stroke-width='5.4'/><path d='M-35 363 C38 292 97 372 156 317 C213 264 253 335 307 278 C360 222 401 245 455 202' stroke-width='4.6'/><path d='M82 -35 C129 30 94 85 137 139 C181 195 134 238 183 291 C224 336 218 384 253 455' stroke-width='3.8'/></g><g fill='none' stroke='white' stroke-linecap='round' stroke-opacity='${highlightOpacity}'><path d='M-27 57 C55 9 90 112 162 83 C235 53 251 165 334 129 C379 110 410 78 448 67' stroke-width='1.7'/><path d='M-31 356 C39 285 96 365 153 310 C211 256 252 327 303 271 C357 214 400 237 452 195' stroke-width='1.5'/><path d='M75 -32 C121 33 86 87 129 143 C172 199 125 241 174 296 C214 341 209 389 244 452' stroke-width='1.2'/></g><g fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-opacity='${branchOpacity}'><path d='M92 91 C70 137 38 145 5 166'/><path d='M164 91 C188 123 191 150 181 183'/><path d='M252 119 C281 89 288 54 279 21'/><path d='M337 137 C351 167 378 178 411 176'/><path d='M91 341 C75 302 45 278 9 268'/><path d='M156 317 C173 354 204 370 234 373'/><path d='M307 278 C287 244 285 217 296 188'/><path d='M137 139 C109 165 91 197 88 230'/><path d='M183 291 C213 271 238 249 251 218'/><path d='M221 361 C253 345 279 348 304 367'/> </g></svg>`;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='560' height='560' viewBox='0 0 560 560' fill='none'><defs><filter id='cloud' x='-30%' y='-30%' width='160%' height='160%' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='.008 .021' numOctaves='4' seed='23' result='noise'/><feDisplacementMap in='SourceGraphic' in2='noise' scale='42' xChannelSelector='R' yChannelSelector='B'/><feGaussianBlur stdDeviation='10'/></filter><filter id='warp' x='-25%' y='-25%' width='150%' height='150%' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='.011 .032' numOctaves='3' seed='17' result='noise'/><feDisplacementMap in='SourceGraphic' in2='noise' scale='34' xChannelSelector='R' yChannelSelector='B'/></filter><filter id='fine' x='-20%' y='-20%' width='140%' height='140%' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='.018 .055' numOctaves='2' seed='31' result='noise'/><feDisplacementMap in='SourceGraphic' in2='noise' scale='15' xChannelSelector='R' yChannelSelector='B'/></filter></defs><g fill='none' stroke='${color}' stroke-linecap='round' filter='url(#cloud)' opacity='${broadOpacity}'><path d='M-70 104 C18 21 89 169 176 104 C263 39 322 198 410 126 C474 73 527 64 626 119' stroke-width='38'/><path d='M-63 492 C25 401 112 514 191 418 C265 328 340 445 412 356 C478 275 535 300 624 226' stroke-width='31'/><path d='M118 -71 C184 14 120 91 180 168 C239 244 169 309 233 383 C284 442 281 503 332 631' stroke-width='27'/></g><g fill='none' stroke='${deepColor}' stroke-linecap='round' stroke-linejoin='round' stroke-opacity='${veinOpacity}' filter='url(#warp)'><path d='M-70 104 C18 21 89 169 176 104 C263 39 322 198 410 126 C474 73 527 64 626 119' stroke-width='6.4'/><path d='M-63 492 C25 401 112 514 191 418 C265 328 340 445 412 356 C478 275 535 300 624 226' stroke-width='5.2'/><path d='M118 -71 C184 14 120 91 180 168 C239 244 169 309 233 383 C284 442 281 503 332 631' stroke-width='4.6'/></g><g fill='none' stroke='white' stroke-linecap='round' stroke-opacity='${highlightOpacity}' filter='url(#fine)'><path d='M-65 94 C20 12 91 159 173 95 C261 28 325 187 406 116 C472 60 531 55 628 110' stroke-width='2.1'/><path d='M-59 482 C27 390 111 504 186 409 C262 315 341 434 407 347 C475 260 535 289 620 216' stroke-width='1.8'/><path d='M109 -68 C174 17 111 93 171 174 C227 250 158 312 223 390 C272 449 269 508 320 630' stroke-width='1.6'/></g><g fill='none' stroke='${deepColor}' stroke-linecap='round' stroke-linejoin='round' stroke-opacity='${branchOpacity}' filter='url(#fine)'><path d='M48 94 C27 143 -10 168 -51 177' stroke-width='1.5'/><path d='M176 104 C202 137 207 174 194 217' stroke-width='1.7'/><path d='M304 132 C333 91 340 49 323 6' stroke-width='1.35'/><path d='M410 126 C431 164 467 182 516 178' stroke-width='1.55'/><path d='M89 457 C61 416 23 390 -24 382' stroke-width='1.35'/><path d='M191 418 C213 461 250 483 293 479' stroke-width='1.65'/><path d='M412 356 C385 318 383 278 401 237' stroke-width='1.4'/><path d='M180 168 C144 199 124 237 123 279' stroke-width='1.45'/><path d='M233 383 C271 358 299 327 312 287' stroke-width='1.65'/><path d='M289 497 C331 473 369 479 404 511' stroke-width='1.25'/><path d='M516 178 C535 208 566 220 604 211' stroke-width='1.1'/><path d='M123 279 C96 304 80 337 82 369' stroke-width='1.05'/></g><g fill='none' stroke='white' stroke-linecap='round' stroke-opacity='${highlightOpacity * 0.58}' filter='url(#fine)'><path d='M177 101 C204 134 210 173 197 214' stroke-width='.75'/><path d='M191 415 C214 457 251 478 291 475' stroke-width='.7'/><path d='M411 352 C386 316 386 279 403 240' stroke-width='.65'/></g></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+function generateWaveSvg(themeColor, isDarkBg) {
+  const color = themeColor || "#007a78";
+  const opacity = isDarkBg ? 0.42 : 0.25;
+  const highlightOpacity = isDarkBg ? 0.16 : 0.32;
+  const buildWavePath = (y) => {
+    let path = `M-120 ${y}`;
+    for (let x = -120; x < 720; x += 120) {
+      path += ` C${x + 20} ${y - 18} ${x + 40} ${y - 18} ${x + 60} ${y}`;
+      path += ` C${x + 80} ${y + 18} ${x + 100} ${y + 18} ${x + 120} ${y}`;
+    }
+    return path;
+  };
+  const wavePath = buildWavePath(16);
+  const lowerWavePath = buildWavePath(48);
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='64' viewBox='0 0 600 64' fill='none' preserveAspectRatio='none'><g stroke='${color}' stroke-opacity='${opacity}' stroke-width='2.2' stroke-linecap='round' fill='none'><path d='${wavePath}'/><path d='${lowerWavePath}'/></g><g stroke='white' stroke-opacity='${highlightOpacity}' stroke-width='.65' stroke-linecap='round' fill='none' transform='translate(0 -1.2)'><path d='${wavePath}'/><path d='${lowerWavePath}'/></g></svg>`;
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
@@ -2513,10 +2532,12 @@ function applyThemeColors() {
 
   try {
     const marblePattern = generateMarbleSvg(color1, isDarkBg);
+    const wavePattern = generateWaveSvg(color1, isDarkBg);
     const starryPattern = generateStarrySvg(color1, isDarkBg);
     const confettiPattern = generateConfettiSvg(color1, isDarkBg);
     document.documentElement.style.setProperty("--marble-pattern", marblePattern);
     document.documentElement.style.setProperty("--leopard-pattern", marblePattern);
+    document.documentElement.style.setProperty("--wave-pattern", wavePattern);
     document.documentElement.style.setProperty("--starry-pattern", starryPattern);
     document.documentElement.style.setProperty("--confetti-pattern", confettiPattern);
   } catch (_e) {}
